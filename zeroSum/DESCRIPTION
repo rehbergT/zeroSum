@@ -1,0 +1,23 @@
+Package: zeroSum
+Title: Elastic-Net Regularized Regression with ZeroSum Constraint
+Description: Regressions functions for creating linear models with the
+             elastic-net regularization and the zero-sum constraint (sum of 
+             coefficients = 0). The usage of this package is very similiar to 
+             that of the "glmnet" package.
+Version:0.8.0
+Date: 2016-04-01
+Author: Thorsten Rehberg, Michael Altenbuchinger
+Maintainer: Thorsten Rehberg <thorsten.rehberg@ur.de>
+Depends:
+    R (>= 3.2.0),
+    foreach,
+    grDevices,
+    graphics,
+    stats
+Suggests:
+    knitr
+biocViews: Regression
+VignetteBuilder: knitr
+License: GPL-2
+NeedsCompilation: yes
+RoxygenNote: 5.0.0

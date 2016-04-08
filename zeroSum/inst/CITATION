@@ -1,0 +1,18 @@
+citHeader("To cite zeroSum in publications use:")
+
+citEntry(entry = "Article",
+  title        = "Reference point insensitive molecular data analysis",
+  author       = "M. Altenbuchinger, T. Rehberg et al.",
+  journal      = "...",
+  year         = "...",
+  volume       = "...",
+  number       = "...",
+  pages        = "...",
+  url          = "...",
+
+  textVersion  =
+  paste("M. Altenbuchinger, T. Rehberg (2016).",
+        "Reference point insensitive molecular data analysis.",
+        "...",
+        "...")
+)

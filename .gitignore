@@ -1,0 +1,11 @@
+*~
+.RData
+*.Rcheck
+*.o
+*.so
+*.Rd
+*.aux
+*.log
+*.tar.gz
+*.Rnw.backup
+ZeroSumElasticNet/NAMESPACE
