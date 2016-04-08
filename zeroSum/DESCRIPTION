@@ -16,7 +16,6 @@ Depends:
     stats
 Suggests:
     knitr
-biocViews: Regression
 VignetteBuilder: knitr
 License: GPL-2
 NeedsCompilation: yes
