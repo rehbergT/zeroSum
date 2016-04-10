@@ -1,6 +1,5 @@
 #include "mathHelpers.h"
 
-#define PW_BLOCKSIZE  128
 
 void MeanVar( double* restrict messung,int anz_mess, double*  restrict berechnet )
 {

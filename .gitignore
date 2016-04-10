@@ -3,7 +3,6 @@
 *.Rcheck
 *.o
 *.so
-*.Rd
 *.aux
 *.log
 *.tar.gz

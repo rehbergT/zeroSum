@@ -52,7 +52,7 @@ from github as follows:
 
 <<install, echo=TRUE, eval=FALSE>>==
 library("devtools")
-install_github("tobefilled")
+install_github("rehbergT/zeroSum/zeroSum")
 @
 
 
