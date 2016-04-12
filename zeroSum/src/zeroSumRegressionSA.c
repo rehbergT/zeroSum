@@ -59,7 +59,8 @@ int move(   struct regressionData *data,
     
     double deltaE = tmp_energy - *energy;    
 
-    if( deltaE <= 0.0   || rng < exp(-deltaE / temperature) ){
+    if( deltaE <= 0.0   || rng < exp(-deltaE / temperature) )
+    {
          memcpy ( res, tmp, sizeof(double) * N );
          *ridge = tmp_ridge;
          *lasso = tmp_lasso;
@@ -69,7 +70,8 @@ int move(   struct regressionData *data,
          beta[to] += amount;        
          return 1;
     }
-    else{
+    else
+    {
         return 0;
     }
     return -1;
@@ -102,14 +104,16 @@ int moveOffset( struct regressionData *data,
     
     double deltaE = tmp_energy - *energy;    
 
-    if( deltaE <= 0.0   || rng < exp(-deltaE / temperature) ){
+    if( deltaE <= 0.0   || rng < exp(-deltaE / temperature) )
+    {
          memcpy ( res, tmp, sizeof(double) * N );
          *energy = tmp_energy;
          *residum = tmp_residum;
          (*data).beta[0] += amount;        
          return 1;
     }
-    else{
+    else
+    {
         return 0;
     }
     return -1;

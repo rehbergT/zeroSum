@@ -32,15 +32,17 @@ coef <- function( fit=NULL, s="lambda.min", ... )
         {
             if(s == "lambda.min")
             {
-                beta <- fit$betaMin
+                beta <- fit$coefs[ fit$LambdaMinIndex, ]
             }
             else if(s == "lambda.1SE")
             {
-                beta <- fit$beta1SE
+                beta <- fit$coefs[ fit$Lambda1SEIndex, ]
             }
             else
             {
-                stop("lambda Index not valid!\n")
+                beta <- fit$coefs[s,]
+                if(is.na(beta))
+                    stop("s not valid")
             }              
         }
         return( as.matrix(beta) )

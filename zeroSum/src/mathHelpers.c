@@ -55,40 +55,141 @@ void printVector( double* vector, int N )
         PRINT( "%+.4e\n",vector[i]);
 }
 
-double sum( double* restrict a, int n )
+double sum( double* restrict a, const int n )
 {
-    double tmp = 0.0;
-    while( n-- != 0 )
+    if(n < 8)
     {
-        const double atmp = *a;        
-        tmp += atmp;
-        a++;
+        double sum = 0.0;
+        for ( int i=0; i<n; ++i)
+            sum += a[i];
+        
+        return sum;
     }
-    return tmp;    
+    else 
+    {
+        double psum[8];
+        psum[0] = a[0];
+        psum[1] = a[1];
+        psum[2] = a[2];
+        psum[3] = a[3];
+        psum[4] = a[4];
+        psum[5] = a[5];
+        psum[6] = a[6];
+        psum[7] = a[7];
+
+        int i=8;
+        for( ; i<n-(n%8); i += 8 )
+        {
+            psum[0] += a[i + 0];
+            psum[1] += a[i + 1];
+            psum[2] += a[i + 2];
+            psum[3] += a[i + 3];
+            psum[4] += a[i + 4];
+            psum[5] += a[i + 5];
+            psum[6] += a[i + 6];
+            psum[7] += a[i + 7];
+        }
+    
+        double sum = 0.0;
+        for( int j=0; j<8; ++j )
+            sum += psum[j];
+
+        for ( ; i<n; ++i)
+            sum += a[i];        
+        return sum;
+    }
 }
 
-double squaresum( double* restrict a, int n )
+
+
+double squaresum( double* restrict a, const int n )
 {
-    double tmp = 0.0;
-    while( n-- != 0 )
+    if(n < 8)
     {
-        const double atmp = *a;
-        a++;
-        tmp += atmp * atmp;
+        double sum = 0.0;
+        for ( int i=0; i<n; ++i)
+            sum += a[i]*a[i];
+        
+        return sum;
     }
-    return tmp;    
+    else 
+    {
+        double psum[8];
+        psum[0] = a[0] * a[0];
+        psum[1] = a[1] * a[1];
+        psum[2] = a[2] * a[2];
+        psum[3] = a[3] * a[3];
+        psum[4] = a[4] * a[4];
+        psum[5] = a[5] * a[5];
+        psum[6] = a[6] * a[6];
+        psum[7] = a[7] * a[7];
+
+        int i=8;
+        for( ; i<n-(n%8); i += 8 )
+        {
+            psum[0] += a[i + 0] * a[i + 0];
+            psum[1] += a[i + 1] * a[i + 1];
+            psum[2] += a[i + 2] * a[i + 2];
+            psum[3] += a[i + 3] * a[i + 3];
+            psum[4] += a[i + 4] * a[i + 4];
+            psum[5] += a[i + 5] * a[i + 5];
+            psum[6] += a[i + 6] * a[i + 6];
+            psum[7] += a[i + 7] * a[i + 7];
+        }
+    
+        double sum = 0.0;
+        for( int j=0; j<8; ++j )
+            sum += psum[j];
+
+        for ( ; i<n; ++i)
+            sum += a[i]*a[i];        
+        return sum;
+    }
 }
 
-double abssum( double* restrict a, int n )
+double abssum( double* restrict a, const int n )
 {
-    double tmp = 0.0;
-    while( n-- != 0 )
+    if(n < 8)
     {
-        const double atmp = *a;
-        a++;
-        tmp += fabs(atmp);
+        double sum = 0.0;
+        for ( int i=0; i<n; ++i)
+            sum += fabs(a[i]);
+        
+        return sum;
     }
-    return tmp;    
+    else 
+    {
+        double psum[8];
+        psum[0] = fabs(a[0]);
+        psum[1] = fabs(a[1]);
+        psum[2] = fabs(a[2]);
+        psum[3] = fabs(a[3]);
+        psum[4] = fabs(a[4]);
+        psum[5] = fabs(a[5]);
+        psum[6] = fabs(a[6]);
+        psum[7] = fabs(a[7]);
+
+        int i=8;
+        for( ; i<n-(n%8); i += 8 )
+        {
+            psum[0] += fabs(a[i + 0]);
+            psum[1] += fabs(a[i + 1]);
+            psum[2] += fabs(a[i + 2]);
+            psum[3] += fabs(a[i + 3]);
+            psum[4] += fabs(a[i + 4]);
+            psum[5] += fabs(a[i + 5]);
+            psum[6] += fabs(a[i + 6]);
+            psum[7] += fabs(a[i + 7]);
+        }
+    
+        double sum = 0.0;
+        for( int j=0; j<8; ++j )
+            sum += psum[j];
+
+        for ( ; i<n; ++i)
+            sum += fabs(a[i]);        
+        return sum;
+    }
 }
 
 

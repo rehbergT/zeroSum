@@ -5,8 +5,9 @@
 \title{Description of zeroSumCVFitObject function}
 \usage{
 zeroSumCVFitObject(lambdaSeq, CVError, CVError_SD, alpha, devRatio, type,
-  algorithmCV, algorithmAllSamples, lambdaMin, betaMin, lambda1SE, beta1SE,
-  offset, precision, verticalMoves, polish, numberOfBetas)
+  algorithmCV, algorithmAllSamples, coefs, lambdaMin, lambda1SE, offset,
+  precision, verticalMoves, polish, numberOfBetas, logLikelihoodCV,
+  logLikelihood)
 }
 \value{
 zeroSumCVFitObject

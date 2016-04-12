@@ -9,9 +9,7 @@
     #include <Rdefines.h>
     #include <R_ext/Utils.h>
     #include <R_ext/Rdynload.h>
-    
-    // #include<Rmath.h>
-    // #include<R_ext/BLAS.h>
+
     #define PRINT Rprintf
     #define MY_RND unif_rand()
 

@@ -39,9 +39,9 @@
 #'
 #' @return regression coefficients are returned
 #'
-#' @keywords internal
-#'
 #' @useDynLib zeroSum
+#'
+#' @keywords internal
 #'
 zeroSumRegression <- function( x, y, beta, lambda, alpha, offset, type, 
         algorithm, verbose, precision, diagonalMoves, polish) 

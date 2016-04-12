@@ -14,7 +14,7 @@
 #'              a ridge regularization, for alpha = 1 the elastic net becomes
 #'              the lasso regularization
 #'
-#' @return value of cost function
+#' @return different terms and finale cost of the objective function
 #'
 #' @keywords internal
 #'

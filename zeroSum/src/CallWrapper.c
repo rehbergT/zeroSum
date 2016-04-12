@@ -48,6 +48,8 @@ SEXP CallWrapper(   SEXP _X, SEXP _Y, SEXP _beta, SEXP _lambda,
         x, y, N, P, beta, lambda, alpha, offset, precision
     };
     
+//     PRINT("TYPE: %d  ALGORITHM: %d  POLISH: %d DIAGONAL: %d\n", type, algorithm, polish, verticalMoves);
+    
     if( type == 0 )
     {
         if( algorithm == 0 )
@@ -64,7 +66,6 @@ SEXP CallWrapper(   SEXP _X, SEXP _Y, SEXP _beta, SEXP _lambda,
         }
         else if( algorithm == 2 )
         {
-            memset( beta, 0, P * sizeof(double) );
             elNetRegressionLS( data, 0);
         }       
         else if( algorithm == 3 )
@@ -89,7 +90,6 @@ SEXP CallWrapper(   SEXP _X, SEXP _Y, SEXP _beta, SEXP _lambda,
         }
         else if( algorithm == 2 )
         {
-            memset( beta, 0, P * sizeof(double) );
             zeroSumRegressionLS( data, 0);
         }
         else if( algorithm == 3 )

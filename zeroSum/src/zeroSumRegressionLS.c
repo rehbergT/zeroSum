@@ -48,7 +48,8 @@ int moveLS( struct regressionData *data,
     
     double deltaE = tmp_energy - *energy;    
 
-    if( deltaE <= 0.0 ){
+    if( deltaE <= 0.0 )
+    {
          memcpy ( res, tmp, sizeof(double) * N );
          *ridge = tmp_ridge;
          *lasso = tmp_lasso;
@@ -58,7 +59,8 @@ int moveLS( struct regressionData *data,
          beta[to] += amount;        
          return 1;
     }
-    else{
+    else
+    {
         return 0;
     }
     return -1;
@@ -89,14 +91,16 @@ int moveLSOffset(   struct regressionData *data,
     
     double deltaE = tmp_energy - *energy;    
 
-    if( deltaE <= 0.0  ){
+    if( deltaE <= 0.0  )
+    {
          memcpy ( res, tmp, sizeof(double) * N );
          *energy = tmp_energy;
          *residum = tmp_residum;
          (*data).beta[0] += amount;        
          return 1;
     }
-    else{
+    else
+    {
         return 0;
     }
     return -1;
@@ -184,9 +188,8 @@ void zeroSumRegressionLS(
         #ifdef R_PACKAGE
         R_CheckUserInterrupt();
         #endif
-        if(steps > 0) break;
 
-        
+        if(steps > 0) break;        
  
         #ifdef DEBUG
         double acceptrate = counter / ( (double) (repeats * P)  );
@@ -200,9 +203,7 @@ void zeroSumRegressionLS(
         
     }while(  (energy_start - energy) / energy > data.precision  );    
     
-
-    
-    
+  
     #ifdef DEBUG2
     PRINT("Energy before: %e\t  later %e\tDif %e\n",
             energy1, energy, energy-energy1  );

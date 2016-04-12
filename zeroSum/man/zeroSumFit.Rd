@@ -6,7 +6,7 @@
 \usage{
 zeroSumFit(x, y, lambda, alpha, offset = TRUE, type = "zeroSumElNet",
   algorithm = "CD+LS", precision = 1e-06, diagonalMoves = TRUE,
-  polish = 100, verbose = FALSE)
+  polish = 10, verbose = FALSE)
 }
 \arguments{
 \item{x}{data as a numeric matrix object (rows=samples).

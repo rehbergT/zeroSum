@@ -19,6 +19,7 @@
 #'               model or not (TRUE/FALSE)
 #'
 #' @param type choose the regression type: elNet, zeroSumElNet
+#
 #' @param algorithm choose an algorithm:
 #'            CD = Coordinate descent (very fast, not so accurate),
 #'            CD+LS = Coordinate descent + local search (fast, very accurate),
@@ -54,7 +55,7 @@ zeroSumFit <- function(
                 algorithm="CD+LS",
                 precision=1e-6, 
                 diagonalMoves=TRUE, 
-                polish=100,
+                polish=10,
                 verbose=FALSE) 
 {    
     if( class(x) != "matrix" | ( typeof(x) != "double" ) )
@@ -118,7 +119,11 @@ zeroSumFit <- function(
     beta <- rep( 0.0, ncol(x) )        
       
 
-    energy1 <- vectorElNetCostFunction(x ,y ,beta, lambda, alpha)$cost
+    energy1 <- 0
+    if( type=="elNet" || type=="zeroSumElNet" )
+    {
+        energy1 <- vectorElNetCostFunction(x ,y ,beta, lambda, alpha)$cost
+    }
 
     if(verbose)
     { 
@@ -130,7 +135,11 @@ zeroSumFit <- function(
                 polish)
    
 
-    energy2 <- vectorElNetCostFunction(x ,y ,beta, lambda, alpha)$cost
+    energy2 <- 0
+    if( type=="elNet" || type=="zeroSumElNet" )
+    {
+        energy2 <- vectorElNetCostFunction(x ,y ,beta, lambda, alpha)$cost
+    }
 
     if(verbose)
     { 

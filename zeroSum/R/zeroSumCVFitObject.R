@@ -15,16 +15,16 @@ zeroSumCVFitObject <- function( lambdaSeq,
                                 type, 
                                 algorithmCV, 
                                 algorithmAllSamples, 
+                                coefs,
                                 lambdaMin,
-                                betaMin, 
-                                lambda1SE, 
-                                beta1SE, 
+                                lambda1SE,
                                 offset, 
                                 precision, 
                                 verticalMoves,
                                 polish, 
-                                numberOfBetas
-        )
+                                numberOfBetas,
+                                logLikelihoodCV,
+                                logLikelihood   )
 {
     zeroSumCVFit <- list()
 
@@ -33,8 +33,7 @@ zeroSumCVFitObject <- function( lambdaSeq,
     zeroSumCVFit$LambdaMinIndex <- lambdaMin    
     zeroSumCVFit$Lambda1SEIndex <- lambda1SE
     
-    zeroSumCVFit$betaMin <- betaMin
-    zeroSumCVFit$beta1SE <- beta1SE
+    zeroSumCVFit$coefs <- coefs
     zeroSumCVFit$numberOfBetas <- numberOfBetas
     
     zeroSumCVFit$algorithmCV <- algorithmCV
@@ -48,9 +47,9 @@ zeroSumCVFitObject <- function( lambdaSeq,
     zeroSumCVFit$verticalMoves <- verticalMoves
     zeroSumCVFit$polish <- polish
     zeroSumCVFit$type <- type
-    
+    zeroSumCVFit$logLikelihoodCV <- logLikelihoodCV
+    zeroSumCVFit$logLikelihood <- logLikelihood
     
     class(zeroSumCVFit) <- append( class(zeroSumCVFit), "ZeroSumCVFit")
     return(zeroSumCVFit) 
-
 }

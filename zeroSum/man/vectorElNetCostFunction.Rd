@@ -20,7 +20,7 @@ vectorElNetCostFunction(x, y, beta, lambda, alpha)
              the lasso regularization}
 }
 \value{
-value of cost function
+different terms and finale cost of the objective function
 }
 \description{
 This function calculates the cost function for the elastic net regression.

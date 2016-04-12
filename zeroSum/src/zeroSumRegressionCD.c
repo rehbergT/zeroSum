@@ -7,7 +7,7 @@
 #define TestBit(A,k)    ( A[(k/32)] & (1 << (k%32)) )
 
 #define REFRESH 1000
-#define MAXFAILRATE 0.90
+#define MIN_SUCCESS_RATE 0.90
 
 //      #define DEBUG
 //      #define DEBUG2
@@ -111,12 +111,10 @@ int calcRTGradient(  struct regressionData *data,
                      double* restrict betas, 
                      double* restrict betasX, 
                      double* restrict tmparray)
-{
-    
+{ 
     double* restrict x = (*data).x;
     double* restrict beta = (*data).beta;    
     const int N = (*data).N;
-    
     
     double cosT = cos(theta);
     double sinT = sin(theta);
@@ -142,7 +140,6 @@ int calcRTGradient(  struct regressionData *data,
     i1 = INDEX(0,n,N);
     i2 = INDEX(0,m,N);
     i3 = INDEX(0,s,N);
-
     
     for( int i=0; i<N; i++, i1++, i2++, i3++ )
     {
@@ -244,7 +241,6 @@ inline void calcOffsetGradient( struct regressionData *data,
     }
     beta[0] /= N;
     
-    
     double tmp = oldbeta0-beta[0];
     for( int i=0; i<N; i++ )
     {
@@ -311,7 +307,7 @@ void zeroSumRegressionCD( struct regressionData data,
     #ifdef DEBUG2
     double energy1, energy2, energy3;
     vectorElNetCostFunction( &data, res, &energy1, &residum, &ridge, &lasso);
-    PRINT("Initial Energy: %e  (sum: %e)\n", energy1, mySum(&data.beta[1], P-1));
+    PRINT("Initial Energy: %e  (sum: %e)\n", energy1, sum(&data.beta[1], P-1));
     #endif
 
     double energynew;
@@ -338,8 +334,7 @@ void zeroSumRegressionCD( struct regressionData data,
         {
             calcOffsetGradient( &data, betasX);
             refreshCounter++;
-        } 
-        
+        }        
         
         activesetChange = 0;  
         fisherYates(ind1, P);
@@ -373,7 +368,7 @@ void zeroSumRegressionCD( struct regressionData data,
                 vectorElNetCostFunction( &data, res, &energynew, &residum, &ridge, &lasso);
 //                  PRINT("Vorher:j=%d Beta[j]=%e Beta[1]=%e activesetChange: %d activeset: %d energy: %e deltaE: %e  (sum %e)\n",
 //                         j, beta[j], beta[1], activesetChange, TestBit( activeset, j )!=0, energynew, energynew-energyold,
-//                          mySum(&beta[1], P-1)
+//                          sum(&beta[1], P-1)
 //                       );
                 if( energynew-energyold > 10000 * DBL_EPSILON ){
                         PRINT("ENERGY BREAK (ACTIVESET SEARCH)!\tDeltaE=%e, E_NEW: %e  E_old: %e\n",
@@ -432,11 +427,11 @@ void zeroSumRegressionCD( struct regressionData data,
             
             
             #ifdef DEBUG
-            PRINT("Test: %d  counter: %d  Failraite: %e <= %e  -> %d\n",  test, P, (double)test/(double)P, MAXFAILRATE,
-                    ((double)test/(double)P <= MAXFAILRATE)  );
+            PRINT("Test: %d  counter: %d  Failraite: %e <= %e  -> %d\n",  test, P, (double)test/(double)P, MIN_SUCCESS_RATE,
+                    ((double)test/(double)P <= MIN_SUCCESS_RATE)  );
             #endif
             
-            if( verticalMoves == 1  && (double)test/(double)P <= MAXFAILRATE)
+            if( verticalMoves == 1  && (double)test/(double)P <= MIN_SUCCESS_RATE)
             {
                 #ifdef DEBUG
                 PRINT("DIAGONAL MOVES!\n");
@@ -474,7 +469,7 @@ void zeroSumRegressionCD( struct regressionData data,
                         if( energy3-energy2 > 10000.0 * DBL_EPSILON ){
                             PRINT("ENERGY BREAK (DIAGONAL)!\tDeltaE=%e, E_NEW: %e  E_old: %e  sum=%e\n",
                                   energy3-energy2, energy3, energy2,
-                                   mySum(&data.beta[1], P-1)
+                                   sum(&data.beta[1], P-1)
                                  );
                         }               
                         #endif
