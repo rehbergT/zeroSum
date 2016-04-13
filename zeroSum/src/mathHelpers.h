@@ -27,6 +27,12 @@
 
 #define INDEX_ROW(i,j,M) ( (j) + ( (i) * (M) ) )
 
+// http://www.mathcs.emory.edu/~cheung/Courses/255/Syllabus/1-C-intro/bit-array.html
+#define SetBit(A,k)     ( A[(k/32)] |= (1 << (k%32)) )
+#define ClearBit(A,k)   ( A[(k/32)] &= ~(1 << (k%32)) )
+#define TestBit(A,k)    ( A[(k/32)] & (1 << (k%32)) )
+
+
 #define TRUE  1
 #define FALSE 0
 

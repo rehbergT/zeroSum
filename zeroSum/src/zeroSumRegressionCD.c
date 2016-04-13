@@ -1,16 +1,12 @@
 // RBioC CMD SHLIB fit.c -Wall -Wextra
 #include "regressions.h"
 
-// http://www.mathcs.emory.edu/~cheung/Courses/255/Syllabus/1-C-intro/bit-array.html
-#define SetBit(A,k)     ( A[(k/32)] |= (1 << (k%32)) )
-#define ClearBit(A,k)   ( A[(k/32)] &= ~(1 << (k%32)) )
-#define TestBit(A,k)    ( A[(k/32)] & (1 << (k%32)) )
 
 #define REFRESH 1000
 #define MIN_SUCCESS_RATE 0.90
 
-//      #define DEBUG
-//      #define DEBUG2
+//       #define DEBUG
+//       #define DEBUG2
 
 #ifdef DEBUG
 #include <time.h>
@@ -38,7 +34,7 @@ int calcGradient( struct regressionData *data,
     int i1 = INDEX(0,s,N);
     int i2 = INDEX(0,k,N);    
     
-    for( int i=0; i<N; i++, i1++, i2++)
+    for( int i=0; i<N; ++i, ++i1, ++i2 )
         tmparray[i] = ( x[ i1 ] - x[ i2 ] );
     
 
@@ -48,7 +44,7 @@ int calcGradient( struct regressionData *data,
     i1 = INDEX(0,s,N);
     i2 = INDEX(0,k,N);    
     
-    for( int i=0; i<N; i++, i1++, i2++ )
+    for( int i=0; i<N; ++i, ++i1, ++i2 )
     {
         tmparray[i] = tmparray[i] * ( betasX[i]  + x[ i2 ] * beta[k] 
                         + x[ i1 ] * betaPartSum  );
@@ -86,7 +82,7 @@ int calcGradient( struct regressionData *data,
 
         i1 = INDEX(0,s,N);
         i2 = INDEX(0,k,N);
-        for( int i=0; i<N; i++, i1++, i2++ )
+        for( int i=0; i<N; ++i, ++i1, ++i2 )
             betasX[i] -= diff * ( x[ i2 ] - x[i1]  );
 
         beta[k] = betatmp;
@@ -128,7 +124,7 @@ int calcRTGradient(  struct regressionData *data,
     double c1 = beta[n];
     double c2 = beta[m];
 
-    for( int i=0; i<N; i++, i1++, i2++, i3++)
+    for( int i=0; i<N; ++i, ++i1, ++i2, ++i3 )
     {
         tmparray[i] = ( x[ i2 ] * sinT - x[ i1 ] * cosT  - x[ i3 ] * sinTMcosT );
     }
@@ -141,7 +137,7 @@ int calcRTGradient(  struct regressionData *data,
     i2 = INDEX(0,m,N);
     i3 = INDEX(0,s,N);
     
-    for( int i=0; i<N; i++, i1++, i2++, i3++ )
+    for( int i=0; i<N; ++i, ++i1, ++i2, ++i3 )
     {
         tmparray[i] = tmparray[i] * ( betasX[i] 
                         + x[i1] * beta[n] + x[i2] * beta[m] 
@@ -216,7 +212,7 @@ int calcRTGradient(  struct regressionData *data,
         i2 = INDEX(0,m,N);
         i3 = INDEX(0,s,N);
 
-        for( int i=0; i<N; i++, i1++, i2++, i3++ )
+        for( int i=0; i<N; ++i, ++i1, ++i2, ++i3 )
             betasX[i] += x[i1] * tmp1 + x[i2] * tmp2 - x[i3] * tmp3;
         
         i3 = 1;
@@ -235,14 +231,14 @@ inline void calcOffsetGradient( struct regressionData *data,
     
     double oldbeta0 = beta[0];
     beta[0] = 0.0;
-    for( int i=0; i<N; i++ )
+    for( int i=0; i<N; ++i )
     {
         beta[0] += betasX[i] + oldbeta0;
     }
     beta[0] /= N;
     
     double tmp = oldbeta0-beta[0];
-    for( int i=0; i<N; i++ )
+    for( int i=0; i<N; ++i )
     {
         betasX[i] += tmp; 
     }
@@ -261,13 +257,13 @@ void refresh( struct regressionData *data,
     const int P = (*data).P;
     
     *betas = 0.0;
-    for(int j=1; j<P; j++)
+    for( int j=1; j<P; ++j )
         *betas += beta[j];
 
-    for(int i=0; i<N; i++)
+    for(int i=0; i<N; ++i )
     {
         betasX[i] = y[i] - beta[0];
-        for( int j=1; j<P; ++j)
+        for( int j=1; j<P; ++j )
         {
             betasX[i] -= x[ INDEX(i,j,N) ] * beta[j];
         }
@@ -339,9 +335,9 @@ void zeroSumRegressionCD( struct regressionData data,
         activesetChange = 0;  
         fisherYates(ind1, P);
         
-        for( int s=1; s<P; s++ )
+        for( int s=1; s<P; ++s )
         { 
-            for( int k=1; k< ceil(P*0.1); k++ )
+            for( int k=1; k<ceil(P*0.1); ++k )
             {   
                 int j = ind1[k];
                 
@@ -360,7 +356,9 @@ void zeroSumRegressionCD( struct regressionData data,
                         SetBit( activeset, s );
                     }
                     
-                    calcOffsetGradient( &data, betasX);
+                    if( data.offset == TRUE )
+                        calcOffsetGradient( &data, betasX);
+                    
                     refreshCounter++;                    
                 }
                 
@@ -392,7 +390,7 @@ void zeroSumRegressionCD( struct regressionData data,
             
             fisherYates(ind1, P);
             
-            for( int i=1; i<P; i++ )
+            for( int i=1; i<P; ++i )
             {                
                 int s = ind1[i];
                 if( TestBit( activeset, s ) == 0 ) continue;
@@ -409,7 +407,9 @@ void zeroSumRegressionCD( struct regressionData data,
                     
                     if( change == 1 ) 
                     {
-                        calcOffsetGradient( &data, betasX);
+                        if( data.offset == TRUE )
+                            calcOffsetGradient( &data, betasX);
+                        
                         test++;
                     }
                     
@@ -438,7 +438,7 @@ void zeroSumRegressionCD( struct regressionData data,
                 #endif   
                 
                 fisherYates(ind1, P);
-                for( int j=1; j<P; j++)
+                for( int j=1; j<P; ++j )
                 {   
                     int s = ind1[j];
                     
@@ -447,7 +447,7 @@ void zeroSumRegressionCD( struct regressionData data,
                     
                     fisherYates(ind2, P);
                     
-                    for( int k=1; k<j; k++)
+                    for( int k=1; k<j; ++k )
                     {
                         if( k == s || TestBit( activeset, k ) == 0 ) continue;
 
@@ -460,7 +460,9 @@ void zeroSumRegressionCD( struct regressionData data,
   
                         if( change == 1 ) 
                         {
-                            calcOffsetGradient( &data, betasX);
+                            if( data.offset == TRUE )
+                                calcOffsetGradient( &data, betasX);
+                            
                             test++;
                         }
                         

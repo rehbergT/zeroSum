@@ -1,16 +1,10 @@
 // RBioC CMD SHLIB fit.c -lgsl -lgslcblas -Wall -Wextra
 #include "regressions.h"
 
-// http://www.mathcs.emory.edu/~cheung/Courses/255/Syllabus/1-C-intro/bit-array.html
-#define SetBit(A,k)     ( A[(k/32)] |= (1 << (k%32)) )
-#define ClearBit(A,k)   ( A[(k/32)] &= ~(1 << (k%32)) )
-#define TestBit(A,k)    ( A[(k/32)] & (1 << (k%32)) )
-
 #define REFRESH 1000
 
 //   #define DEBUG
 //   # define DEBUG2
-
 
 #ifdef DEBUG
 #include <time.h>
@@ -31,7 +25,7 @@ int calcElNetGradient(  struct regressionData *data,
 
     int i1 = INDEX(0,j,N);
 
-    for( int i=0; i<N; i++, i1++ )
+    for( int i=0; i<N; ++i, ++i1 )
     {
         nominator +=  x[ i1 ] * ( betasX[i] + x[ i1 ] * beta[j] );
     }
@@ -47,8 +41,9 @@ int calcElNetGradient(  struct regressionData *data,
     }
 
     double diff = beta[j] - betaj;
+    
     i1 = INDEX(0,j,N);
-    for( int i=0; i<N; i++, i1++ )
+    for( int i=0; i<N; ++i, ++i1 )
         betasX[i] += x[ i1 ] * diff;
     beta[j] = betaj;
     
@@ -67,14 +62,14 @@ void calcOffsetElNetGradient(   struct regressionData *data,
     
     double oldbeta0 = beta[0];
     beta[0] = 0.0;
-    for( int i=0; i<N; i++ )
+    for( int i=0; i<N; ++i )
     {
         beta[0] += betasX[i] + oldbeta0;
     }
     beta[0] /= N;
     
-    double tmp = oldbeta0-beta[0];
-    for( int i=0; i<N; i++ )
+    double tmp = oldbeta0 - beta[0];
+    for( int i=0; i<N; ++i )
     {
         betasX[i] += tmp; 
     }
@@ -91,10 +86,10 @@ void elNetRefresh(  struct regressionData *data,
     const int N = (*data).N;
     const int P = (*data).P;    
     
-    for(int i=0; i<N; i++)
+    for( int i=0; i<N; ++i )
     {
         betasX[i] = y[i] - beta[0];
-        for( int j=1; j<P; ++j)
+        for( int j=1; j<P; ++j )
         {
             betasX[i] -= x[ INDEX(i,j,N) ] * beta[j];
         }
@@ -126,9 +121,9 @@ void elNetRegressionCD( struct regressionData data )
 
     double tmp;
     double tmp2 = data.lambda * ( 1.0 - data.alpha ) * data.N;
-    for(int j=1; j<P; j++)
+    for( int j=1; j<P; ++j )
     {
-        for(int i=0; i<data.N; ++i)
+        for( int i=0; i<data.N; ++i )
         {
             tmp = data.x[ INDEX(i,j,data.N) ];
             denominators[j] += tmp * tmp;
@@ -170,18 +165,16 @@ void elNetRegressionCD( struct regressionData data )
         PRINT("Step: %d\nFind active set\n", step);
         #endif
 
-
         if( data.offset == TRUE )
         {
             calcOffsetElNetGradient( &data, betasX);
-            refreshCounter++;
-        }
-            
+            ++refreshCounter;
+        }            
         
         activesetChange = 0;       
         fisherYates(ind, P);
 
-        for( int k=1; k<P; k++ )
+        for( int k=1; k<P; ++k )
         {                        
             int j = ind[k];
 
@@ -196,8 +189,10 @@ void elNetRegressionCD( struct regressionData data )
                 activesetChange = 1;
                 SetBit( activeset, j );
                 
-                calcOffsetElNetGradient( &data, betasX);
-                refreshCounter++;
+                if( data.offset == TRUE )
+                    calcOffsetElNetGradient( &data, betasX);
+                
+                ++refreshCounter;
             }
             
             #ifdef DEBUG
@@ -233,8 +228,10 @@ void elNetRegressionCD( struct regressionData data )
                 
                 if( change == 1)
                 {
-                    calcOffsetElNetGradient( &data, betasX); 
-                    test++;
+                    if( data.offset == TRUE )
+                        calcOffsetElNetGradient( &data, betasX);
+                    
+                    ++test;
                 }
                 
             }
@@ -263,7 +260,7 @@ void elNetRegressionCD( struct regressionData data )
 
         
         if(step==100) break;
-        step++;
+        ++step;
 
     }
 
