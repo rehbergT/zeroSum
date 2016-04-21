@@ -33,7 +33,7 @@ predict <- function( fit=NULL, newx=NULL, s="lambda.min", ... )
             stop("type of passed x is not a numeric matrix\n")
         }
 
-        if( fit$type == "zeroSumElNet")
+        if( fit$type == "zeroSumElNet" || fit$type == "elNet" )
         {
             beta <- coef(fit, s=s)    
             predict <- newx %*% beta[-1] + beta[1]    
