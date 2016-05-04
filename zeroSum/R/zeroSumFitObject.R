@@ -12,7 +12,8 @@ zeroSumFitObject <- function(   lambda,
                                 alpha, 
                                 coef,
                                 type,
-                                algorithm )
+                                algorithm,
+                                diagonalMoves)
 {
     zeroSumFit <- list()
     
@@ -22,6 +23,7 @@ zeroSumFitObject <- function(   lambda,
     zeroSumFit$coef <- coef
     zeroSumFit$type <- type
     zeroSumFit$algorithm <- algorithm
+    zeroSumFit$diagonalMoves <- diagonalMoves
     
     class(zeroSumFit) <- append( class(zeroSumFit),"ZeroSumFit")
     return(zeroSumFit) 

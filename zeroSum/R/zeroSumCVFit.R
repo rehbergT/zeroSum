@@ -90,6 +90,8 @@
 #'
 #' @import foreach stats grDevices
 #'
+#' @useDynLib zeroSum
+#'
 #' @export
 zeroSumCVFit <- function(
             x,
@@ -110,19 +112,18 @@ zeroSumCVFit <- function(
             precisionAllSamples = 1e-6,
             diagonalMoves = TRUE,
             lambdaScaler = 1,
-            polish = 10,
+            polish = 0,
             devianceStop = 0.1 )
 {
     # some basic checks for the passed arguments
-    if( class(x) != "matrix" | typeof(x) != "double"  )
+    checkNumericMatrix(x, 'x')
+    
+    checkType( type )
+    if( type == "elNet" || type == "zeroSumElNet" ){
+        checkNumericVector(y, 'y')
+    } else if( type == "zeroSumLogistic" )
     {
-        stop("type of passed x is not a numeric matrix\n")
-    }
-
-    if( (class(y) != "numeric" | typeof(y) != 'double') &&
-        (class(y) != "integer" | typeof(y) != 'integer')  )
-    {
-        stop("type of passed y is not numeric or integer\n")
+        checkBinominalVector(y, 'y')
     }
 
     if( nrow(x) != length(y) )
@@ -130,65 +131,15 @@ zeroSumCVFit <- function(
         stop("number of rows of X does not match length of Y!\n")
     }
 
-    if( class(lambdaSequence) != "numeric" |
-        typeof(lambdaSequence) != 'double'   )
-    {
-        stop("type of passed lambda sequence is not numeric\n")
-    }
-
-    if( length(lambdaSequence) < 2 & lambdaSequence != 0  )
-    {
-        stop("only one lambda in lambdasequence is passed\n")
-    }
-
-    if( class(alpha) != "numeric" | typeof(alpha) != 'double'   )
-    {
-        stop("type of passed alpha is not numeric\n")
-    }
-    if( class(algorithmCV) != "character" & typeof(algorithmCV) != "character" |
-        (   algorithmCV != "CD"   &
-            algorithmCV != "SA"   &
-            algorithmCV != "LS"   &
-            algorithmCV != "CD+LS"))
-    {
-            cat( "Selected algorithmCV is not valid\n")
-            cat( "Now using CD\n" )
-            algorithmCV <- "CD"
-    }
-    if( class(algorithmAllSamples) != "character" & 
-        typeof(algorithmAllSamples) != "character" |
-        (   algorithmAllSamples != "CD"   &
-            algorithmAllSamples != "SA"   &
-            algorithmAllSamples != "LS"   &
-            algorithmAllSamples != "CD+LS"))
-    {
-            cat( "Selected algorithmAllSamples is not valid\n")
-            cat( "Now using CD+LS\n" )
-            algorithmAllSamples <- "CD+LS"
-    }
-
-    if( class(type) != "character" & typeof(type) != "character" |
-        (   type != "elNet" &
-            type != "zeroSumElNet"))
-    {
-            cat( "Selected type is not valid\n")
-            cat("Use zeroSumElNet (default) or elNet\n")
-            type ="zeroSumElNet"
-    }
-
-    if( class(epsilon) != "numeric" | typeof(epsilon) != 'double'   ) 
-    {
-        stop("type of epsilon for calculating lambda min is not numeric\n")
-    }
-
-    if( class(lambdaSteps) != "numeric" | typeof(lambdaSteps) != 'double'   ) 
-    {
-        stop("type of lambdaSteps for calculating lambda min is not numeric\n")
-    }
-
-    if( class(nFold) != "numeric" | typeof(nFold) != 'double'   ) {
-        stop("type of passed nFold for calculating lambda min is not numeric\n")
-    }
+    checkNumericVector( lambdaSequence, "lambdaSequence")
+    checkDouble( alpha, "alpha")
+    
+    checkAlgo(algorithmCV, "algorithmCV")
+    checkAlgo(algorithmAllSamples, "algorithmAllSamples")
+   
+    checkDouble( epsilon, "epsilon")
+    checkDouble( lambdaSteps, "lambdaSteps")
+    checkInteger( nFold, "nFold")
 
     if( nFold > nrow(x)   ) 
     {
@@ -198,26 +149,25 @@ zeroSumCVFit <- function(
     if( devianceStop==FALSE )
     {
         devianceStop = 0
-    }
-
-    if( typeof(devianceStop) != "double" || class(devianceStop) != "numeric")
+    } else if( devianceStop==FALSE )
     {
-        stop("devianceStop not numeric\n")
+        devianceStop = 0.1
     }
-
+    checkDouble( devianceStop, "devianceStop")
     if( devianceStop < 0 || devianceStop >1 )
     {
         stop("devianceStop is not within [0,1]\n")
     }
 
-    devianceStop <- lambdaSteps*devianceStop
+
+    devianceStop <- lambdaSteps * devianceStop
 
     # Sample size and feature size
     N <- nrow(x)
     P <- ncol(x)
 
     # determine lambdaMax
-    if( lambdaSequence == 0 )
+    if( length(lambdaSequence) == 1 & lambdaSequence[1] == 0 )
     {
         # in the ridge case (alpha==0) lambdaMax can not be determined
         # therefore a small alpha is used to determine a lambda max
@@ -238,7 +188,7 @@ zeroSumCVFit <- function(
         lambdaMax <- NULL
 
 
-        if( type == "elNet")
+        if( type == "elNet" )
         {
             beta0 <- mean(y)
             res <- rep( 0, P )
@@ -254,21 +204,9 @@ zeroSumCVFit <- function(
         } else if( type == "zeroSumElNet")
         {
             beta0 <- y - mean(y)
-            maxRes <- -.Machine$double.xmax
-            ind <- 1
-
-            for(k in 1:P)
-            {
-                for(s in 1:k)
-                {
-                    if(s==k) next
-                    a <- abs(sum( ( x[,s] - x[,k] ) * beta0 ))                   
-                    if( a > maxRes ) maxRes <- a
-                }
-            }
-            lambdaMax <- maxRes / ( 2.0 * N * alpha )
-
+            lambdaMax <- .Call("LambdaMax", x, beta0, alpha)
         }
+
         lambdaMax <- lambdaMax * lambdaScaler
         # lambdaMin is calculated with the epsilon paramter
         lambdaMin <- epsilon * lambdaMax
@@ -287,7 +225,8 @@ zeroSumCVFit <- function(
     }
     else
     {
-        lambdaSeq <- lambdaSequence
+        lambdaSeq <- sort( lambdaSequence, decreasing=TRUE)
+        lambdaSteps <- length(lambdaSeq)
     }
 
     if(verbose)
@@ -330,18 +269,19 @@ zeroSumCVFit <- function(
 
     if(verbose)
     {
-        cat("Crossvalidiation subsamples\n")
+        cat("Cross validation subsamples\n")
         print(testX)
+        if(any(duplicated( unlist(testX))))
+            stop("Duplicated samples in CV\n")
+
+        cat("nFolds:")
+        print(nFold)
     }
 
-    devianceRatio <- list()
-    logLikelihood <- list()
-    logLikelihoodCV <- list()
-    trainingError <- list()
-    
+
     logLikeNull   <- NULL
     logLikeSat    <- NULL
-
+    
     if( type == "elNet" || type == "zeroSumElNet" )
     {
         tmp <- rep( 0, N )
@@ -349,19 +289,18 @@ zeroSumCVFit <- function(
         {
             betaNull <- rep(0,P)
             betaNull[1] <- mean( y[ -testX[[i]] ] )
-
-            tmp[ testX[[i]] ] <- x[ testX[[i]], ] %*% betaNull
+            tmp[ testX[[i]] ] <- y[ testX[[i]] ] - x[ testX[[i]], ] %*% betaNull
         }
-        
-        logLikeNull <- -sum( ( y - tmp )^2 )
-        
+        logLikeNull <- -sum( ( tmp )^2 )   
+
         betaSat <- rep(0,P)
         zeroSumRegression( x, y, betaSat, lambdaSeq[lambdaSteps]*0.01, 
                 alpha, offset, type, algorithmCV, verbose=FALSE, 
                 precisionCV, FALSE, 1 )
-        logLikeSat <- -vectorElNetCostFunction( x, y, betaSat, 0, 0 )$rss       
+        logLikeSat <- -vectorElNetCostFunction( x, y, betaSat, 0, 0 )$rss
         
     }
+
     nullDeviance <- ( logLikeSat - logLikeNull )
     
     if(verbose)
@@ -372,17 +311,18 @@ zeroSumCVFit <- function(
         print(logLikeNull)
     }
 
-
-    meanCVE <- list()
-    CV_SD <- list()
-    numberOfBetas <- list()
-
-    coefs <- matrix(0, ncol=P, nrow=0)
-    beta <- list()
+    devianceRatio     <- list()
+    logLikelihood     <- list()
+    logLikelihoodCV   <- list()
+    logLikelihoodCVSD <- list()
+    numberOfBetas     <- list()
+    beta              <- list()   
     for(i in 1: (nFold+1) )
     {
         beta[[i]] <- rep(0.0, P)
     }
+
+    coefs <- matrix(0, ncol=P, nrow=0)
 
     if(verbose) cat("lambdaSequence.\n")
 
@@ -435,86 +375,60 @@ zeroSumCVFit <- function(
         coefs <- rbind(coefs, beta[[ nFold+1 ]] )
         
         numberOfBetas[[k]] <- sum( beta[[ nFold+1 ]][-1] != 0 )
-        logLike <- NULL
-        
+
         if( type == "elNet" || type == "zeroSumElNet" )
         {  
-            tmp <- rep( 0, N )
+            tmp <- rep( 0, nFold )
             for(i in 1:nFold)
             {
-                tmp[ testX[[i]] ] <- y[ testX[[i]] ] - x[ testX[[i]], ] %*% beta[[i]]
+                tmp[i] <- mean( (y[ testX[[i]] ] - x[ testX[[i]], ] %*% beta[[i]])^2 )
             }
-            
-            meanCVE[[k]] <- sum( ( tmp )^2 )/N 
-            CV_SD[[k]] <-  sd(tmp)/( sqrt( length(tmp) ))       
-            logLike <- -meanCVE[[k]]            
-            
-            logLikelihood[[k]] <- -vectorElNetCostFunction( x, y, beta[[ nFold+1 ]], 0, 0 )$rss
-            
+            logLikelihood[[k]]     <- -vectorElNetCostFunction( x, y, beta[[ nFold+1 ]], 0, 0 )$rss /N
+            logLikelihoodCV[[k]]   <- -mean(tmp)
+            logLikelihoodCVSD[[k]] <- sd(tmp)/( sqrt( length(tmp) ))              
         }
-        logLikelihoodCV[[k]] <- logLike
-        devianceRatio[[k]] <- 1 - ( logLikeSat - logLike ) / nullDeviance
+              
 
-        if( devianceStop!=0 & k >= devianceStop )
-        {
-            test <- 0
-            i <- k
-            while(i>1)
-            {
-                if( devianceRatio[[i]] <  devianceRatio[[i-1]] )
-                {
-                    test <- test+1
-                }
-                i <- i-1
-            }
-
-            if( test > devianceStop)
-            {
-                break
-            }
+        devianceRatio[[k]] <- 1 - ( logLikeSat - logLikelihoodCV[[k]] ) / nullDeviance
+               
+        if( devianceStop != 0 & devianceStop( unlist(devianceRatio), devianceStop) )
+        {            
+            break            
         }
     }
 
+    
     lambdaSteps <- length(devianceRatio)
-    lambdaSeq <- lambdaSeq[1:lambdaSteps]
+    lambdaSeq   <- lambdaSeq[1:lambdaSteps]
 
     numberOfBetas <- unlist(numberOfBetas)
-    logLikelihoodCV <- unlist(logLikelihoodCV)
-    logLikelihood <- unlist(logLikelihood)
+    
+    logLikelihood     <- unlist(logLikelihood)
+    logLikelihoodCV   <- unlist(logLikelihoodCV)
+    logLikelihoodCVSD <- unlist(logLikelihoodCVSD)
+    
     
     devianceRatio <- unlist(devianceRatio)
     devianceRatio[ devianceRatio < 0 | is.infinite(devianceRatio) ] <- 0
     
-    cv_error <- NULL
-    cv_error_sd <- NULL
-    minCV_SD <- NULL
-    lambdaMin <- NULL
-    lambda1SE <- NULL
+    maxLogLikeCV <- max( logLikelihoodCV )
+    lambdaMin    <- which( logLikelihoodCV  == maxLogLikeCV )[1]
+    maxCV_SD     <- maxLogLikeCV - logLikelihoodCVSD[ lambdaMin ]
     
-    if( type == "elNet" || type == "zeroSumElNet" )
+    ## find lambda where the CVerror is as close as possible to minCV + SD
+    distances <- abs( logLikelihoodCV[1:lambdaMin] - maxCV_SD)
+    distFrom_minCV_SD <- min( distances )
+    lambda1SE <- which( distances == distFrom_minCV_SD )
+    
+    if(verbose)
     {
-        cv_error <- unlist(meanCVE)
-        cv_error_sd <- unlist(CV_SD)
-        minCV <- min(cv_error)
-        lambdaMin <- which( cv_error == minCV )[1]
-        minCV_SD <- minCV + cv_error_sd[lambdaMin]
-        
-        ## find lambda where the CVerror is as close as possible to minCV + SD
-        distFrom_minCV_SD <- min( abs( cv_error[1:lambdaMin] - minCV_SD) )
-        lambda1SE <- which( abs( cv_error - minCV_SD ) == distFrom_minCV_SD )
-
-        if(verbose)
-        {
-            print(sprintf( "LambdaMin: %e, Lambda1SE: %e", lambdaSeq[lambdaMin], lambdaSeq[lambda1SE]))
-        }
-        
+        print(sprintf( "LambdaMin: %e, Lambda1SE: %e", lambdaSeq[lambdaMin], lambdaSeq[lambda1SE]))
     }
+      
 
     colnames(coefs) <- colnames(x)
 
-    fitresult <- zeroSumCVFitObject(    lambdaSeq, 
-                                        cv_error, 
-                                        cv_error_sd, 
+    fitresult <- zeroSumCVFitObject(    lambdaSeq,
                                         alpha,
                                         devianceRatio, 
                                         type, 
@@ -529,7 +443,9 @@ zeroSumCVFit <- function(
                                         polish, 
                                         numberOfBetas,
                                         logLikelihoodCV,
-                                        logLikelihood)
+                                        logLikelihood,
+                                        logLikelihoodCVSD )
     return(fitresult)
+
 
 }

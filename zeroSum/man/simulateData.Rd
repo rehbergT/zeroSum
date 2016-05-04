@@ -4,11 +4,13 @@
 \alias{simulateData}
 \title{Description of the simulateData function}
 \usage{
-simulateData(coefs = c(rnorm(35), rep(0, 100)), samples = 50,
-  responseSD = 0.1, sampleWiseSD = 1)
+simulateData(coefs = c(rnorm(10), rep(0, 50)), corBetas = NULL,
+  samples = 20, responseSD = 0.1, sampleWiseSD = 1)
 }
 \arguments{
 \item{coefs}{true coeffients used for simulating a data set}
+
+\item{corBetas}{correlation Matrix for the supplied beta Matrix}
 
 \item{samples}{number of samples}
 

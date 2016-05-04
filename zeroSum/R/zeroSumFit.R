@@ -58,15 +58,15 @@ zeroSumFit <- function(
                 polish=10,
                 verbose=FALSE) 
 {    
-    if( class(x) != "matrix" | ( typeof(x) != "double" ) )
+    # some basic checks for the passed arguments
+    checkNumericMatrix(x, 'x')
+    
+    checkType( type )
+    if( type == "elNet" || type == "zeroSumElNet" ){
+        checkNumericVector(y, 'y')
+    } else if( type == "zeroSumLogistic" )
     {
-            stop("type of passed x is not a numeric matrix\n")
-    }  
-      
-    if( (class(y) != "numeric" | typeof(y) != 'double') &&
-        (class(y) != "integer" | typeof(y) != 'integer')  ) 
-    {
-        stop("type of passed y is not numeric or integer\n")
+        checkBinominalVector(y, 'y')
     }
 
     if( nrow(x) != length(y)) 
@@ -74,34 +74,10 @@ zeroSumFit <- function(
             stop("number of rows of x does not match length of y!\n")
     }
 
-    if( class(lambda) != "numeric" | typeof(lambda) != 'double'   ) 
-    {
-            stop("type of passed lambda is not numeric\n")
-    }
+    checkDouble( alpha, "alpha")
+    checkDouble( lambda, "lambda")
+    checkAlgo( algorithm, "algorithm")
 
-    if( class(alpha) != "numeric" | typeof(alpha) != 'double'   ) 
-    {
-            stop("type of passed alpha is not numeric\n")
-    }  
-      
-    if( class(algorithm) != "character" & typeof(algorithm) != "character" |
-            ( algorithm != "CD"   & 
-              algorithm != "SA"   &
-              algorithm != "LS"   &
-              algorithm != "CD+LS"))  
-    {
-            cat( "Selected algorithm is not valid\n")
-            cat( "Now using CD+LS\n" )
-            algorithmAllSamples <- "CD+LS"
-    }
-    if( class(type) != "character" & typeof(type) != "character" |
-        (   type != "elNet" & 
-            type != "zeroSumElNet" )) 
-    {
-            cat( "Selected type is not valid\n")
-            cat("Use zeroSumElNet (default) or elNet\n" )
-            type <- "zeroSumElNet"
-    }
     
     if(is.null(colnames(x)))
     {
@@ -122,12 +98,12 @@ zeroSumFit <- function(
     energy1 <- 0
     if( type=="elNet" || type=="zeroSumElNet" )
     {
-        energy1 <- vectorElNetCostFunction(x ,y ,beta, lambda, alpha)$cost
+        energy1 <- vectorElNetCostFunction(x ,y ,beta, lambda, alpha)
     }
 
     if(verbose)
     { 
-        print( sprintf( "Energy before: %e", energy1))
+        print( sprintf( "Energy before: %e", energy1$cost))
     }
     
     zeroSumRegression( x, y ,beta, lambda, alpha, offset,
@@ -138,12 +114,12 @@ zeroSumFit <- function(
     energy2 <- 0
     if( type=="elNet" || type=="zeroSumElNet" )
     {
-        energy2 <- vectorElNetCostFunction(x ,y ,beta, lambda, alpha)$cost
+        energy2 <- vectorElNetCostFunction(x ,y ,beta, lambda, alpha)
     }
 
     if(verbose)
     { 
-        print( sprintf( "Energy later %e   Dif %e", energy2, energy2-energy1 ))
+        print( sprintf( "Energy later %e   Dif %e  (RSS: %e)", energy2$cost, energy2$cost-energy1$cost,  energy2$rss))
     }
     
     names(beta) <- colnames(x)
@@ -152,7 +128,8 @@ zeroSumFit <- function(
                                     alpha, 
                                     beta, 
                                     type, 
-                                    algorithm )
+                                    algorithm,
+                                    diagonalMoves)
 
     return(fitresult)
 

@@ -4,10 +4,10 @@
 \alias{zeroSumCVFitObject}
 \title{Description of zeroSumCVFitObject function}
 \usage{
-zeroSumCVFitObject(lambdaSeq, CVError, CVError_SD, alpha, devRatio, type,
-  algorithmCV, algorithmAllSamples, coefs, lambdaMin, lambda1SE, offset,
-  precision, verticalMoves, polish, numberOfBetas, logLikelihoodCV,
-  logLikelihood)
+zeroSumCVFitObject(lambdaSeq, alpha, devRatio, type, algorithmCV,
+  algorithmAllSamples, coefs, lambdaMin, lambda1SE, offset, precision,
+  diagonalMoves, polish, numberOfBetas, logLikelihoodCV, logLikelihood,
+  logLikelihoodCVSD)
 }
 \value{
 zeroSumCVFitObject

@@ -18,6 +18,7 @@
 #'
 #' @keywords internal
 #'
+#' @export
 vectorElNetCostFunction <- function( x, y, beta , lambda, alpha)
 {        
     out <- list()

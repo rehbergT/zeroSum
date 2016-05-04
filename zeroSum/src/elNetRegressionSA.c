@@ -41,8 +41,9 @@ int elnetMove(  struct regressionData *data,
     memcpy ( tmp, res, sizeof(double) * N );
 
     int col = INDEX(0, which, N);
-    for( int i = 0; i < N; ++i ){
-        tmp[i] -=  amount *  x[col+i];
+    for( int i = 0; i < N; ++i )
+    {
+        tmp[i] -= amount * x[col+i];
     }
 
     double tmp_residum = squaresum( tmp, N ) / N;
@@ -51,22 +52,28 @@ int elnetMove(  struct regressionData *data,
     double dtmp = beta[which]+amount;    
     
     double tmp_lasso, tmp_ridge;
-    if( which != 0 ){
+    if( which != 0 )
+    {
         tmp_lasso = *lasso + ( fabs(dtmp) - fabs(beta[which]) );    
         tmp_ridge = *ridge + ( dtmp*dtmp - beta[which]*beta[which] );
-    }else{
+    }
+    else
+    {
         tmp_lasso = *lasso;
         tmp_ridge = *ridge;
     }
     
                              
-    tmp_energy += (*data).lambda * ( (1.0 - (*data).alpha) * tmp_ridge / 2.0 + (*data).alpha * tmp_lasso );
+    tmp_energy += (*data).lambda * ( (1.0 - (*data).alpha) 
+                    * tmp_ridge / 2.0 + (*data).alpha * tmp_lasso );
     
     double deltaE = tmp_energy - *energy;    
 
-    if( deltaE <= 0.0   || rng < exp(-deltaE / temperature) ){
+    if( deltaE <= 0.0   || rng < exp(-deltaE / temperature) )
+    {
          memcpy ( res, tmp, sizeof(double) * N );
-         if( which != 0 ){
+         if( which != 0 )
+         {
             *ridge = tmp_ridge;
             *lasso = tmp_lasso;
          }
@@ -76,10 +83,10 @@ int elnetMove(  struct regressionData *data,
          beta[which] = dtmp;       
          return 1;
     }
-    else{
+    else
+    {
         return 0;
     }
-    return -1;
 }
 
 
@@ -133,14 +140,14 @@ void elNetRegressionSA( struct regressionData data )
     double temperature = 0.0;
     int counter = 0;
     
-    for( int i = 0; i < T_STEPS; i++)
+    for( int i=0; i<T_STEPS; ++i )
     {
         dtemp = -energy;  
         
         if( data.offset == TRUE )
             temp = (int) ( MY_RND * (double)P );
         else
-            temp = (int) ( MY_RND * (double)(P-1) ) +1;
+            temp = (int) ( MY_RND * (double)(P-1) ) + 1;
         
         if(i%25 == 0)
             amount = -data.beta[temp];
@@ -214,7 +221,7 @@ void elNetRegressionSA( struct regressionData data )
             if( i >= THERMALIZE )
             {
                 average_Eng[k] = energy;
-                k++;
+                ++k;
             }
             
             #ifdef R_PACKAGE

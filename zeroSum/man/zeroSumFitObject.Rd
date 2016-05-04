@@ -4,7 +4,7 @@
 \alias{zeroSumFitObject}
 \title{Description of zeroSumFitObject function}
 \usage{
-zeroSumFitObject(lambda, alpha, coef, type, algorithm)
+zeroSumFitObject(lambda, alpha, coef, type, algorithm, diagonalMoves)
 }
 \value{
 zeroSumFitObject

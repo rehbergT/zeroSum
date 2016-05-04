@@ -28,17 +28,24 @@ predict <- function( fit=NULL, newx=NULL, s="lambda.min", ... )
 {
     if( any( class(fit)=="ZeroSumCVFit") || any( class(fit)=="ZeroSumFit") )  
     {   
-        if( class(newx) != "matrix" | typeof(newx) != "double"  )  
+        checkNumericMatrix(newx, 'newx')
+
+        beta <- coef(fit, s=s)
+
+        if( ncol(newx) != length(beta[-1]) )
         {
-            stop("type of passed x is not a numeric matrix\n")
+            message1 <- sprintf("newx has wrong dimensions: nrow=%d (samples) ncol=%d (features). ",
+                    nrow(newx), ncol(newx) )
+            message2 <- sprintf("However, this zeroSum fit is trained for %d features!",
+                    length(beta[-1]) )
+            stop(paste0(message1, message2))
         }
 
         if( fit$type == "zeroSumElNet" || fit$type == "elNet" )
         {
-            beta <- coef(fit, s=s)    
             predict <- newx %*% beta[-1] + beta[1]    
             return(predict)
-            
+        
         }
 
     } else 

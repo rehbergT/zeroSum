@@ -33,7 +33,8 @@ int moveLS( struct regressionData *data,
     int colFrom = INDEX(0, from, N);
     int colTo = INDEX(0, to, N);
 
-    for( int i=0; i<N; ++i ){
+    for( int i=0; i<N; ++i )
+    {
         tmp[i] +=  amount * ( x[colFrom+i] - x[colTo+i] );
     }
 
@@ -59,11 +60,9 @@ int moveLS( struct regressionData *data,
          beta[to] += amount;        
          return 1;
     }
-    else
-    {
+    else{
         return 0;
     }
-    return -1;
 }
 
 int moveLSOffset(   struct regressionData *data,
@@ -80,7 +79,8 @@ int moveLSOffset(   struct regressionData *data,
     
     memcpy ( tmp, res, sizeof(double) * N );
 
-    for( int i = 0; i < N; ++i ){
+    for( int i = 0; i < N; ++i )
+    {
         tmp[i] -=  amount *  x[i];
     }
 
@@ -91,7 +91,7 @@ int moveLSOffset(   struct regressionData *data,
     
     double deltaE = tmp_energy - *energy;    
 
-    if( deltaE <= 0.0  )
+    if( deltaE <= 0.0 )
     {
          memcpy ( res, tmp, sizeof(double) * N );
          *energy = tmp_energy;
@@ -103,7 +103,6 @@ int moveLSOffset(   struct regressionData *data,
     {
         return 0;
     }
-    return -1;
 }
 
 
@@ -188,7 +187,7 @@ void zeroSumRegressionLS(
         #ifdef R_PACKAGE
         R_CheckUserInterrupt();
         #endif
-
+        
         if(steps > 0) break;        
  
         #ifdef DEBUG
@@ -203,7 +202,9 @@ void zeroSumRegressionLS(
         
     }while(  (energy_start - energy) / energy > data.precision  );    
     
-  
+
+    
+    
     #ifdef DEBUG2
     PRINT("Energy before: %e\t  later %e\tDif %e\n",
             energy1, energy, energy-energy1  );

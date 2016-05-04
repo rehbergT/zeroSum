@@ -9,7 +9,7 @@ zeroSumCVFit(x, y, lambdaSequence = 0, alpha = 1, epsilon = 0.001,
   parallel = FALSE, verbose = FALSE, type = "zeroSumElNet",
   algorithmCV = "CD", algorithmAllSamples = "CD+LS", precisionCV = 1e-06,
   precisionAllSamples = 1e-06, diagonalMoves = TRUE, lambdaScaler = 1,
-  polish = 10, devianceStop = 0.1)
+  polish = 0, devianceStop = 0.1)
 }
 \arguments{
 \item{x}{data as a numeric matrix object (rows=samples).

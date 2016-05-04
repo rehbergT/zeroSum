@@ -23,13 +23,13 @@
 #' @export
 plot <- function( fit=NULL, main="", ... )
 {
-    if( any( class(fit)=="ZeroSumCVFit") )
+    if( any( class(fit) == "ZeroSumCVFit") )
     {
         if( fit$type == "zeroSumElNet" || fit$type == "elNet" )
         {
-            y <- fit$CVError
-            yER <- fit$CVError_SD
             x <- log( fit$lambdaSeq )
+            y   <- - fit$logLikelihoodCV
+            yER <-   fit$logLikelihoodCVSD
             
             yMin <- min(y - yER)
             yMax <- max(y + yER)

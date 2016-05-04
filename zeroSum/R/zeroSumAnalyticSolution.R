@@ -17,23 +17,15 @@
 #'
 #' @examples
 #' set.seed(1)
-#' data <- simulateData( coefs = rnorm(21), samples = 20)
+#' data <- simulateData()
 #' zeroSumAnalyticSolution( data$x, data$y)
 #'   
 #' @export
 zeroSumAnalyticSolution <- function( x, y, offset=TRUE )
 {
     # some basic checks for the passed arguments
-    if( class(x) != "matrix" | typeof(x) != "double"  )
-    {
-        stop("type of passed x is not a numeric matrix\n")
-    }
-
-    if( (class(y) != "numeric" | typeof(y) != 'double') &&
-        (class(y) != "integer" | typeof(y) != 'integer')  )
-    {
-        stop("type of passed y is not numeric or integer\n")
-    }
+    checkNumericMatrix(x, 'x')
+    checkNumericVector(y, 'y')
 
     if( nrow(x) != length(y) )
     {
@@ -99,8 +91,9 @@ zeroSumAnalyticSolution <- function( x, y, offset=TRUE )
     fitresult <- zeroSumFitObject(  0, 
                                     NULL, 
                                     beta,
-                                    type="zeroSumElNet", 
-                                    algorithm="analyticSolution" )
+                                    "zeroSumElNet", 
+                                    "analyticSolution",
+                                    FALSE)
     
     return(fitresult)  
 }

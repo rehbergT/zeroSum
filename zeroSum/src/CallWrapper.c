@@ -1,4 +1,5 @@
 #include "regressions.h"
+#include "lambdaMax.h"
 
 SEXP CallWrapper(   SEXP _X, SEXP _Y, SEXP _beta, SEXP _lambda,
                     SEXP _alpha, SEXP _offset, SEXP _type,
@@ -48,7 +49,10 @@ SEXP CallWrapper(   SEXP _X, SEXP _Y, SEXP _beta, SEXP _lambda,
         x, y, N, P, beta, lambda, alpha, offset, precision
     };
     
-//     PRINT("TYPE: %d  ALGORITHM: %d  POLISH: %d DIAGONAL: %d\n", type, algorithm, polish, verticalMoves);
+  /*  PRINT("TYPE: %d  ALGORITHM: %d  POLISH: %d DIAGONAL: %d OFFSET: %d\n", type, algorithm, polish, verticalMoves,
+        offset
+    );
+   */ 
     
     if( type == 0 )
     {
@@ -109,6 +113,7 @@ SEXP CallWrapper(   SEXP _X, SEXP _Y, SEXP _beta, SEXP _lambda,
 static const 
 R_CallMethodDef callMethods[] = {
     {"CallWrapper", (DL_FUNC) &CallWrapper, 11},
+    {"LambdaMax", (DL_FUNC) &lambdaMax, 3},
     {NULL, NULL, 0}
 };
 

@@ -44,7 +44,8 @@ int move(   struct regressionData *data,
     int colFrom = INDEX(0, from, N);
     int colTo = INDEX(0, to, N);
 
-    for( int i=0; i<N; ++i ){
+    for( int i=0; i<N; ++i )
+    {
         tmp[i] +=  amount * ( x[colFrom+i] - x[colTo+i] );
     }
 
@@ -74,7 +75,6 @@ int move(   struct regressionData *data,
     {
         return 0;
     }
-    return -1;
 }
 
 int moveOffset( struct regressionData *data,
@@ -93,7 +93,8 @@ int moveOffset( struct regressionData *data,
     
     memcpy ( tmp, res, sizeof(double) * N );
 
-    for( int i = 0; i < N; ++i ){
+    for( int i = 0; i < N; ++i )
+    {
         tmp[i] -=  amount *  x[i];
     }
 
@@ -116,7 +117,6 @@ int moveOffset( struct regressionData *data,
     {
         return 0;
     }
-    return -1;
 }
 
 
@@ -173,7 +173,7 @@ void zeroSumRegressionSA( struct regressionData data )
     double temperature = 0.0;
     int counter = 0;
     
-    for( int i = 0; i < T_STEPS; i++)
+    for( int i = 0; i < T_STEPS; ++i )
     {
         dtemp = -energy;         
         
@@ -233,7 +233,8 @@ void zeroSumRegressionSA( struct regressionData data )
             energy, residum, ridge, lasso); 
     #endif 
 
-    double average_Eng[MEASURE],   comp_energy[ANZ_WERTE];
+    double average_Eng[MEASURE];
+    double comp_energy[ANZ_WERTE];
 
     do{
         counter = 0;
@@ -246,7 +247,7 @@ void zeroSumRegressionSA( struct regressionData data )
                 rng = ceil( MY_RND * (double) numMoves );
                 tmpi = ceil( (double)rng/(double)(P-2) );        
                 tmpj = rng - (tmpi-1) * (P-2);
-                if(tmpj >= tmpi) tmpj++;
+                if(tmpj >= tmpi) ++tmpj;
                 
                 if(j%25 == 0)
                 {
@@ -265,8 +266,7 @@ void zeroSumRegressionSA( struct regressionData data )
                     amount = (MY_RND-0.5) * MOVE_SCALE;
                     counter += move( &data, res, &energy, &residum, &ridge, &lasso, tmpi, tmpj,
                                      amount, MY_RND, tmp, temperature );
-                }
-                 
+                }                 
                 
                 if( energy < best_energy )
                 {
@@ -278,7 +278,7 @@ void zeroSumRegressionSA( struct regressionData data )
             if(i >= THERMALIZE )
             {
                 average_Eng[k] = energy;
-                k++;
+                ++k;
             }
             
             #ifdef R_PACKAGE
@@ -296,8 +296,7 @@ void zeroSumRegressionSA( struct regressionData data )
                 sqrt( comp_energy[1] ) / comp_energy[0],
                 sqrt( comp_energy[1] ) / comp_energy[0] > data.precision
              );
-        #endif
-        
+        #endif        
         
         energy = best_energy;
         memcpy ( data.beta, best_beta, sizeof(double) * P );

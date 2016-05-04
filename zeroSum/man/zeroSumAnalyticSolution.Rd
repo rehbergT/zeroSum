@@ -26,7 +26,7 @@ and n=length(y).
 }
 \examples{
 set.seed(1)
-data <- simulateData( coefs = rnorm(21), samples = 20)
+data <- simulateData()
 zeroSumAnalyticSolution( data$x, data$y)
 }
 

@@ -30,32 +30,40 @@ int elnetMoveLS(    struct regressionData *data,
     memcpy ( tmp, res, sizeof(double) * N );
 
     int col = INDEX(0, which, N);
-    for( int i = 0; i < N; ++i ){
-        tmp[i] -=  amount *  x[col+i];
+    
+    for( int i=0; i<N; ++i )
+    {
+        tmp[i] -= amount * x[col+i];
     }
 
     double tmp_residum = squaresum( tmp, N ) / N;
     double tmp_energy = tmp_residum / 2.0;
     
-    double dtmp = beta[which]+amount;    
+    double dtmp = beta[which] + amount;    
     
     double tmp_lasso, tmp_ridge;
-    if( which != 0 ){
+    if( which != 0 )
+    {
         tmp_lasso = *lasso + ( fabs(dtmp) - fabs(beta[which]) );    
         tmp_ridge = *ridge + ( dtmp*dtmp - beta[which]*beta[which] );
-    }else{
+    }
+    else
+    {
         tmp_lasso = *lasso;
         tmp_ridge = *ridge;
     }
        
                              
-    tmp_energy += (*data).lambda * ( (1.0 - (*data).alpha) * tmp_ridge / 2.0 + (*data).alpha * tmp_lasso );
+    tmp_energy += (*data).lambda * ( (1.0 - (*data).alpha) 
+                        * tmp_ridge / 2.0 + (*data).alpha * tmp_lasso );
     
     double deltaE = tmp_energy - *energy;    
 
-    if( deltaE <= 0.0 ){
+    if( deltaE <= 0.0 )
+    {
          memcpy ( res, tmp, sizeof(double) * N );
-         if( which != 0 ){
+         if( which != 0 )
+         {
             *ridge = tmp_ridge;
             *lasso = tmp_lasso;
          }
@@ -65,10 +73,10 @@ int elnetMoveLS(    struct regressionData *data,
          beta[which] = dtmp;       
          return 1;
     }
-    else{
+    else
+    {
         return 0;
     }
-    return -1;
 }
 
 
@@ -110,8 +118,6 @@ void elNetRegressionLS(
     double energy1 = energy; 
     #endif 
     
-
-    
     #ifdef DEBUG    
     PRINT("Initial Energy: %e (residum: %e ridge term: %e, lasso: %e)\n",
             energy, residum, ridge, lasso); 
@@ -132,7 +138,7 @@ void elNetRegressionLS(
             if( data.offset == TRUE )
                 temp = (int) ( MY_RND * (double)P );
             else
-                temp = (int) ( MY_RND * (double)(P-1) ) +1;
+                temp = (int) ( MY_RND * (double)(P-1) ) + 1;
 
             if(i%5 == 0)
                 amount = -data.beta[temp];
@@ -146,11 +152,11 @@ void elNetRegressionLS(
         #ifdef R_PACKAGE
         R_CheckUserInterrupt();
         #endif
-        if(steps > 0) break;
+        if( steps > 0) break;
         
         
         #ifdef DEBUG
-        double acceptrate = counter / ( (double) (repeats * P)  );
+        double acceptrate = counter / ( (double) (repeats * P) );
         PRINT("Energy before: %e Energy  now: %e Diff: %e  accept: %f  test: %e (%e)\n",
               energy_start, energy, energy_start - energy, acceptrate, (energy_start - energy) / energy, data.precision );
         #endif
