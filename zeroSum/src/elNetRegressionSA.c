@@ -1,4 +1,3 @@
-// RBioC CMD SHLIB sa.c -lgsl -lgslcblas -Wall -Wextra
 #include "regressions.h"
 
 #define MOVE_SCALE 0.05
@@ -96,7 +95,7 @@ int elnetMove(  struct regressionData *data,
 void elNetRegressionSA( struct regressionData data )
 {
     
-    #ifdef DEBUG2
+    #ifdef DEBUG
     double timet;
     struct timespec ts0, ts1;
     clock_gettime(CLOCK_REALTIME , &ts0);
@@ -129,7 +128,7 @@ void elNetRegressionSA( struct regressionData data )
     
     vectorElNetCostFunction( &data, res, &energy, &residum, &ridge, &lasso);   
 
-    #ifdef DEBUG2
+    #ifdef DEBUG
     double energy1 = energy; 
     #endif 
     
@@ -229,7 +228,7 @@ void elNetRegressionSA( struct regressionData data )
             #endif
         }
         
-        // neaded measures
+        // needed measures
         MeanVar(average_Eng, MEASURE, comp_energy);        
         
         #ifdef DEBUG

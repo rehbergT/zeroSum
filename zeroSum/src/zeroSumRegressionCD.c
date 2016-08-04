@@ -1,10 +1,10 @@
 #include "regressions.h"
 
-#define REFRESH 1000
+#define REFRESH 10000
 #define MIN_SUCCESS_RATE 0.90
+#define MULTIPLIER 4
 
-//        #define DEBUG
-//        #define DEBUG2
+// #define DEBUG
 
 #ifdef DEBUG
 #include <time.h>
@@ -12,6 +12,7 @@
 
 double lambdaAlpha;
 double lambdaAlpha2;
+
 
 int calcGradient( struct regressionData *data,
                   const int s,
@@ -90,6 +91,10 @@ int calcGradient( struct regressionData *data,
     else
         return 1;
 }
+
+
+
+
 
 
 int calcRTGradient(  struct regressionData *data,
@@ -217,28 +222,6 @@ int calcRTGradient(  struct regressionData *data,
 }
 
 
-inline void calcOffsetGradient( struct regressionData *data,
-                                double* restrict betasX )
-{
-    double* restrict beta = (*data).beta;    
-    const int N = (*data).N;
-    
-    double oldbeta0 = beta[0];
-    beta[0] = 0.0;
-    for( int i=0; i<N; ++i )
-    {
-        beta[0] += betasX[i] + oldbeta0;
-    }
-    beta[0] /= N;
-    
-    double tmp = oldbeta0-beta[0];
-    for( int i=0; i<N; ++i )
-    {
-        betasX[i] += tmp; 
-    }
-}
-
-
 void refresh( struct regressionData *data,
               double* restrict betas, 
               double* restrict betasX )
@@ -268,7 +251,7 @@ void refresh( struct regressionData *data,
 void zeroSumRegressionCD( struct regressionData data,
                           const int verticalMoves  )
 {
-    #ifdef DEBUG2
+    #ifdef DEBUG
     double timet;
     struct timespec ts0, ts1;
     clock_gettime(CLOCK_REALTIME , &ts0);
@@ -293,7 +276,7 @@ void zeroSumRegressionCD( struct regressionData data,
     double lasso = 0.0;
     double residum = 0.0;
 
-    #ifdef DEBUG2
+    #ifdef DEBUG
     double energy1, energy2, energy3;
     vectorElNetCostFunction( &data, res, &energy1, &residum, &ridge, &lasso);
     PRINT("Initial Energy: %e  (sum: %e)\n", energy1, sum(&data.beta[1], P-1));
@@ -321,21 +304,19 @@ void zeroSumRegressionCD( struct regressionData data,
         
         if( data.offset == TRUE )
         {
-            calcOffsetGradient( &data, betasX);
+            calcOffsetElNetGradient( &data, betasX);
             ++refreshCounter;
         }        
         
         activesetChange = 0;
         
-        fisherYates(ind1, P);
         for( int l=1; l<P; ++l )
         { 
             fisherYates(ind2, P);
-            for( int k=1; k<(int)ceil(P*0.1)+1; ++k )
+            for( int k=1; k<(int)ceil(P*0.1)+10; ++k )
             {   
-                int s = ind1[l];
+                int s = l;
                 int j = ind2[k];
-
                 if( s == j ) continue;
                 
                 #ifdef DEBUG
@@ -354,15 +335,15 @@ void zeroSumRegressionCD( struct regressionData data,
                     }
                     
                     if( data.offset == TRUE )
-                        calcOffsetGradient( &data, betasX);
+                        calcOffsetElNetGradient( &data, betasX);
                     
                     ++refreshCounter;                    
                 }
                 
                 #ifdef DEBUG
                 vectorElNetCostFunction( &data, res, &energynew, &residum, &ridge, &lasso);
-                  PRINT("Vorher:j=%d Beta[j]=%e Beta[1]=%e activesetChange: %d activeset: %d energy: %e deltaE: %e  (sum %e)\n",
-                         j, data.beta[j], data.beta[1], activesetChange, TestBit( activeset, j )!=0, energynew, energynew-energyold,
+                  PRINT("Vorher:j=%d Beta[j]=%.2e Beta[s]=%.2e activesetChange: %d activeset: %d energy: %.3e deltaE: %.3e  (sum %e)\n",
+                         j, data.beta[j], data.beta[s], activesetChange, TestBit( activeset, j )!=0, energynew, energynew-energyold,
                           sum(&(data.beta[1]), P-1)
                        );
                 if( energynew-energyold > 10000 * DBL_EPSILON ){
@@ -372,7 +353,6 @@ void zeroSumRegressionCD( struct regressionData data,
                 #endif           
             }
         }
-
         if( activesetChange == 0  ) break;
 
         #ifdef DEBUG
@@ -385,41 +365,45 @@ void zeroSumRegressionCD( struct regressionData data,
             vectorElNetCostFunction( &data, res, &energyold, &residum, &ridge, &lasso);  
             int test = 0;
             int counter = 0;
-            fisherYates(ind1, P);            
-            for( int i=1; i<P; ++i )
-            {                
-                int s = ind1[i];
-                if( TestBit( activeset, s ) == 0 ) continue;
-                
-                for( int j=1; j<s; ++j )
-                {      
-                    if( TestBit( activeset, j ) == 0 ) continue;
-                          
-                    #ifdef DEBUG
-                    vectorElNetCostFunction( &data, res, &energy2, &residum, &ridge, &lasso);
-                    #endif                    
+            fisherYates(ind1, P); 
+            
+            for( int l=0; l<MULTIPLIER; ++l )
+            {
+                for( int i=1; i<P; ++i )
+                {                
+                    int s = ind1[i];
+                    if( TestBit( activeset, s ) == 0 ) continue;
                     
-                    int change = calcGradient( &data, s, j, &betas, betasX, res);
-                    
-                    if( change == 1 ) 
-                    {
-                        if( data.offset == TRUE )
-                            calcOffsetGradient( &data, betasX);
+                    for( int j=1; j<s; ++j )
+                    {      
+                        if( TestBit( activeset, j ) == 0 ) continue;
+                            
+                        #ifdef DEBUG
+                        vectorElNetCostFunction( &data, res, &energy2, &residum, &ridge, &lasso);
+                        #endif                    
                         
-                        ++test;
+                        int change = calcGradient( &data, s, j, &betas, betasX, res);
+                        
+                        if( change == 1 ) 
+                        {
+                            if( data.offset == TRUE )
+                                calcOffsetElNetGradient( &data, betasX);
+                            
+                            ++test;
+                        }
+                        
+                        #ifdef DEBUG
+                        vectorElNetCostFunction( &data, res, &energy3, &residum, &ridge, &lasso); 
+                        if( energy3-energy2 > 10000 * DBL_EPSILON ){
+                            PRINT("ENERGY BREAK (CONVERGE)!\tDeltaE=%e, E_NEW: %e  E_old: %e\n",
+                                energy3-energy2, energy3, energy2 );
+                        }
+                        #endif
+                        ++counter;
                     }
-                    
-                    #ifdef DEBUG
-                    vectorElNetCostFunction( &data, res, &energy3, &residum, &ridge, &lasso); 
-                    if( energy3-energy2 > 10000 * DBL_EPSILON ){
-                        PRINT("ENERGY BREAK (CONVERGE)!\tDeltaE=%e, E_NEW: %e  E_old: %e\n",
-                              energy3-energy2, energy3, energy2 );
-                    }
-                    #endif
-                    ++counter;
                 }
             }
-            
+        
             
             
             #ifdef DEBUG
@@ -438,14 +422,11 @@ void zeroSumRegressionCD( struct regressionData data,
                 {   
                     int s = ind1[j];
                     
-                    if( s == j || TestBit( activeset, j ) == 0 || TestBit( activeset, s ) == 0 ) continue;                    
-                                                   
-                    
-                    fisherYates(ind2, P);
-                    
-                    for( int k=1; k<j; ++k )
+                    if( s == j || TestBit( activeset, j ) == 0 ||TestBit( activeset, s ) == 0 ) continue;                    
+                                       
+                    for( int k=1; k<P; ++k )
                     {
-                        if( k == s || TestBit( activeset, k ) == 0 ) continue;
+                        if( k == s || j == k || TestBit( activeset, k ) == 0 ) continue;
 
                         #ifdef DEBUG
                         double energy2, energy3;
@@ -457,7 +438,7 @@ void zeroSumRegressionCD( struct regressionData data,
                         if( change == 1 ) 
                         {
                             if( data.offset == TRUE )
-                                calcOffsetGradient( &data, betasX);
+                                calcOffsetElNetGradient( &data, betasX);
                             
                             ++test;
                         }
@@ -484,7 +465,7 @@ void zeroSumRegressionCD( struct regressionData data,
 //             );
 //             #endif
 
-            if( test == 0 || (energyold-energynew)/(energynew * (double)test) < data.precision )
+            if( test == 0 || energynew >= energyold || fabs(energynew - energyold) < data.precision )
                 convergence = 1;
 
             refreshCounter += test;
@@ -507,7 +488,7 @@ void zeroSumRegressionCD( struct regressionData data,
     }
 
 
-    #ifdef DEBUG2
+    #ifdef DEBUG
     vectorElNetCostFunction( &data, res, &energynew, &residum, &ridge, &lasso);
 
     PRINT("Energy before: %e\t  later %e\tDif %e\n",

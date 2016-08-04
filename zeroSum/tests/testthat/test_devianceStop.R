@@ -1,7 +1,7 @@
 
-    context("Testing deviance stop")
+    context("Testing cvStopCheck")
 
-    test_that( "deviance stop works",  {
+    test_that( "cvStopCheck works",  {
 
         declining <- function( numUp, numDown, numUp2, numDown2 )
         {
@@ -15,32 +15,32 @@
 
         devRatio1 <- declining(5,5,0,0)
     
-        expect_true(  devianceStop( devRatio1, 5) )    
-        expect_false( devianceStop( devRatio1, 6) )
+        expect_true(  cvStopCheck( devRatio1, 5) )    
+        expect_false( cvStopCheck( devRatio1, 6) )
 
 
         devRatio2 <- declining(5,4,2,0)
 
-        expect_false( devianceStop( devRatio2, 1) )    
-        expect_false( devianceStop( devRatio2, 5) )
+        expect_true(  cvStopCheck( devRatio2, 1) )    
+        expect_false( cvStopCheck( devRatio2, 5) )
 
 
         devRatio3 <- declining(3,2,2,7)
 
-        expect_true(  devianceStop( devRatio3, 3) )    
-        expect_false( devianceStop( devRatio3, 8) )
+        expect_true(  cvStopCheck( devRatio3, 3) )    
+        expect_false( cvStopCheck( devRatio3, 8) )
 
 
-        devRatio4 <- declining(10,50,5,10)
+        devRatio4 <- declining(10,5,0,0)
 
-        expect_true(  devianceStop( devRatio4, 10) )    
-        expect_false( devianceStop( devRatio4, 11) )
+        expect_true(  cvStopCheck( devRatio4, 5) )    
+        expect_false( cvStopCheck( devRatio4, 12) )
 
 
         devRatio5 <- declining(0,5,2,9)
 
-        expect_true(  devianceStop( devRatio5, 3) )    
-        expect_false( devianceStop( devRatio5, 10) )
+        expect_true(  cvStopCheck( devRatio5, 3) )    
+        expect_false( cvStopCheck( devRatio5, 10) )
 
 
     })

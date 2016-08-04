@@ -9,7 +9,6 @@
 #'
 zeroSumCVFitObject <- function( lambdaSeq,
                                 alpha, 
-                                devRatio, 
                                 type, 
                                 algorithmCV, 
                                 algorithmAllSamples, 
@@ -42,8 +41,7 @@ zeroSumCVFitObject <- function( lambdaSeq,
     zeroSumCVFit$ algorithmAllSamples <-  algorithmAllSamples
 
     zeroSumCVFit$alpha <- alpha
-  
-    zeroSumCVFit$devRatio <- devRatio
+
     zeroSumCVFit$offset <- offset
     zeroSumCVFit$diagonalMoves <- diagonalMoves
     zeroSumCVFit$polish <- polish

@@ -14,8 +14,9 @@
 #'
 #' @examples
 #' set.seed(1)
-#' data <- simulateData()
-#' fit <- zeroSumCVFit( data$x, data$y, alpha=1)
+#' x <- log2(exampleData$x+1)
+#' y <- exampleData$y
+#' fit <- zeroSumCVFit( x, y, alpha=1)
 #' coef(fit, s="lambda.min")
 #'
 #' @export
@@ -30,11 +31,11 @@ coef <- function( fit=NULL, s="lambda.min", ... )
         }
         else
         {
-            if(s == "lambda.min")
+            if( s == "lambda.min")
             {
                 beta <- fit$coefs[ fit$LambdaMinIndex, ]
             }
-            else if(s == "lambda.1SE")
+            else if( s == "lambda.1SE" || s == "lambda.1se")
             {
                 beta <- fit$coefs[ fit$Lambda1SEIndex, ]
             }

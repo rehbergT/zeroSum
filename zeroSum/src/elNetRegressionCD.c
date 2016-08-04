@@ -1,10 +1,9 @@
-// RBioC CMD SHLIB fit.c -lgsl -lgslcblas -Wall -Wextra
 #include "regressions.h"
 
-#define REFRESH 1000
+#define REFRESH 10000
+#define MULTIPLIER_ELNET 4
 
-//   #define DEBUG
-//   # define DEBUG2
+//     #define DEBUG
 
 #ifdef DEBUG
 #include <time.h>
@@ -15,20 +14,20 @@ double elnet_gamma;
 int calcElNetGradient(  struct regressionData *data,
                         const int j,                        
                         double* restrict betasX, 
-                        double* restrict denominators)
+                        double* restrict denominators,
+                        double* restrict tmp )
 {
     double* restrict x = (*data).x;
     double* restrict beta = (*data).beta;    
     const int N = (*data).N;
-    
-    double nominator = 0.0;
 
     int i1 = INDEX(0,j,N);
 
     for( int i=0; i<N; ++i, ++i1 )
     {
-        nominator +=  x[ i1 ] * ( betasX[i] + x[ i1 ] * beta[j] );
+        tmp[i] =  x[ i1 ] * ( betasX[i] + x[ i1 ] * beta[j] );
     }
+    double nominator = sum(tmp, N);
  
     double betaj = 0.0;
     if( nominator > 0.0  && nominator > elnet_gamma )
@@ -61,13 +60,9 @@ void calcOffsetElNetGradient(   struct regressionData *data,
     const int N = (*data).N;
     
     double oldbeta0 = beta[0];
-    beta[0] = 0.0;
-    for( int i=0; i<N; ++i )
-    {
-        beta[0] += betasX[i] + oldbeta0;
-    }
-    beta[0] /= N;
     
+    beta[0] = sum( betasX, N) / N + oldbeta0;
+
     double tmp = oldbeta0 - beta[0];
     for( int i=0; i<N; ++i )
     {
@@ -101,7 +96,7 @@ void elNetRefresh(  struct regressionData *data,
 void elNetRegressionCD( struct regressionData data )
 {
     
-    #ifdef DEBUG2
+    #ifdef DEBUG
     double timet;
     struct timespec ts0, ts1;
     clock_gettime(CLOCK_REALTIME , &ts0);
@@ -139,7 +134,7 @@ void elNetRegressionCD( struct regressionData data )
     double lasso = 0.0;
     double residum = 0.0;
 
-    #ifdef DEBUG2
+    #ifdef DEBUG
     double energy1, energy2, energy3;
     vectorElNetCostFunction( &data, res, &energy1, &residum, &ridge, &lasso);
     PRINT("Initial Energy: %e  res=%e l=%e r=%e\n", energy1, residum,lasso, ridge);
@@ -182,7 +177,7 @@ void elNetRegressionCD( struct regressionData data )
             vectorElNetCostFunction( &data, res, &energyold, &residum, &ridge, &lasso);
             #endif
             
-            int change = calcElNetGradient( &data, j, betasX, denominators);
+            int change = calcElNetGradient( &data, j, betasX, denominators, res);
             
             if( change == 1 && TestBit( activeset, j ) == 0 )
             {
@@ -219,30 +214,32 @@ void elNetRegressionCD( struct regressionData data )
             
             fisherYates(ind, P);  
 
-            for( int k=1; k<P; ++k )
+            for( int l=0; l<MULTIPLIER_ELNET; ++l )
             {
-                int j = ind[k];
-                if( TestBit( activeset, j ) == 0 ) continue;
-                
-                int change = calcElNetGradient( &data, j, betasX, denominators);
-                
-                if( change == 1)
+                for( int k=1; k<P; ++k )
                 {
-                    if( data.offset == TRUE )
-                        calcOffsetElNetGradient( &data, betasX);
+                    int j = ind[k];
+                    if( TestBit( activeset, j ) == 0 ) continue;
                     
-                    ++test;
+                    int change = calcElNetGradient( &data, j, betasX, denominators, res);
+                    
+                    if( change == 1)
+                    {
+                        if( data.offset == TRUE )
+                            calcOffsetElNetGradient( &data, betasX);
+                        
+                        ++test;
+                    }
+                    
                 }
-                
-            }
-                       
+            }         
             vectorElNetCostFunction( &data, res, &energynew, &residum, &ridge, &lasso);
 
             #ifdef DEBUG
             PRINT("Energy before: %e\t  later %e\tDif %e\n", energyold, energynew, energynew-energyold );
             #endif
             
-            if( test == 0 || (energyold-energynew)/(energynew * (double)test) < data.precision )
+            if( test == 0 || energynew >= energyold || fabs(energynew - energyold) < data.precision )
                 convergence = 1;
 
             refreshCounter += test;
@@ -264,7 +261,7 @@ void elNetRegressionCD( struct regressionData data )
 
     }
 
-    #ifdef DEBUG2
+    #ifdef DEBUG
     vectorElNetCostFunction( &data, res, &energynew, &residum, &ridge, &lasso);
 
     PRINT("Energy before: %e\t  later %e\tDif %e\nTEST %e\n",
@@ -275,6 +272,7 @@ void elNetRegressionCD( struct regressionData data )
     PRINT("DONE\tDauer in Sekunden: = %e\n", timet);
     #endif
 
+    free(ind);
     free(activeset);
     free(res);
     free(betasX);

@@ -72,24 +72,26 @@
 #'
 #' @param polish enables a local search at the end of CD to polish the result
 #'
-#' @param devianceStop stops the CV progress if the model's deviance becomes worse
-#'                  for lower lambda values. The number of worse deviance
+#' @param cvStop    stops the CV progress if the model's CV-error becomes worse
+#'                  for lower lambda values. The number of worse
 #'                  values which is tolerated is calculated by multiplying
-#'                  the lambdaSteps (Default: 100) with the devianceStop
-#'                  (Default: 0.1). Use devianceStop = 0 or FALSE to deactivate
-#'                  the devianceStop.
+#'                  the lambdaSteps (Default: 100) with the value of cvStop
+#'                  parameter. (Default: 0.1). Use cvStop = 0 or FALSE to
+#'                  deactivate the cvStop.
 #'
 #' @return zeroSumCVFitObject
 #'
 #' @examples
 #' set.seed(1)
-#' data <- simulateData()
-#' fit <- zeroSumCVFit( data$x, data$y, alpha=1)
+#' x <- log2(exampleData$x+1)
+#' y <- exampleData$y
+#' fit <- zeroSumCVFit( x, y, alpha=1)
 #' plot( fit, "test")
 #' coef(fit, s="lambda.min")
 #'
-#' @import foreach stats grDevices
-#'
+#' @import foreach
+#' @importFrom stats rnorm sd
+#
 #' @useDynLib zeroSum
 #'
 #' @export
@@ -113,7 +115,7 @@ zeroSumCVFit <- function(
             diagonalMoves = TRUE,
             lambdaScaler = 1,
             polish = 0,
-            devianceStop = 0.1 )
+            cvStop = 0.1 )
 {
     # some basic checks for the passed arguments
     checkNumericMatrix(x, 'x')
@@ -121,9 +123,6 @@ zeroSumCVFit <- function(
     checkType( type )
     if( type == "elNet" || type == "zeroSumElNet" ){
         checkNumericVector(y, 'y')
-    } else if( type == "zeroSumLogistic" )
-    {
-        checkBinominalVector(y, 'y')
     }
 
     if( nrow(x) != length(y) )
@@ -146,21 +145,20 @@ zeroSumCVFit <- function(
         stop("nFold bigger than sample size\n")
     }
 
-    if( devianceStop==FALSE )
+    if( cvStop==FALSE )
     {
-        devianceStop = 0
-    } else if( devianceStop==FALSE )
+        cvStop = 0
+    } else
     {
-        devianceStop = 0.1
+        cvStop = 0.1
     }
-    checkDouble( devianceStop, "devianceStop")
-    if( devianceStop < 0 || devianceStop >1 )
+    checkDouble( cvStop, "cvStop")
+    if( cvStop < 0 || cvStop >1 )
     {
-        stop("devianceStop is not within [0,1]\n")
+        stop("cvStop is not within [0,1]\n")
     }
 
-
-    devianceStop <- lambdaSteps * devianceStop
+    cvStop <- round(lambdaSteps * cvStop)
 
     # Sample size and feature size
     N <- nrow(x)
@@ -191,20 +189,13 @@ zeroSumCVFit <- function(
         if( type == "elNet" )
         {
             beta0 <- mean(y)
-            res <- rep( 0, P )
-            for(j in 1 : P)
-            {
-                for( i in 1 : N )
-                {
-                    res[j] <- res[j] +  x[i,j] * (y[i]-beta0)
-                }
-            }
-            lambdaMax <- max(abs(res)) / ( N * alpha )
+            res <- y-beta0
+            lambdaMax <- max( abs( t(x) %*% res ) ) / ( N * alpha )
 
         } else if( type == "zeroSumElNet")
         {
-            beta0 <- y - mean(y)
-            lambdaMax <- .Call("LambdaMax", x, beta0, alpha)
+            res <- y - mean(y)
+            lambdaMax <- .Call("LambdaMax", x, res, alpha)
         }
 
         lambdaMax <- lambdaMax * lambdaScaler
@@ -278,40 +269,6 @@ zeroSumCVFit <- function(
         print(nFold)
     }
 
-
-    logLikeNull   <- NULL
-    logLikeSat    <- NULL
-    
-    if( type == "elNet" || type == "zeroSumElNet" )
-    {
-        tmp <- rep( 0, N )
-        for(i in 1:nFold)
-        {
-            betaNull <- rep(0,P)
-            betaNull[1] <- mean( y[ -testX[[i]] ] )
-            tmp[ testX[[i]] ] <- y[ testX[[i]] ] - x[ testX[[i]], ] %*% betaNull
-        }
-        logLikeNull <- -sum( ( tmp )^2 )   
-
-        betaSat <- rep(0,P)
-        zeroSumRegression( x, y, betaSat, lambdaSeq[lambdaSteps]*0.01, 
-                alpha, offset, type, algorithmCV, verbose=FALSE, 
-                precisionCV, FALSE, 1 )
-        logLikeSat <- -vectorElNetCostFunction( x, y, betaSat, 0, 0 )$rss
-        
-    }
-
-    nullDeviance <- ( logLikeSat - logLikeNull )
-    
-    if(verbose)
-    {
-        cat("logLikeSat\n")
-        print(logLikeSat)
-        cat("logLikeNull\n")
-        print(logLikeNull)
-    }
-
-    devianceRatio     <- list()
     logLikelihood     <- list()
     logLikelihoodCV   <- list()
     logLikelihoodCVSD <- list()
@@ -389,16 +346,17 @@ zeroSumCVFit <- function(
         }
               
 
-        devianceRatio[[k]] <- 1 - ( logLikeSat - logLikelihoodCV[[k]] ) / nullDeviance
-               
-        if( devianceStop != 0 & devianceStop( unlist(devianceRatio), devianceStop) )
+        if(verbose){
+            print(sprintf("CV Log-Likelihood: %e",logLikelihoodCV[[k]]))
+        }     
+        if( cvStop != 0 && cvStopCheck( unlist(logLikelihoodCV), cvStop) )
         {            
             break            
         }
     }
 
     
-    lambdaSteps <- length(devianceRatio)
+    lambdaSteps <- length(logLikelihood)
     lambdaSeq   <- lambdaSeq[1:lambdaSteps]
 
     numberOfBetas <- unlist(numberOfBetas)
@@ -406,11 +364,7 @@ zeroSumCVFit <- function(
     logLikelihood     <- unlist(logLikelihood)
     logLikelihoodCV   <- unlist(logLikelihoodCV)
     logLikelihoodCVSD <- unlist(logLikelihoodCVSD)
-    
-    
-    devianceRatio <- unlist(devianceRatio)
-    devianceRatio[ devianceRatio < 0 | is.infinite(devianceRatio) ] <- 0
-    
+        
     maxLogLikeCV <- max( logLikelihoodCV )
     lambdaMin    <- which( logLikelihoodCV  == maxLogLikeCV )[1]
     maxCV_SD     <- maxLogLikeCV - logLikelihoodCVSD[ lambdaMin ]
@@ -430,7 +384,6 @@ zeroSumCVFit <- function(
 
     fitresult <- zeroSumCVFitObject(    lambdaSeq,
                                         alpha,
-                                        devianceRatio, 
                                         type, 
                                         algorithmCV, 
                                         algorithmAllSamples,

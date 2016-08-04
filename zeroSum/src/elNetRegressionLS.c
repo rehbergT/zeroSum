@@ -1,11 +1,9 @@
-// RBioC CMD SHLIB sa.c -lgsl -lgslcblas -Wall -Wextra
 #include "regressions.h"
 
 #define MOVE_SCALE 0.05
 #define STEP_SIZE 5000
 
-// #define DEBUG
-// #define DEBUG2
+//   #define DEBUG
 
 #ifdef DEBUG
 #include <time.h>
@@ -41,18 +39,8 @@ int elnetMoveLS(    struct regressionData *data,
     
     double dtmp = beta[which] + amount;    
     
-    double tmp_lasso, tmp_ridge;
-    if( which != 0 )
-    {
-        tmp_lasso = *lasso + ( fabs(dtmp) - fabs(beta[which]) );    
-        tmp_ridge = *ridge + ( dtmp*dtmp - beta[which]*beta[which] );
-    }
-    else
-    {
-        tmp_lasso = *lasso;
-        tmp_ridge = *ridge;
-    }
-       
+    double tmp_lasso = *lasso + ( fabs(dtmp) - fabs(beta[which]) );    
+    double tmp_ridge = *ridge + ( dtmp*dtmp - beta[which]*beta[which] );
                              
     tmp_energy += (*data).lambda * ( (1.0 - (*data).alpha) 
                         * tmp_ridge / 2.0 + (*data).alpha * tmp_lasso );
@@ -62,11 +50,9 @@ int elnetMoveLS(    struct regressionData *data,
     if( deltaE <= 0.0 )
     {
          memcpy ( res, tmp, sizeof(double) * N );
-         if( which != 0 )
-         {
-            *ridge = tmp_ridge;
-            *lasso = tmp_lasso;
-         }
+         *ridge = tmp_ridge;
+         *lasso = tmp_lasso;
+
          *energy = tmp_energy;
          *residum = tmp_residum;
          
@@ -80,6 +66,34 @@ int elnetMoveLS(    struct regressionData *data,
 }
 
 
+void calcOffsetElNetGradientUpdate(   
+                    struct regressionData *data,
+                    double* restrict res,
+                    double* restrict energy,
+                    double* restrict residum, 
+                    double* restrict ridge,
+                    double* restrict lasso )
+{
+    double* restrict beta = (*data).beta;    
+    const int N = (*data).N;
+    
+    double oldbeta0 = beta[0];
+    
+    beta[0] = sum( res, N) / N + oldbeta0;
+
+    double tmp = oldbeta0 - beta[0];
+    for( int i=0; i<N; ++i )
+    {
+        res[i] += tmp; 
+    }
+    
+    *residum = squaresum( res, N ) / N;
+    *energy = (*residum) / ( 2.0 ) 
+        + (*data).lambda * ( (1.0 - (*data).alpha) * (*ridge) / 2.0 
+        + (*data).alpha * (*lasso)   );
+}
+
+
 
 
 
@@ -88,7 +102,7 @@ void elNetRegressionLS(
             const int steps   )
 {
     
-    #ifdef DEBUG2
+    #ifdef DEBUG
     double timet;
     struct timespec ts0, ts1;
     clock_gettime(CLOCK_REALTIME , &ts0);
@@ -114,11 +128,8 @@ void elNetRegressionLS(
     
     vectorElNetCostFunction( &data, res, &energy, &residum, &ridge, &lasso);  
 
-    #ifdef DEBUG2
-    double energy1 = energy; 
-    #endif 
-    
-    #ifdef DEBUG    
+    #ifdef DEBUG
+    double energy1 = energy;     
     PRINT("Initial Energy: %e (residum: %e ridge term: %e, lasso: %e)\n",
             energy, residum, ridge, lasso); 
     #endif  
@@ -126,6 +137,10 @@ void elNetRegressionLS(
     double energy_start;
     int repeats = steps > 0 ? steps : STEP_SIZE;
     
+    if( data.offset == TRUE )
+        calcOffsetElNetGradientUpdate( &data, res, &energy, 
+            &residum, &ridge, &lasso);
+
     do{
         int temp;
         int counter = 0;
@@ -135,18 +150,20 @@ void elNetRegressionLS(
 
         for( int i = 0; i < repeats * P; ++i )
         {            
-            if( data.offset == TRUE )
-                temp = (int) ( MY_RND * (double)P );
-            else
-                temp = (int) ( MY_RND * (double)(P-1) ) + 1;
+            temp = (int) ( MY_RND * (double)(P-1) ) + 1;
 
-            if(i%5 == 0)
+            if(i%10 == 0)
                 amount = -data.beta[temp];
             else
                 amount = (MY_RND-0.5) * MOVE_SCALE;
 
             counter += elnetMoveLS( &data, res, &energy, &residum, &ridge,
-                    &lasso, temp, amount, tmp);   
+                    &lasso, temp, amount, tmp);
+            
+            if( data.offset == TRUE )
+                calcOffsetElNetGradientUpdate( &data, res, &energy, 
+                                &residum, &ridge, &lasso);
+            
         }
 
         #ifdef R_PACKAGE
@@ -157,13 +174,13 @@ void elNetRegressionLS(
         
         #ifdef DEBUG
         double acceptrate = counter / ( (double) (repeats * P) );
-        PRINT("Energy before: %e Energy  now: %e Diff: %e  accept: %f  test: %e (%e)\n",
-              energy_start, energy, energy_start - energy, acceptrate, (energy_start - energy) / energy, data.precision );
+        PRINT("Energy before: %e Energy  now: %e Diff: %e  accept: %f  test: %d (%e)\n",
+              energy_start, energy, fabs(energy - energy_start), acceptrate, fabs(energy - energy_start) > data.precision, data.precision );
         #endif
         
         vectorElNetCostFunction( &data, res, &energy, &residum, &ridge, &lasso);
         
-    }while(  (energy_start - energy) / energy > data.precision  ); 
+    }while( energy < energy_start && fabs(energy - energy_start) > data.precision);
     
   
     

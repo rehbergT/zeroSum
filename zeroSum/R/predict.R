@@ -19,9 +19,10 @@
 #'
 #' @examples
 #' set.seed(1)
-#' data <- simulateData()
-#' fit <- zeroSumCVFit( data$x, data$y, alpha=1)
-#' predict(fit, data$x, s="lambda.min")
+#' x <- log2(exampleData$x+1)
+#' y <- exampleData$y
+#' fit <- zeroSumCVFit( x, y, alpha=1)
+#' predict(fit, x, s="lambda.min")
 #'
 #' @export
 predict <- function( fit=NULL, newx=NULL, s="lambda.min", ... )

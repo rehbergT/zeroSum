@@ -4,8 +4,7 @@
 #define MOVE_SCALE 0.05
 #define STEP_SIZE 5000
 
-//#define DEBUG
-//#define DEBUG2
+//  #define DEBUG
 
 #ifdef DEBUG
 #include <time.h>
@@ -113,7 +112,7 @@ void zeroSumRegressionLS(
                 struct regressionData data,
                 const int steps   )
 {    
-    #ifdef DEBUG2
+    #ifdef DEBUG
     double timet;
     struct timespec ts0, ts1;
     clock_gettime(CLOCK_REALTIME , &ts0);
@@ -143,7 +142,7 @@ void zeroSumRegressionLS(
     
     vectorElNetCostFunction( &data, res, &energy, &residum, &ridge, &lasso);
 
-    #ifdef DEBUG2
+    #ifdef DEBUG
     double energy1 = energy; 
     PRINT("Initial Energy: %e (residum: %e ridge term: %e, lasso: %e)\n",
             energy, residum, ridge, lasso); 
@@ -152,6 +151,10 @@ void zeroSumRegressionLS(
     
     double energy_start;    
     int repeats = steps > 0 ? steps : STEP_SIZE;
+
+    if( data.offset == TRUE )
+        calcOffsetElNetGradientUpdate( &data, res, &energy, 
+            &residum, &ridge, &lasso);
     
     do{
         int counter = 0;
@@ -167,21 +170,16 @@ void zeroSumRegressionLS(
             if(tmpj >= tmpi) tmpj++;
             
             if(i%10 == 0)
-            {
                 amount = data.beta[ tmpi ];
-                counter += moveLS( &data, res, &energy, &residum, &ridge, &lasso, tmpi, tmpj, 
-                                 amount, tmp );
-            }
-            else if( data.offset == TRUE && i%12 == 0)
-            {
-                amount = (MY_RND-0.5) * MOVE_SCALE;
-                counter += moveLSOffset( &data, res, &energy, &residum, &ridge, &lasso, amount, tmp );
-            }
             else
-            {
                 amount = (MY_RND-0.5) * MOVE_SCALE;
-                counter += moveLS( &data, res, &energy, &residum, &ridge, &lasso, tmpi, tmpj, amount, tmp );
-            }   
+              
+            counter += moveLS( &data, res, &energy, &residum, &ridge,
+                               &lasso, tmpi, tmpj, amount, tmp );
+            
+            if( data.offset == TRUE )
+                calcOffsetElNetGradientUpdate( &data, res, &energy, 
+                                &residum, &ridge, &lasso);
         }
         
         #ifdef R_PACKAGE
@@ -200,12 +198,12 @@ void zeroSumRegressionLS(
         vectorElNetCostFunction( &data, res, &energy, &residum, &ridge, &lasso);
        
         
-    }while(  (energy_start - energy) / energy > data.precision  );    
+    }while( energy < energy_start && fabs(energy - energy_start) > data.precision);
     
 
     
     
-    #ifdef DEBUG2
+    #ifdef DEBUG
     PRINT("Energy before: %e\t  later %e\tDif %e\n",
             energy1, energy, energy-energy1  );
     clock_gettime(CLOCK_REALTIME , &ts1);

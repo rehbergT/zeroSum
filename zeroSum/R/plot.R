@@ -14,11 +14,13 @@
 #'
 #' @examples
 #' set.seed(1)
-#' data <- simulateData()
-#' fit <- zeroSumCVFit( data$x, data$y, alpha=1)
+#' x <- log2(exampleData$x+1)
+#' y <- exampleData$y
+#' fit <- zeroSumCVFit( x, y, alpha=1)
 #' plot( fit, "test") 
 #'
-#' @import graphics
+#' @importFrom graphics abline arrows axis mtext title
+#' @importFrom grDevices rgb
 #'
 #' @export
 plot <- function( fit=NULL, main="", ... )

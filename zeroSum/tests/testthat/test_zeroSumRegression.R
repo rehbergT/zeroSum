@@ -4,24 +4,21 @@
 
     test_that( "zeroSum regression seems to work",{
 
+        x <- log2(exampleData$x+1)
+        y <- exampleData$y
+        alpha <- 1    
 
-        data <- readRDS( "data.rda" )
-
-        x <- data$x
-        y <- data$y
-        alpha <- 1  
-        foldid <- c(4L, 9L, 10L, 4L, 9L, 7L, 4L, 10L, 7L, 1L, 2L, 5L, 3L, 8L, 3L, 
-                1L, 7L, 9L, 1L, 8L, 9L, 2L, 6L, 3L, 3L, 8L, 2L, 10L, 10L, 5L, 
-                7L, 5L, 1L, 5L, 6L, 2L, 6L, 6L, 8L, 4L)
-
-        
+        nFold <- 10
+        N <- nrow(x)
+        set.seed(1)
+        foldid=foldid <- sample(rep( rep(1:nFold), length.out=N))
 
         set.seed(1)
-        elnet.fit <- zeroSumCVFit( x, y, alpha=alpha, devianceStop=FALSE,
+        elnet.fit <- zeroSumCVFit( x, y, alpha=alpha, cvStop=FALSE,
                                     type="elNet",foldid=foldid)
     
         set.seed(2)
-        zeroSum.fit <- zeroSumCVFit( x, y, alpha=alpha, devianceStop=FALSE,
+        zeroSum.fit <- zeroSumCVFit( x, y, alpha=alpha, cvStop=FALSE,
                                       type="zeroSumElNet",foldid=foldid)
     
 

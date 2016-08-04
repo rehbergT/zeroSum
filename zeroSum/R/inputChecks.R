@@ -28,6 +28,10 @@ checkBinominalVector <- function( x, varName)
         message <- sprintf("Type of %s is not a integer vector\n", varName)
         stop(message)
     }
+    if( any( x != 1 & x != 0  ) ){
+        message <- sprintf("%s does not consist of 0 and 1\n", varName)
+        stop(message)
+    }
 }
 
 checkType <- function( type )

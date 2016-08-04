@@ -36,13 +36,16 @@
 #'
 #' @param verbose verbose = TRUE enables output
 #' 
+#' @param beta start coeffiencts of algorithm
+#' 
 #'
 #' @return zeroSumFitObject
 #'
 #' @examples
 #' set.seed(1)
-#' data <- simulateData()
-#' zeroSumFit( data$x, data$y, 0.05, 0.5)
+#' x <- log2(exampleData$x+1)
+#' y <- exampleData$y
+#' zeroSumFit( x, y, 1.5, 1)
 #'
 #' @export
 zeroSumFit <- function( 
@@ -55,8 +58,9 @@ zeroSumFit <- function(
                 algorithm="CD+LS",
                 precision=1e-6, 
                 diagonalMoves=TRUE, 
-                polish=10,
-                verbose=FALSE) 
+                polish=0,
+                verbose=FALSE,
+                beta=NULL) 
 {    
     # some basic checks for the passed arguments
     checkNumericMatrix(x, 'x')
@@ -64,9 +68,6 @@ zeroSumFit <- function(
     checkType( type )
     if( type == "elNet" || type == "zeroSumElNet" ){
         checkNumericVector(y, 'y')
-    } else if( type == "zeroSumLogistic" )
-    {
-        checkBinominalVector(y, 'y')
     }
 
     if( nrow(x) != length(y)) 
@@ -92,7 +93,9 @@ zeroSumFit <- function(
 
     N <- nrow(x)
     P <- ncol(x)
-    beta <- rep( 0.0, ncol(x) )        
+
+    if( is.null(beta) )
+        beta <- rep( 0.0, ncol(x) )        
       
 
     energy1 <- 0

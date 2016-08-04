@@ -17,8 +17,9 @@
 #'
 #' @examples
 #' set.seed(1)
-#' data <- simulateData()
-#' zeroSumAnalyticSolution( data$x, data$y)
+#' x <- log2(exampleData$x+1)
+#' y <- exampleData$y
+#' fit <- zeroSumAnalyticSolution( x, y)
 #'   
 #' @export
 zeroSumAnalyticSolution <- function( x, y, offset=TRUE )

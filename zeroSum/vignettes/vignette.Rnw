@@ -3,7 +3,7 @@
 \usepackage{amsmath}
 \usepackage{graphicx}
 \usepackage[colorlinks,linkcolor=black,citecolor=black]{hyperref}
-\usepackage[numbers]{natbib}
+\usepackage[sort&compress,numbers]{natbib}
 \newcommand{\pkg}[1]{{\fontseries{b}\selectfont #1}}
 
 %\VignetteEngine{knitr::knitr} 
@@ -80,11 +80,10 @@ A dataset with 50 samples and 135 features can be simulated with the function \t
 library(zeroSum)
 
 set.seed(1)
-data <- simulateData()
-X <- data$x
+X <- log2(exampleData$x+1)
 print(dim(X))
 
-Y <- data$y
+Y <- exampleData$y
 print(length(Y))
 
 @
@@ -132,14 +131,14 @@ We have implemented the following options to modify the $\lambda$ path tested in
 		    $\lambda_{\text{min}}$ and $\lambda_{\text{max}}$, i.e. higher values for lambdaSteps improve 
 		    the resolution of the regularization path.
 
-    \item \textbf{devianceStop}: This parameter stops the CV progress if the model's deviance becomes successively
+    \item \textbf{cvStop}: This parameter stops the CV progress if the model's CV-error becomes successively
 		worse for lower lambda values. The number of steps that are accepted before the CV routine 
-		cancels is given by lambdaSteps (Default: 100) times devianceStop (Default: 0.1). 
-		Use devianceStop = 0 or FALSE to deactivate the devianceStop.
+		cancels is given by lambdaSteps (Default: 100) times cvStop (Default: 0.1). 
+		Use cvStop = 0 or FALSE to deactivate the cvStop.
 \end{itemize}
 
 
-\bibliographystyle{plainnat}
+\bibliographystyle{unsrtnat}
 \bibliography{cite}
 
 \end{document}
