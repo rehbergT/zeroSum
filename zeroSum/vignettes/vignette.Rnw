@@ -32,7 +32,7 @@
 \end{align*}
 The parameter $\alpha$ can be used to adjust the ratio between ridge and LASSO regularization. 
 For alpha = 0 the elastic net becomes
-a ridge regularization, for alpha = 1  the elastic net becomes
+a ridge regularization, for $\alpha = 1$  the elastic net becomes
 the LASSO regularization.\\
 The function calls of the \textit{zeroSum} package follow closely 
 those of the \textit{glmnet} package \cite{GLMNET}. Therefore, the results of the linear models
@@ -57,18 +57,18 @@ install_github("rehbergT/zeroSum/zeroSum")
 
 
 \subsection{Installation from source  (Method 2)}
-Download the zeroSum\_0.8.0.tar.gz file from \url{https.github.com} for Linux or OS X. 
-For Windows please download the binaries zeroSum\_0.8.0.tar.zip file from \url{https.github.com}
-Use the following command on Linux or OS X to install the package:
+Download the source from github
 \begin{quote}
-R CMD INSTALL ZeroSumElasticNet\_0.80.0.tar.gz
+git clone https://github.com/rehbergT/zeroSum.git
 \end{quote}
-or the following on Windows
+Build the R-package
 \begin{quote}
-R CMD INSTALL ZeroSumElasticNet\_0.80.0.zip
+R CMD build zeroSum
 \end{quote}
-
-
+Install the R-package
+\begin{quote}
+R CMD INSTALL zeroSum\_0.8.4.tar.gz
+\end{quote}
 
 
 \subsection{Basic Workflow}
