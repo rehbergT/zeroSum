@@ -7,7 +7,7 @@ recommended for log-transformed data where ambiguities in the reference point tr
 shifts. This approach has been proposed in the context of compositional data in \[2\] and in the 
 context of reference points in \[4\]. The corresponding minimization problem reads:
 <center>
-<img src="https://raw.github.com/rehbergT/zeroSum/costFunction.png"/>
+<img src="https://raw.github.com/rehbergT/zeroSum/master/costFunction.png"/>
 </center>
 The parameter alpha can be used to adjust the ratio between ridge and LASSO regularization. 
 For alpha=0 the elastic net becomes
@@ -59,7 +59,7 @@ Basic Usage
     plot( cv.fit, main="CV-Fit" )
 
 <center>
-<img src="https://raw.github.com/rehbergT/zeroSum/cvfit.png"/>
+<img src="https://raw.github.com/rehbergT/zeroSum/master/cvfit.png"/>
 </center>
 
 References
