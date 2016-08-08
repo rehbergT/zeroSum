@@ -6,9 +6,11 @@ The zero-sum constraint imposes that the sum over the regression weights vanishe
 recommended for log-transformed data where ambiguities in the reference point translate to sample-wise 
 shifts. This approach has been proposed in the context of compositional data in \[2\] and in the 
 context of reference points in \[4\]. The corresponding minimization problem reads:
+
 <center>
 <img src="https://raw.github.com/rehbergT/zeroSum/master/costFunction.png" width="600" />
 </center>
+
 The parameter alpha can be used to adjust the ratio between ridge and LASSO regularization. 
 For alpha=0 the elastic net becomes
 a ridge regularization, for alpha=1  the elastic net becomes
@@ -38,7 +40,8 @@ The following steps will download the source code of <em>zeroSum</em> install th
     # Install the R-package
     R CMD INSTALL zeroSum_0.8.4.tar.gz
 
-### Dependencies
+Dependencies
+------------
 
 <em>zeroSum</em> requires the following R-packages:
   
@@ -49,14 +52,24 @@ The following steps will download the source code of <em>zeroSum</em> install th
 Basic Usage
 -------------
    
-    # Load the zeroSum package
+    # load the zeroSum package
     library(zeroSum)
 
-    # Use the included example data
+    # use the included example data
     X <- log2(exampleData$x+1)
     Y <- exampleData$y
+    
+    # do a lasso cv-fit
     cv.fit <- zeroSumCVFit( X, Y, alpha=1)
+
+    # use plot() to see the CV-error versus regularization strength
     plot( cv.fit, main="CV-Fit" )
+
+    # use coef() to obtain the coefficients
+    coef(cv.fit, s="lambda.min")
+
+    # use predict()
+    predict( cv.fit, newx=X) 
 
 <center>
 <img src="https://raw.github.com/rehbergT/zeroSum/master/cvfit.png" width="500"/>
@@ -73,5 +86,5 @@ net. Journal of the Royal Statistical Society: Series B (Statistical Methodology
 eralized linear models via coordinate descent. Journal of Statistical Soft-
 ware, 33(1):1–22, 2010. ISSN 1548-7660. doi: 10.18637/jss.v033.i01.
 
-\[4\] M. Altenbuchinger, T. Rehberg (2016). Reference point insensitive molecular data analysis. 2016 - to be published soon
+\[4\] M. Altenbuchinger, T. Rehberg. Reference point insensitive molecular data analysis. 2016 - to be published soon
 
