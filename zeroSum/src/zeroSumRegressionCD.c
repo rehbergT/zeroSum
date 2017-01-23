@@ -313,7 +313,7 @@ void zeroSumRegressionCD( struct regressionData data,
         for( int l=1; l<P; ++l )
         { 
             fisherYates(ind2, P);
-            for( int k=1; k<(int)ceil(P*0.1)+10; ++k )
+            for( int k=1; k<(int)ceil(P*0.2); ++k )
             {   
                 int s = l;
                 int j = ind2[k];
