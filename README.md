@@ -8,7 +8,9 @@ regularization \[3\].
 The zero-sum constraint is
 recommended for fitting linear models between a response y<sub>i</sub> and log-transformed data x<sub>i</sub> where ambiguities in the reference point translate to sample-wise shifts. The influence of such sample-wise shifts on linear models
 is as follows:
+
 <img src="https://raw.github.com/rehbergT/zeroSum/master/images/equation2.png" width="295" />
+
 By restricting the sum of coefficients (red) to zero the model becomes reference point insensitive!
 
 This approach of  has been proposed in the context of compositional data in \[4\] and in the
