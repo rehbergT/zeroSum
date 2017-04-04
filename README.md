@@ -67,13 +67,13 @@ Open an R session as root and load the [<em>devtools</em>](https://cran.r-projec
 
 ### Manual Installation
 ##### Windows
-Download the precompiled [<em>windows package</em>](https://github.com/rehbergT/zeroSum/zeroSum_1.0.0.zip) (a zip file), open an
+Download the precompiled [<em>windows package</em>](https://github.com/rehbergT/zeroSum/raw/master/zeroSum_1.0.0.zip) (a zip file), open an
 R session as admin, navigate to the folder with the zip file and install it with:
 
     install.packages("zeroSum_1.0.0.zip", repos = NULL)
 
 ##### Linux
-Download the [<em>package</em>](https://github.com/rehbergT/zeroSum/zeroSum_1.0.0.tar.gz), open an
+Download the [<em>package</em>](https://github.com/rehbergT/zeroSum/raw/master/zeroSum_1.0.0.tar.gz), open an
 R session as admin, navigate to the folder with the tar.gz file and install it with:
 
     install.packages("zeroSum_1.0.0.tar.gz", repos = NULL)
