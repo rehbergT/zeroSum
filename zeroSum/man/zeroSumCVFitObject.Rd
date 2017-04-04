@@ -4,9 +4,7 @@
 \alias{zeroSumCVFitObject}
 \title{Description of zeroSumCVFitObject function}
 \usage{
-zeroSumCVFitObject(lambdaSeq, alpha, type, algorithmCV, algorithmAllSamples,
-  coefs, lambdaMin, lambda1SE, offset, precision, diagonalMoves, polish,
-  numberOfBetas, logLikelihoodCV, logLikelihood, logLikelihoodCVSD)
+zeroSumCVFitObject(obj)
 }
 \value{
 zeroSumCVFitObject
@@ -16,4 +14,3 @@ Creates a zeroSumCVFitObject which stores all arguments and results of
 the zeroSumCVFit() function.
 }
 \keyword{internal}
-

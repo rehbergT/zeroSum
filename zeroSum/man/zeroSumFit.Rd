@@ -4,12 +4,14 @@
 \alias{zeroSumFit}
 \title{Description of zeroSumFit function}
 \usage{
-zeroSumFit(x, y, lambda, alpha, offset = TRUE, type = "zeroSumElNet",
-  algorithm = "CD+LS", precision = 1e-06, diagonalMoves = TRUE,
-  polish = 0, verbose = FALSE, beta = NULL)
+zeroSumFit(x, y, lambda, alpha = 1, weights = NULL, penalty.factor = NULL,
+  zeroSumWeights = NULL, cSum = 0, standardize = TRUE, gamma = 0,
+  fusion = NULL, useOffset = TRUE, useApprox = TRUE, downScaler = 1,
+  type = "gaussianZS", algorithm = "CD", precision = 1e-08,
+  diagonalMoves = TRUE, polish = 0, verbose = FALSE, beta = NULL)
 }
 \arguments{
-\item{x}{data as a numeric matrix object (rows=samples). 
+\item{x}{data as a numeric matrix object (rows=samples).
 The zero-sum regression requires data on the log scale, i.e.
 x should be log-transformed data.}
 
@@ -21,16 +23,51 @@ x should be log-transformed data.}
 a ridge regularization, for alpha = 1 the elastic net becomes
 the lasso regularization}
 
-\item{offset}{determines if an offset should be used in the
+\item{weights}{samples weights}
+
+\item{penalty.factor}{weights for the elatic net regularization}
+
+\item{zeroSumWeights}{weights of the zeroSum constraint}
+
+\item{cSum}{constant c of the zeroSum constraint}
+
+\item{standardize}{standardize x and y}
+
+\item{gamma}{penalizing parameter of the fusion term}
+
+\item{fusion}{penalizing matrix of the fusion term}
+
+\item{useOffset}{determines if an offset should be used in the
 model or not (TRUE/FALSE)}
 
-\item{type}{choose the regression type: elNet, zeroSumElNet}
+\item{useApprox}{determines if the quadratic approximation of the
+log-likelihood or the log-likelihood itself should be used
+by the local search algorithm for fitting binomial or
+multinomial models}
+
+\item{downScaler}{allows to reduce the number of moves}
+
+\item{type}{choose the regression type:
+\describe{
+        \item{gaussian:}{}
+        \item{gaussianZS:}{}
+        \item{fusionGaussian:}{}
+        \item{fusionGaussianZS:}{}
+        \item{binomial:}{}
+        \item{binomialZS:}{}
+        \item{fusionBinomial:}{}
+        \item{fusionBinomialZS:}{}
+        \item{multinomial:}{}
+        \item{multinomialZS:}{}
+        \item{fusionMultinomial:}{}
+        \item{fusionMultinomialZS:}{}
+}}
 
 \item{algorithm}{choose an algorithm:
-CD = Coordinate descent (very fast, not so accurate),
-CD+LS = Coordinate descent + local search (fast, very accurate),
-LS = Local search (slow, accurate),
-SA = Simulated annealing (very slow, very accurate)}
+\describe{
+\item{CD:}{ Coordinate descent (very fast, not so accurate)}
+\item{CD+LS:}{ Coordinate descent + Local search (fast, very accurate)}
+\item{LS:}{ Local search (slow, accurate)} }}
 
 \item{precision}{stopping criterion of the used algorithms. Determines how
 small the improvement of the cost function has to be to stop
@@ -55,7 +92,6 @@ Creates a linear model with the elastic-net regularization and the zero-sum
 set.seed(1)
 x <- log2(exampleData$x+1)
 y <- exampleData$y
-zeroSumFit( x, y, 1.5, 1)
+zeroSumFit( x, y, lambda=1.5 )
 
 }
-

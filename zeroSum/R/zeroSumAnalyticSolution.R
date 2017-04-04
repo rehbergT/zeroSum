@@ -19,7 +19,7 @@
 #' set.seed(1)
 #' x <- log2(exampleData$x+1)
 #' y <- exampleData$y
-#' fit <- zeroSumAnalyticSolution( x, y)
+#' fit <- zeroSumAnalyticSolution( x, y )
 #'   
 #' @export
 zeroSumAnalyticSolution <- function( x, y, offset=TRUE )
@@ -27,7 +27,7 @@ zeroSumAnalyticSolution <- function( x, y, offset=TRUE )
     # some basic checks for the passed arguments
     checkNumericMatrix(x, 'x')
     checkNumericVector(y, 'y')
-
+  
     if( nrow(x) != length(y) )
     {
         stop("number of rows of X does not match length of Y!\n")
@@ -89,14 +89,11 @@ zeroSumAnalyticSolution <- function( x, y, offset=TRUE )
         names(betas) <- xNames
     }
     
-    fitresult <- zeroSumFitObject(  0, 
-                                    NULL, 
-                                    beta,
-                                    "zeroSumElNet", 
-                                    "analyticSolution",
-                                    FALSE)
-    
-    return(fitresult)  
+    data <- list()
+    data$beta <- betas
+    class(data) <- append( class(data),"ZeroSumFit")
+
+    return(data)  
 }
 
     

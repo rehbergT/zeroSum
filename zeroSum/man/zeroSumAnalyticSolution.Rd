@@ -28,7 +28,6 @@ and n=length(y).
 set.seed(1)
 x <- log2(exampleData$x+1)
 y <- exampleData$y
-fit <- zeroSumAnalyticSolution( x, y)
+fit <- zeroSumAnalyticSolution( x, y )
   
 }
-

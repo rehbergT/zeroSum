@@ -1,40 +1,24 @@
 #ifndef REGRESSION_H
 #define REGRESSION_H
 
-#include "costFunctions.h"
+#include <ctime>
+
+#ifdef _OPENMP
+#include <omp.h>
+#endif
+
+
+#include <vector>
+#include "CvRegressionData.h"
+#include "CvRegression.h"
 #include "mathHelpers.h"
-#include "regressionData.h"
+#include "RegressionData.h"
 
-void calcOffsetElNetGradient(   struct regressionData *data,
-                                double* restrict betasX);
+void doRegression(RegressionDataScheme* data, int seed);
+void doCVRegression( RegressionData* data, double* gammaSeq,
+        int gammaLength, double* lambdaSeq, int lambdaLength,
+        double* cv_stats, int cv_cols, char* path, char* name, int mpi_rank,
+        int seed);
 
-void calcOffsetElNetGradientUpdate(   
-                    struct regressionData *data,
-                    double* restrict res,
-                    double* restrict energy,
-                    double* restrict residum, 
-                    double* restrict ridge,
-                    double* restrict lasso );
-
-void zeroSumRegressionCD(  
-            struct regressionData data,
-            int verticalMoves );
-
-void zeroSumRegressionSA(  
-            struct regressionData data );
-
-void zeroSumRegressionLS(  
-            struct regressionData data,
-            const int steps );
-
-void elNetRegressionCD(  
-            struct regressionData data );
-
-void elNetRegressionSA(  
-            struct regressionData data );
-
-void elNetRegressionLS(  
-            struct regressionData data,
-            const int steps  );
 
 #endif /* REGRESSION_H */

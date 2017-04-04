@@ -4,26 +4,51 @@
 \alias{zeroSumCVFit}
 \title{Description of zeroSumCVFit function}
 \usage{
-zeroSumCVFit(x, y, lambdaSequence = 0, alpha = 1, epsilon = 0.001,
-  lambdaSteps = 100, nFold = 10, foldid = NULL, offset = TRUE,
-  parallel = FALSE, verbose = FALSE, type = "zeroSumElNet",
-  algorithmCV = "CD", algorithmAllSamples = "CD+LS", precisionCV = 1e-06,
-  precisionAllSamples = 1e-06, diagonalMoves = TRUE, lambdaScaler = 1,
-  polish = 0, cvStop = 0.1)
+zeroSumCVFit(x, y, lambda = 0, lambdaSteps = 100, alpha = 1,
+  weights = NULL, penalty.factor = NULL, zeroSumWeights = NULL,
+  cSum = 0, standardize = TRUE, gamma = 0, gammaSteps = 1,
+  fusion = NULL, epsilon = 0.001, nFold = 10, foldid = NULL,
+  useOffset = TRUE, useApprox = TRUE, downScaler = 1, cores = 1,
+  verbose = FALSE, type = "gaussianZS", algorithm = "CD",
+  precision = 1e-08, diagonalMoves = TRUE, lambdaScaler = 1, polish = 0,
+  cvStop = 0.1)
 }
 \arguments{
-\item{x}{data as a numeric matrix object (rows=samples). 
+\item{x}{data as a numeric matrix object (rows=samples).
 The zero-sum regression requires data on the log scale, i.e.
 x should be log-transformed data.}
 
 \item{y}{response vector to be predicted by x (length(y)==nrow(x))}
 
-\item{lambdaSequence}{sequence of lambda values to be tested.
+\item{lambda}{sequence of lambda values to be tested.
 If lambda==0 a sequence will be approximated}
+
+\item{lambdaSteps}{this parameters determines the number of lambda steps between
+lambdaMin and lambdaMax, i.e higher values for lambdaSteps
+increase the resolution of the regularization path.}
 
 \item{alpha}{Lasso/Ridge adjustment: For alpha = 0 the elastic net becomes
 a ridge regularization, for alpha = 1 the elastic net becomes
 the lasso regularization}
+
+\item{weights}{samples weights}
+
+\item{penalty.factor}{weights for the elatic net regularization}
+
+\item{zeroSumWeights}{weights of the zeroSum constraint}
+
+\item{cSum}{constant c of the zeroSum constraint. Default 0. Anything else is experimental.}
+
+\item{standardize}{standardize x and y}
+
+\item{gamma}{sequence of gamma values to be tested.
+If gamma==0 and a fused/fusion regression type set a sequence will be approximated (not implemented yet...)}
+
+\item{gammaSteps}{this parameters determines the number of gamma steps between
+gammaMin and gammaMax, i.e higher values for gammaSteps
+increase the resolution of the regularization path.}
+
+\item{fusion}{penalizing matrix of the fusion term}
 
 \item{epsilon}{If a lambda sequence is estimated, lambdaMax is chosen such
 that all coefficients become zero, i.e. lambdaMax is the upper
@@ -31,45 +56,42 @@ bound of the lambda sequence. The lower bound is calculated by
 lambdaMin = lambdaMax * epsilon and can be adjusted by this
 parameter.}
 
-\item{lambdaSteps}{this parameters determines the number of lambda steps between
-lambdaMin and lambdaMax, i.e higher values for lambdaSteps
-increase the resolution of the regularization path.}
-
 \item{nFold}{the number of folds used for the cross validation}
 
 \item{foldid}{allows to determine the folds used for cross validation.}
 
-\item{offset}{determines if an offset should be used in the
+\item{useOffset}{determines if an offset should be used in the
 model or not (TRUE/FALSE)}
 
-\item{parallel}{The cross validation is done within a foreach loop which can be
-executed in parallel. 'doMC' or equivalent needs to be
-registered before using this!}
+\item{useApprox}{determines if the quadratic approximation of the
+log-likelihood or the log-likelihood itself should be used
+by the local search algorithm for fitting binomial or
+multinomial models}
+
+\item{downScaler}{allows to reduce the number of moves}
+
+\item{cores}{The cross validation can be executed in parallel. cores
+defines the amount of cpu cores to be used!}
 
 \item{verbose}{verbose = TRUE enables output}
 
-\item{type}{choose the regression type: elNet, zeroSumElNet}
+\item{type}{choose the regression type:
+\describe{
+        \item{gaussian:}{linear regression}
+        \item{gaussianZS:}{linear zero-Sum regression (default)}
+        \item{binomial:}{logistic regression}
+        \item{binomialZS:}{logistic zero-Sum regression}
+}}
 
-\item{algorithmCV}{determines the algorithm used for the cross validation:
-CD = Coordinate descent (very fast, not so accurate),
-CD+LS = Coordinate descent + local search (fast, very accurate),
-LS = local search (slow, accurate),
-SA = simulated annealing (very slow, very accurate)}
+\item{algorithm}{determines the used algorithm:
+\describe{
+\item{CD:}{ Coordinate descent (very fast, not so accurate)}
+\item{CD+LS:}{ Coordinate descent + Local search (fast, very accurate)}
+\item{LS:}{ Local search (slow, accurate)} }}
 
-\item{algorithmAllSamples}{determines the algorithm used for the creation of 
-of the final models (lambda.min and lambda.1SE):
- CD = Coordinate descent (very fast, not so accurate),
- CD+LS = Coordinate descent + local search (fast, very accurate),
- LS = Local search (slow, accurate),
- SA = Simulated annealing (very slow, very accurate)}
-
-\item{precisionCV}{stopping criterion of the used algorithms for the CV fit.
+\item{precision}{stopping criterion of the used algorithms.
 Determines how small the improvement of the cost function
-has to be to stop the algorithm. Default is 1e-6.}
-
-\item{precisionAllSamples}{stopping criterion of the used algorithms for 
-the creation of the final models (lambda.min and lambda.1SE).
-Default is 1e-6.}
+has to be to stop the algorithm. Default is 1e-8.}
 
 \item{diagonalMoves}{allows the CD to use diagonal moves}
 
@@ -82,7 +104,7 @@ for lower lambda values. The number of worse
 values which is tolerated is calculated by multiplying
 the lambdaSteps (Default: 100) with the value of cvStop
 parameter. (Default: 0.1). Use cvStop = 0 or FALSE to
-deactivate the cvStop.}
+deactivate the devianceStop.}
 }
 \value{
 zeroSumCVFitObject
@@ -90,7 +112,7 @@ zeroSumCVFitObject
 \description{
 This function determines for a given dataset x, y and elastic net parameter
 alpha an optimal lambda value by cross validation (cv). It returns
-a linear model for the optimal lambda. An appropiate lambda sequence 
+a linear model for the optimal lambda. An appropiate lambda sequence
 is estimated or can be passed as an argument. For each lambda value
 an nFold cv error is calculated. The optimal lambda corresponds to the lowest
 cv error.
@@ -104,4 +126,3 @@ plot( fit, "test")
 coef(fit, s="lambda.min")
 
 }
-

@@ -4,8 +4,7 @@
 \alias{zeroSumRegression}
 \title{Description of zeroSumRegression_C Wrapper function}
 \usage{
-zeroSumRegression(x, y, beta, lambda, alpha, offset, type, algorithm, verbose,
-  precision, diagonalMoves, polish)
+zeroSumRegression(data, CV)
 }
 \value{
 regression coefficients are returned
@@ -14,4 +13,3 @@ regression coefficients are returned
 This is a wrapper function for the C regression functions
 }
 \keyword{internal}
-

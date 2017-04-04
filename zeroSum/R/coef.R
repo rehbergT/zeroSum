@@ -6,6 +6,7 @@
 #'
 #' @param s determines which lambda of a zeroSumCVFit should be returned:
 #'          lambda.min or lamda.1SE
+#' @param precision all coefficients below this thresshold are set to 0
 #'
 #' @param ... other arguments for the normal predict function if the fit
 #'            is not a zeroSumFit or zeroSumCVFit object
@@ -20,36 +21,71 @@
 #' coef(fit, s="lambda.min")
 #'
 #' @export
-coef <- function( fit=NULL, s="lambda.min", ... )
-{       
+coef <- function( fit=NULL, s="lambda.min", precision=1e-6, ... )
+{
     if( any( class(fit)=="ZeroSumCVFit") || any( class(fit)=="ZeroSumFit") )
     {
         beta <- NULL
         if( any( class(fit)=="ZeroSumFit"))
         {
-            beta <- fit$coef
+            beta <- fit$beta
         }
         else
         {
-            if( s == "lambda.min")
+            if( fit$type %in% zeroSumTypes[1:12,2] )
             {
-                beta <- fit$coefs[ fit$LambdaMinIndex, ]
+                if( s == "lambda.min")
+                {
+                    beta <- fit$coef[ fit$LambdaMinIndex, ]
+                }
+                else if( s == "lambda.1SE" || s == "lambda.1se")
+                {
+                    beta <- fit$coef[ fit$Lambda1SEIndex, ]
+                }
+                else
+                {
+                    beta <- fit$coef[s,]
+                    if(is.na(beta))
+                        stop("s not valid")
+                }
+            } else
+            {
+                if( s == "lambda.min")
+                {
+                    beta <- fit$coef[[ fit$LambdaMinIndex ]]
+                }
+                else if( s == "lambda.1SE" || s == "lambda.1se")
+                {
+                    beta <- fit$coef[[ fit$Lambda1SEIndex ]]
+                }
+                else
+                {
+                    beta <- fit$coef[[s]]
+                    if(is.na(beta))
+                        stop("s not valid")
+                }
             }
-            else if( s == "lambda.1SE" || s == "lambda.1se")
-            {
-                beta <- fit$coefs[ fit$Lambda1SEIndex, ]
-            }
-            else
-            {
-                beta <- fit$coefs[s,]
-                if(is.na(beta))
-                    stop("s not valid")
-            }              
         }
+
+        beta <- as.matrix(beta)
+
+        ## remove numerical uncertainties
+        beta[ abs(beta) < precision ] <- 0.0
+
+        ## try to remove numerical zerosum uncertainties
+        if( fit$type %% 2 == 0 && sum(beta[-1,] != 0.0 ) )
+        {
+            delta = sum(beta[-1,,drop=FALSE])
+            ids <- which( beta[-1,] != 0.0 )
+            if( length(ids) > 0){
+               beta[ids+1,] <- beta[ids+1,] - delta / length(ids)
+            }
+        }
+
         return( as.matrix(beta) )
 
-    } else 
+    } else
     {
-        UseMethod("coef")          
+        UseMethod("coef")
     }
 }

@@ -4,7 +4,7 @@
 \alias{zeroSumFitObject}
 \title{Description of zeroSumFitObject function}
 \usage{
-zeroSumFitObject(lambda, alpha, coef, type, algorithm, diagonalMoves)
+zeroSumFitObject(regressionObject)
 }
 \value{
 zeroSumFitObject
@@ -14,4 +14,3 @@ Creates a zeroSumFitObject which stores all arguments and results of
 the zeroSumFit() function.
 }
 \keyword{internal}
-

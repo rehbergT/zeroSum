@@ -1,61 +1,108 @@
 #ifndef MATHHELPERS_H
 #define MATHHELPERS_H
 
- #define R_PACKAGE
-
-#ifdef R_PACKAGE
-
-    #include <R.h>
-    #include <Rdefines.h>
-    #include <R_ext/Utils.h>
-    #include <R_ext/Rdynload.h>
-    
-    // #include<Rmath.h>
-    // #include<R_ext/BLAS.h>
-    #define PRINT Rprintf
-    #define MY_RND unif_rand()
-
-#else  
-    #include <stdio.h>
-    #define PRINT printf
-    #define MY_RND gsl_rng_uniform(rngGSLPointer)
-    
+#ifdef _OPENMP
+#include <omp.h>
 #endif
 
-#include <math.h>
-#include <stdlib.h>
+#include <cmath>
+#include <cfloat>
+#include <cstring>
 
-#define INDEX(i,j,N) ( (i) + ( (j) * (N) ) )
-#define INDEX_ROW(i,j,M) ( (j) + ( (i) * (M) ) )
+#include "fusionKernel.h"
+#include "settings.h"
 
-// http://www.mathcs.emory.edu/~cheung/Courses/255/Syllabus/1-C-intro/bit-array.html
-#define SetBit(A,k)     ( A[(k/32)] |= (1 << (k%32)) )
-#define ClearBit(A,k)   ( A[(k/32)] &= ~(1 << (k%32)) )
-#define TestBit(A,k)    ( A[(k/32)] & (1 << (k%32)) )
 
-#define TRUE  1
-#define FALSE 0
+int getMax(double*a, int n);
+double median( double* x, int N);
 
-void MeanVar( double messung[],int anz_mess,  double berechnet[]);
-void fisherYates(int* restrict a, const int N);
+double sum_a        ( double* a, int n );
 
-void printMatrixColWise(double* matrix, int N, int P);
-void printMatrixRowWise(double* matrix, int N, int P);
-void printVector(double* vector, int N);
+double sum_square_a ( double* a, int n );
 
-double scalarProdSquaresum(double* restrict w, double* restrict a, const int n );
-double scalarProdSum(double* restrict w, double* restrict a, const int n );
+double sum_abs_a    ( double* a, int n );
 
-double squaresum(double* restrict a, const int n);
-double abssum(double* restrict a, const int n);
-double sum(double* restrict a, const int n);
+double sum_abs_a_times_b    ( double* a,
+                              double* b, int n );
 
-double absSumDiffMult( double* restrict a,
-                       double* restrict b,
-                       double* restrict c,
-                       const int n  );
+double sum_square_a_times_b ( double* a,
+                              double* b, int n );
 
+double sum_a_times_b       ( double* a,
+                             double* b, int n );
+
+double sum_a_sub_b_times_c ( double* a,
+                             double* b,
+                             double* c, int n );
+
+double sum_a_add_b_times_c ( double* a,
+                             double* b,
+                             double* c, int n );
+
+void a_times_b ( double* a,
+                 double* b,
+                 double* c, int n );
+
+void a_add_b   ( double* a,
+                 double* b,
+                 double* c, int n );
+
+void a_sub_b   ( double* a,
+                 double* b,
+                 double* c, int n );
+
+double sum_a_times_b_times_c ( double* a,
+                               double* b,
+                               double* c, int n );
+
+void a_add_scalar_b   ( double* a,
+                        double b,
+                        double* c, int n );
+
+void a_times_scalar_b ( double* a,
+                        double b,
+                        double* c, int n);
+
+void add_a_add_scalar_b ( double* a,
+                          double b,
+                          double* c, int n);
+
+void sub_a_times_scalar_b_sub_c_times_scalar_d ( double* a,
+                                                 double b,
+                                                 double* c,
+                                                 double d,
+                                                 double* e, int n);
+
+void sub_a_times_scalar_b_sub_c_times_scalar_d_sub_d_times_scalar_f ( double* a,
+                                                                      double b,
+                                                                      double* c,
+                                                                      double d,
+                                                                      double* e,
+                                                                      double f,
+                                                                      double* res, int n);
+
+void a_times_scalar_b_sub_c( double* a,
+                             double b,
+                             double* c,
+                             double* d, int n);
+
+void a_add_scalar_b_times_c_sub_d_times_e( double* a,
+                                           double b,
+                                           double* c,
+                                           double* d,
+                                           double e,
+                                           double* res, int n);
+
+void a_times_scalar_b_add_c_times_scalar_d_add_d_times_scalar_f( double* a,
+                                                                 double b,
+                                                                 double* c,
+                                                                 double d,
+                                                                 double* e,
+                                                                 double f,
+                                                                 double* res, int n);
+
+int addToSet( int* activeset, int* activesetSize, int k);
+int deleteFromSet( int* activeset, int* activesetSize, int k);
+int getMinIndex(double* a, int N);
 
 #endif /* MATHHELPERS_H */
-
-

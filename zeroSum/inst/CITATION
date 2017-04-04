@@ -2,17 +2,13 @@ citHeader("To cite zeroSum in publications use:")
 
 citEntry(entry = "Article",
   title        = "Reference point insensitive molecular data analysis",
-  author       = "M. Altenbuchinger, T. Rehberg et al.",
-  journal      = "...",
-  year         = "...",
-  volume       = "...",
-  number       = "...",
-  pages        = "...",
-  url          = "...",
+  author       = "Altenbuchinger, M. and Rehberg, T. and Zacharias, H. U. and Staemmler, F. and Dettmer, K. and Weber, D. and Hiergeist, A. and Gessner, A. and Holler, E. and Oefner, P. J. and Spang, R.",
+  journal      = "Bioinformatics",
+  year         = "2017",
+  volume       = "33",
+  number       = "2",
+  pages        = "219",
+  url          = "http://dx.doi.org/10.1093/bioinformatics/btw598",
 
-  textVersion  =
-  paste("M. Altenbuchinger, T. Rehberg (2016).",
-        "Reference point insensitive molecular data analysis.",
-        "...",
-        "...")
+  textVersion = "M. Altenbuchinger, T. Rehberg, H. U. Zacharias, F. Staemmler, K. Dettmer, D. Weber, A. Hiergeist, A. Gessner, E. Holler, P. J. Oefner, R. Spang. Reference point insensitive molecular data analysis. Bioinformatics 33(2):219, 2017. doi: 10.1093/bioinformatics/btw598"
 )

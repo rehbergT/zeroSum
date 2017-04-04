@@ -2,23 +2,46 @@
 #'
 #' This function determines for a given dataset x, y and elastic net parameter
 #' alpha an optimal lambda value by cross validation (cv). It returns
-#' a linear model for the optimal lambda. An appropiate lambda sequence 
+#' a linear model for the optimal lambda. An appropiate lambda sequence
 #' is estimated or can be passed as an argument. For each lambda value
 #' an nFold cv error is calculated. The optimal lambda corresponds to the lowest
 #' cv error.
 #'
-#' @param x data as a numeric matrix object (rows=samples). 
+#' @param x data as a numeric matrix object (rows=samples).
 #'          The zero-sum regression requires data on the log scale, i.e.
 #'          x should be log-transformed data.
 #'
 #' @param y response vector to be predicted by x (length(y)==nrow(x))
 #'
-#' @param lambdaSequence sequence of lambda values to be tested.
+#' @param lambda sequence of lambda values to be tested.
 #'          If lambda==0 a sequence will be approximated
+#'
+#' @param lambdaSteps this parameters determines the number of lambda steps between
+#'                    lambdaMin and lambdaMax, i.e higher values for lambdaSteps
+#'                    increase the resolution of the regularization path.
+#'
+#' @param gamma sequence of gamma values to be tested.
+#'          If gamma==0 and a fused/fusion regression type set a sequence will be approximated (not implemented yet...)
+#'
+#' @param gammaSteps this parameters determines the number of gamma steps between
+#'                    gammaMin and gammaMax, i.e higher values for gammaSteps
+#'                    increase the resolution of the regularization path.
 #'
 #' @param alpha Lasso/Ridge adjustment: For alpha = 0 the elastic net becomes
 #'              a ridge regularization, for alpha = 1 the elastic net becomes
 #'              the lasso regularization
+#'
+#' @param weights samples weights
+#'
+#' @param penalty.factor weights for the elatic net regularization
+#'
+#' @param zeroSumWeights weights of the zeroSum constraint
+#'
+#' @param cSum constant c of the zeroSum constraint. Default 0. Anything else is experimental.
+#'
+#' @param standardize standardize x and y
+#'
+#' @param fusion penalizing matrix of the fusion term
 #'
 #' @param epsilon If a lambda sequence is estimated, lambdaMax is chosen such
 #'              that all coefficients become zero, i.e. lambdaMax is the upper
@@ -26,45 +49,42 @@
 #'              lambdaMin = lambdaMax * epsilon and can be adjusted by this
 #'              parameter.
 #'
-#' @param lambdaSteps this parameters determines the number of lambda steps between
-#'                    lambdaMin and lambdaMax, i.e higher values for lambdaSteps
-#'                    increase the resolution of the regularization path.
-#'
 #' @param nFold the number of folds used for the cross validation
 #'
 #' @param foldid allows to determine the folds used for cross validation.
 #'
-#' @param offset determines if an offset should be used in the
+#' @param useOffset determines if an offset should be used in the
 #'               model or not (TRUE/FALSE)
 #'
-#' @param parallel The cross validation is done within a foreach loop which can be
-#'                 executed in parallel. 'doMC' or equivalent needs to be
-#'                 registered before using this!
+#' @param useApprox determines if the quadratic approximation of the
+#'               log-likelihood or the log-likelihood itself should be used
+#'               by the local search algorithm for fitting binomial or
+#'               multinomial models
+#'
+#' @param downScaler allows to reduce the number of moves
+#'
+#' @param cores The cross validation can be executed in parallel. cores
+#'              defines the amount of cpu cores to be used!
 #'
 #' @param verbose verbose = TRUE enables output
 #'
-#' @param type choose the regression type: elNet, zeroSumElNet
+#' @param type choose the regression type:
+#'              \describe{
+#'                      \item{gaussian:}{linear regression}
+#'                      \item{gaussianZS:}{linear zero-Sum regression (default)}
+#'                      \item{binomial:}{logistic regression}
+#'                      \item{binomialZS:}{logistic zero-Sum regression}
+#'              }
 #'
-#' @param algorithmCV determines the algorithm used for the cross validation:
-#'            CD = Coordinate descent (very fast, not so accurate),
-#'            CD+LS = Coordinate descent + local search (fast, very accurate),
-#'            LS = local search (slow, accurate),
-#'            SA = simulated annealing (very slow, very accurate)
+#' @param algorithm determines the used algorithm:
+#'            \describe{
+#'            \item{CD:}{ Coordinate descent (very fast, not so accurate)}
+#'            \item{CD+LS:}{ Coordinate descent + Local search (fast, very accurate)}
+#'            \item{LS:}{ Local search (slow, accurate)} }
 #'
-#' @param algorithmAllSamples determines the algorithm used for the creation of 
-#'           of the final models (lambda.min and lambda.1SE):
-#'            CD = Coordinate descent (very fast, not so accurate),
-#'            CD+LS = Coordinate descent + local search (fast, very accurate),
-#'            LS = Local search (slow, accurate),
-#'            SA = Simulated annealing (very slow, very accurate)
-#'
-#' @param precisionCV stopping criterion of the used algorithms for the CV fit.
+#' @param precision stopping criterion of the used algorithms.
 #'                    Determines how small the improvement of the cost function
-#'                    has to be to stop the algorithm. Default is 1e-6.
-#'
-#' @param precisionAllSamples stopping criterion of the used algorithms for 
-#'            the creation of the final models (lambda.min and lambda.1SE).
-#'            Default is 1e-6.
+#'                    has to be to stop the algorithm. Default is 1e-8.
 #'
 #' @param diagonalMoves allows the CD to use diagonal moves
 #'
@@ -77,7 +97,7 @@
 #'                  values which is tolerated is calculated by multiplying
 #'                  the lambdaSteps (Default: 100) with the value of cvStop
 #'                  parameter. (Default: 0.1). Use cvStop = 0 or FALSE to
-#'                  deactivate the cvStop.
+#'                  deactivate the devianceStop.
 #'
 #' @return zeroSumCVFitObject
 #'
@@ -91,314 +111,62 @@
 #'
 #' @import foreach
 #' @importFrom stats rnorm sd
-#
-#' @useDynLib zeroSum
 #'
 #' @export
 zeroSumCVFit <- function(
             x,
             y,
-            lambdaSequence = 0,
-            alpha = 1,
-            epsilon = 0.001,
-            lambdaSteps = 100,
-            nFold = 10,
-            foldid = NULL,
-            offset = TRUE,
-            parallel = FALSE,
-            verbose = FALSE,
-            type = "zeroSumElNet",
-            algorithmCV = "CD",
-            algorithmAllSamples = "CD+LS",
-            precisionCV = 1e-6,
-            precisionAllSamples = 1e-6,
-            diagonalMoves = TRUE,
-            lambdaScaler = 1,
-            polish = 0,
-            cvStop = 0.1 )
+            lambda              = 0,
+            lambdaSteps         = 100,
+            alpha               = 1.0,
+            weights             = NULL,
+            penalty.factor      = NULL,
+            zeroSumWeights      = NULL,
+            cSum                = 0.0,
+            standardize         = TRUE,
+            gamma               = 0.0,
+            gammaSteps          = 1,
+            fusion              = NULL,
+            epsilon             = 0.001,
+            nFold               = 10,
+            foldid              = NULL,
+            useOffset           = TRUE,
+            useApprox           = TRUE,
+            downScaler          = 1,
+            cores               = 1,
+            verbose             = FALSE,
+            type                = "gaussianZS",
+            algorithm           = "CD",
+            precision           = 1e-8,
+            diagonalMoves       = TRUE,
+            lambdaScaler        = 1,
+            polish              = 0,
+            cvStop              = 0.1 )
 {
     # some basic checks for the passed arguments
-    checkNumericMatrix(x, 'x')
-    
-    checkType( type )
-    if( type == "elNet" || type == "zeroSumElNet" ){
-        checkNumericVector(y, 'y')
+    data <- regressionObject(x, y, NULL, lambda, alpha,
+                gamma, cSum, type, weights, zeroSumWeights,
+                penalty.factor, fusion, precision,
+                useOffset, useApprox, downScaler, algorithm,
+                diagonalMoves, polish, standardize, lambdaSteps,
+                gammaSteps, nFold, foldid, epsilon, cvStop, verbose,
+                lambdaScaler, cores)
+
+    if( !(data$type %in% zeroSumTypes[c(1,2,7,8),2] ) )
+    {
+        print("Experimental data type!")
+        print("This is work in progress so take the results with a grain of salt!")
     }
 
-    if( nrow(x) != length(y) )
-    {
-        stop("number of rows of X does not match length of Y!\n")
+    if(verbose) start <- Sys.time()
+
+    data$result <- zeroSumRegression( data, TRUE )
+
+    if(verbose) {
+        end <- Sys.time()
+        print( sprintf("runtime: %.3fs", as.numeric(end-start, units="secs")))
     }
 
-    checkNumericVector( lambdaSequence, "lambdaSequence")
-    checkDouble( alpha, "alpha")
-    
-    checkAlgo(algorithmCV, "algorithmCV")
-    checkAlgo(algorithmAllSamples, "algorithmAllSamples")
-   
-    checkDouble( epsilon, "epsilon")
-    checkDouble( lambdaSteps, "lambdaSteps")
-    checkInteger( nFold, "nFold")
-
-    if( nFold > nrow(x)   ) 
-    {
-        stop("nFold bigger than sample size\n")
-    }
-
-    if( cvStop==FALSE )
-    {
-        cvStop = 0
-    } else
-    {
-        cvStop = 0.1
-    }
-    checkDouble( cvStop, "cvStop")
-    if( cvStop < 0 || cvStop >1 )
-    {
-        stop("cvStop is not within [0,1]\n")
-    }
-
-    cvStop <- round(lambdaSteps * cvStop)
-
-    # Sample size and feature size
-    N <- nrow(x)
-    P <- ncol(x)
-
-    # determine lambdaMax
-    if( length(lambdaSequence) == 1 & lambdaSequence[1] == 0 )
-    {
-        # in the ridge case (alpha==0) lambdaMax can not be determined
-        # therefore a small alpha is used to determine a lambda max
-        # the variable ridge is used as a bool to revert alpha to zero
-        # after the calculation
-
-        if(verbose)
-        {
-            cat("Determine lambdaMax\n")            
-        }
-
-        ridge <- FALSE
-        if(alpha==0)
-        {
-            alpha <- 0.1
-            ridge <- TRUE
-        }
-        lambdaMax <- NULL
-
-
-        if( type == "elNet" )
-        {
-            beta0 <- mean(y)
-            res <- y-beta0
-            lambdaMax <- max( abs( t(x) %*% res ) ) / ( N * alpha )
-
-        } else if( type == "zeroSumElNet")
-        {
-            res <- y - mean(y)
-            lambdaMax <- .Call("LambdaMax", x, res, alpha)
-        }
-
-        lambdaMax <- lambdaMax * lambdaScaler
-        # lambdaMin is calculated with the epsilon paramter
-        lambdaMin <- epsilon * lambdaMax
-
-        # the lambda sequence is constructed by equally distributing lambdaSteps
-        # value on the lineare log scale between lambdaMin and lambdaMax
-        lambdaSeq <- exp(   seq(log(lambdaMax), 
-                            log(lambdaMin),
-                            length.out = lambdaSteps))
-
-        # revert alpha to zero in the ridge case
-        if(ridge==TRUE)
-        {
-            alpha <- 0
-        }
-    }
-    else
-    {
-        lambdaSeq <- sort( lambdaSequence, decreasing=TRUE)
-        lambdaSteps <- length(lambdaSeq)
-    }
-
-    if(verbose)
-    {
-        cat("Lambda sequence")
-        print(lambdaSeq)
-    }
-
-    # if x has no colnames numerate them
-    if(is.null(colnames(x)))
-    {
-        tmp <-c("Intercept", seq(1, ncol(x)))
-    }else{
-        tmp <-c("Intercept", colnames(x) )
-    }
-
-    x <- cbind( rep( 1.0, nrow(x)), x)
-    colnames(x) <- tmp
-
-    N <- nrow(x)
-    P <- ncol(x)
-
-    if( is.null(foldid) )
-    {
-        foldid <- sample(rep( rep(1:nFold), length.out=N))
-    } else 
-    {
-        if( length(foldid) != N )
-            stop("invalid fold numbering (( length(foldid) != N ))\n")
-        nFold <- max(foldid)
-    }
-    
-    testX <- list()    
-    for( i in 1:nFold )
-    {
-        testX[[i]] <- which( foldid==i )
-        if( length(testX[[i]])==0 )
-            stop("invalid fold numbering\n")
-    }
-
-    if(verbose)
-    {
-        cat("Cross validation subsamples\n")
-        print(testX)
-        if(any(duplicated( unlist(testX))))
-            stop("Duplicated samples in CV\n")
-
-        cat("nFolds:")
-        print(nFold)
-    }
-
-    logLikelihood     <- list()
-    logLikelihoodCV   <- list()
-    logLikelihoodCVSD <- list()
-    numberOfBetas     <- list()
-    beta              <- list()   
-    for(i in 1: (nFold+1) )
-    {
-        beta[[i]] <- rep(0.0, P)
-    }
-
-    coefs <- matrix(0, ncol=P, nrow=0)
-
-    if(verbose) cat("lambdaSequence.\n")
-
-    for( k in 1 : lambdaSteps)
-    {
-        if(verbose){
-            print(sprintf("Lambda Step: %d",k))
-        }
-
-        if(parallel==TRUE) 
-        {
-            output <- foreach(i = 1:(nFold+1) ) %dopar% 
-            {
-                loopbeta <- beta[[i]]
-                if(i != nFold+1 )
-                {
-                    zeroSumRegression( 
-                        x[-testX[[i]],], y[-testX[[i]]], loopbeta, lambdaSeq[k], alpha,
-                        offset, type, algorithmCV, verbose=FALSE, precisionCV, 
-                        diagonalMoves, polish )
-                } else
-                {
-                    zeroSumRegression( 
-                        x, y, loopbeta, lambdaSeq[k], alpha, offset, type, algorithmAllSamples,
-                        verbose=FALSE, precisionCV, diagonalMoves, polish )
-                }
-                loopbeta
-            }
-        } else
-        {
-            output <- foreach(i = 1:(nFold+1) ) %do% 
-            {
-                loopbeta <- beta[[i]]
-                if(i != nFold+1 )
-                {
-                    zeroSumRegression( 
-                        x[-testX[[i]],], y[-testX[[i]]], beta[[i]], lambdaSeq[k], alpha,
-                        offset, type, algorithmCV, verbose=FALSE, precisionCV, 
-                        diagonalMoves, polish )
-                } else
-                {
-                    zeroSumRegression( 
-                        x, y, beta[[i]], lambdaSeq[k], alpha, offset, type, algorithmAllSamples,
-                        verbose=FALSE, precisionCV, diagonalMoves, polish )
-                }
-                loopbeta
-            }
-        }
-        beta <- output
-        coefs <- rbind(coefs, beta[[ nFold+1 ]] )
-        
-        numberOfBetas[[k]] <- sum( beta[[ nFold+1 ]][-1] != 0 )
-
-        if( type == "elNet" || type == "zeroSumElNet" )
-        {  
-            tmp <- rep( 0, nFold )
-            for(i in 1:nFold)
-            {
-                tmp[i] <- mean( (y[ testX[[i]] ] - x[ testX[[i]], ] %*% beta[[i]])^2 )
-            }
-            logLikelihood[[k]]     <- -vectorElNetCostFunction( x, y, beta[[ nFold+1 ]], 0, 0 )$rss /N
-            logLikelihoodCV[[k]]   <- -mean(tmp)
-            logLikelihoodCVSD[[k]] <- sd(tmp)/( sqrt( length(tmp) ))              
-        }
-              
-
-        if(verbose){
-            print(sprintf("CV Log-Likelihood: %e",logLikelihoodCV[[k]]))
-        }     
-        if( cvStop != 0 && cvStopCheck( unlist(logLikelihoodCV), cvStop) )
-        {            
-            break            
-        }
-    }
-
-    
-    lambdaSteps <- length(logLikelihood)
-    lambdaSeq   <- lambdaSeq[1:lambdaSteps]
-
-    numberOfBetas <- unlist(numberOfBetas)
-    
-    logLikelihood     <- unlist(logLikelihood)
-    logLikelihoodCV   <- unlist(logLikelihoodCV)
-    logLikelihoodCVSD <- unlist(logLikelihoodCVSD)
-        
-    maxLogLikeCV <- max( logLikelihoodCV )
-    lambdaMin    <- which( logLikelihoodCV  == maxLogLikeCV )[1]
-    maxCV_SD     <- maxLogLikeCV - logLikelihoodCVSD[ lambdaMin ]
-    
-    ## find lambda where the CVerror is as close as possible to minCV + SD
-    distances <- abs( logLikelihoodCV[1:lambdaMin] - maxCV_SD)
-    distFrom_minCV_SD <- min( distances )
-    lambda1SE <- which( distances == distFrom_minCV_SD )
-    
-    if(verbose)
-    {
-        print(sprintf( "LambdaMin: %e, Lambda1SE: %e", lambdaSeq[lambdaMin], lambdaSeq[lambda1SE]))
-    }
-      
-
-    colnames(coefs) <- colnames(x)
-
-    fitresult <- zeroSumCVFitObject(    lambdaSeq,
-                                        alpha,
-                                        type, 
-                                        algorithmCV, 
-                                        algorithmAllSamples,
-                                        coefs,
-                                        lambdaMin,
-                                        lambda1SE,
-                                        offset, 
-                                        precisionCV, 
-                                        diagonalMoves, 
-                                        polish, 
-                                        numberOfBetas,
-                                        logLikelihoodCV,
-                                        logLikelihood,
-                                        logLikelihoodCVSD )
+    fitresult <- zeroSumCVFitObject( data )
     return(fitresult)
-
-
 }
