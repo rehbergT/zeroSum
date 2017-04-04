@@ -132,8 +132,9 @@ this means AVX and AVX2 is supported by the CPU.
 
 ## Dependencies
 
-  *  <em>zeroSum</em> requires a modern compiler which supports C++11 and openMP
-  * Moreover R-package [<em>testthat</em>](https://cran.r-project.org/web/packages/testthat/index.html) is needed
+  *  <em>zeroSum</em> requires a modern compiler which supports C++11 and openMP.
+  * The R-package [<em>testthat</em>](https://cran.r-project.org/web/packages/testthat/index.html)
+    is required for unit testing.
 
 ## Quick start
 
