@@ -9,9 +9,7 @@
 *.Rnw.backup
 .RData
 *.Rout
-*.Rd
 .sync.ffs_db
 *.Rcheck
-hpc_version
 zeroSum.Rcheck
 hpc_version/zeroSum
