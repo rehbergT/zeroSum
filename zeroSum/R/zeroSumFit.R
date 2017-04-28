@@ -93,7 +93,7 @@ zeroSumFit <- function(
                 penalty.factor = NULL,
                 zeroSumWeights = NULL,
                 cSum           = 0.0,
-                standardize    = TRUE,
+                standardize    = FALSE,
                 gamma          = 0.0,
                 fusion         = NULL,
                 useOffset      = TRUE,

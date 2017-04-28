@@ -182,7 +182,8 @@ void doCVRegression( RegressionData* data, double* gammaSeq,
                 PRINT("L: %e T-E %e CV-E %e CV-SD %e\n",
                    lambdaSeq[j], trainingError, cvError, cvErrorSD );
             }
-            if( cvError < lastCV[i] )
+
+            if( cvError - lastCV[i] < DBL_EPSILON )
                 cvImproving++;
 
             lastCV[i] = cvError;

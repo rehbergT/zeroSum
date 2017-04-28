@@ -109,7 +109,6 @@
 #' plot( fit, "test")
 #' coef(fit, s="lambda.min")
 #'
-#' @import foreach
 #' @importFrom stats rnorm sd
 #'
 #' @export

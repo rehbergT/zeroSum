@@ -4,13 +4,12 @@ Description: Regressions functions for creating linear models with the
     elastic-net regularization and the zero-sum constraint (sum of
     coefficients = 0). The usage of this package is very similiar to
     that of the "glmnet" package.
-Version: 1.0.0
+Version: 1.0.1
 Date: 2017-27-03
 Author: Thorsten Rehberg, Michael Altenbuchinger
 Maintainer: Thorsten Rehberg <thorsten.rehberg@ur.de>
 Depends:
     R (>= 3.2.0),
-    foreach,
     grDevices,
     graphics,
     stats,

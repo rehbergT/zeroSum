@@ -5,7 +5,7 @@
 \title{Description of zeroSumFit function}
 \usage{
 zeroSumFit(x, y, lambda, alpha = 1, weights = NULL, penalty.factor = NULL,
-  zeroSumWeights = NULL, cSum = 0, standardize = TRUE, gamma = 0,
+  zeroSumWeights = NULL, cSum = 0, standardize = FALSE, gamma = 0,
   fusion = NULL, useOffset = TRUE, useApprox = TRUE, downScaler = 1,
   type = "gaussianZS", algorithm = "CD", precision = 1e-08,
   diagonalMoves = TRUE, polish = 0, verbose = FALSE, beta = NULL)

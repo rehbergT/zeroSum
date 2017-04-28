@@ -6,7 +6,7 @@
 \usage{
 zeroSumCVFit(x, y, lambda = 0, lambdaSteps = 100, alpha = 1,
   weights = NULL, penalty.factor = NULL, zeroSumWeights = NULL,
-  cSum = 0, standardize = TRUE, gamma = 0, gammaSteps = 1,
+  cSum = 0, standardize = FALSE, gamma = 0, gammaSteps = 1,
   fusion = NULL, epsilon = 0.001, nFold = 10, foldid = NULL,
   useOffset = TRUE, useApprox = TRUE, downScaler = 1, cores = 1,
   verbose = FALSE, type = "gaussianZS", algorithm = "CD",
