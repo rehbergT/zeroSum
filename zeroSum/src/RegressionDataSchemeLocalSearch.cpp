@@ -1,6 +1,9 @@
 #include "RegressionDataScheme.h"
 
-void RegressionDataScheme::localSearch( int seed )
+
+// #define DEBUG
+
+void RegressionDataScheme::localSearch( int seed, int withPolish )
 {
 
 #ifdef DEBUG
@@ -22,15 +25,12 @@ void RegressionDataScheme::localSearch( int seed )
 
     int k=0, s=0, t;
 
-    for( int l=0; l<K; l++ )
-    {
-        for( int j=0; j<P; j++ )
-            checkActiveSet(j);
-    }
+    for( int j=0; j<P; j++ )
+        checkActiveSet(j);
 
     double intervalSize = INTERVAL_SIZE;
 
-    int maxSteps = polish > 0 ? polish : MAX_STEPS;
+    int maxSteps = withPolish > 0 ? withPolish : MAX_STEPS;
 
     for(int step=1; step<=maxSteps; step++)
     {
@@ -41,12 +41,46 @@ void RegressionDataScheme::localSearch( int seed )
         e1 = cost;
 
         // random sweeps -> looking for new coefficients
-        if( polish != 0 )
-        for( int sr=0; sr<SWEEPS_RANDOM; sr++ )
+        if( withPolish == FALSE )
         {
-            if( isZeroSum )
+            for( int sr=0; sr<SWEEPS_RANDOM; sr++ )
             {
-                for( int i=0; i<P*downScaler; i++ )
+                if( isZeroSum )
+                {
+                    for( int i=0; i<P*downScaler; i++ )
+                    {
+                        for( int l=0; l<K; l++ )
+                        {
+                            if( useApprox )
+                                refreshApproximation( l, TRUE );
+
+                            if( useOffset )
+                                lsSaOffsetMove( l );
+
+                            for( int j=0; j<P; j++ )
+                            {
+                                // choose one (two) random coefficients
+                                k = floor( rng(mt) * P );
+                                s = floor( rng(mt) * P );
+                                if( s == k ) continue;
+
+                                // choose a random amount
+                                delta_k = rng(mt) * intervalSize - intervalSize * 0.5;
+
+                                attempts++;
+                                t = lsSaMove( k, s, l, delta_k );
+
+                                if( t != 0 )
+                                {
+                                    counter++;
+                                    checkActiveSet(k);
+                                    checkActiveSet(s);
+                                }
+                            }
+                        }
+                    }
+                }
+                else
                 {
                     for( int l=0; l<K; l++ )
                     {
@@ -56,60 +90,27 @@ void RegressionDataScheme::localSearch( int seed )
                         if( useOffset )
                             lsSaOffsetMove( l );
 
-                        for( int j=0; j<P; j++ )
+                        for( int i=0; i<P*downScaler; i++ )
                         {
-                            // choose one (two) random coefficients
+                            // choose one random coefficients
                             k = floor( rng(mt) * P );
-                            s = floor( rng(mt) * P );
-                            if( s == k ) continue;
 
                             // choose a random amount
                             delta_k = rng(mt) * intervalSize - intervalSize * 0.5;
 
                             attempts++;
-                            t = lsSaMove( k, s, l, delta_k );
+                            t = lsSaMove( k, 0, l, delta_k );
 
                             if( t != 0 )
                             {
                                 counter++;
                                 checkActiveSet(k);
-                                checkActiveSet(s);
                             }
                         }
                     }
                 }
             }
-            else
-            {
-                for( int l=0; l<K; l++ )
-                {
-                    if( useApprox )
-                        refreshApproximation( l, TRUE );
-
-                    if( useOffset )
-                        lsSaOffsetMove( l );
-
-                    for( int i=0; i<P*downScaler; i++ )
-                    {
-                        // choose one random coefficients
-                        k = floor( rng(mt) * P );
-
-                        // choose a random amount
-                        delta_k = rng(mt) * intervalSize - intervalSize * 0.5;
-
-                        attempts++;
-                        t = lsSaMove( k, 0, l, delta_k );
-
-                        if( t != 0 )
-                        {
-                            counter++;
-                            checkActiveSet(k);
-                        }
-                    }
-                }
-            }
         }
-
         // active set sweeps -> adjust coeffiecnts
         for( int sa=0; sa<SWEEPS_ACTIVESET; sa++ )
         {

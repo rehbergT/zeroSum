@@ -7,7 +7,7 @@ void doRegression( RegressionDataScheme *data, int seed )
         data->coordinateDescent( seed );
         if( data->polish != FALSE )
         {
-            data->localSearch( seed );
+            data->localSearch( seed, data->polish );
         }
     }
     else if( data->algorithm == 2 )
@@ -16,12 +16,12 @@ void doRegression( RegressionDataScheme *data, int seed )
     }
     else if( data->algorithm == 3 )
     {
-        data->localSearch( seed );
+        data->localSearch( seed, FALSE );
     }
     else if( data->algorithm == 4 )
     {
         data->coordinateDescent( seed );
-        data->localSearch( seed );
+        data->localSearch( seed, FALSE );
     }
 
 }

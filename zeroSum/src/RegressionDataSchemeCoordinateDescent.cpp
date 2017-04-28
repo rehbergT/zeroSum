@@ -102,7 +102,7 @@ void RegressionDataScheme::coordinateDescent( int seed )
 
             for( int s=0; s<P; s++)
             {
-                for( int k=1; k<s; k++ )
+                for( int k=0; k<s; k++ )
                 {
                     if( s == k || rng(mt) > downScaler ) continue;
 
@@ -161,7 +161,7 @@ void RegressionDataScheme::coordinateDescent( int seed )
                 {
                     for( int s=0; s<P; s++)
                     {
-                        for( int k=1; k<s; k++ )
+                        for( int k=0; k<s; k++ )
                         {
                             if( s == k ) continue;
 

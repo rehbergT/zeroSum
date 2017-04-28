@@ -100,7 +100,7 @@ protected:
 
     bool checkActiveSet( int k );
     void checkWholeActiveSet();
-    
+
 public:
 
     void costFunction( void );
@@ -119,7 +119,7 @@ public:
                     double* rng = NULL, double temperature = 0 );
 
     void coordinateDescent( int seed );
-    void localSearch( int seed );
+    void localSearch( int seed, int withPolish );
     void simulatedAnnealing( int seed );
 
 };
