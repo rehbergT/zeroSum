@@ -9,13 +9,14 @@ WARNINGS = -Wall -Wextra -Wunreachable-code -Werror=format-security
 
 ZEROSUM_SRC = ../zeroSum/src
 
-OBJ  = CvRegression.o \
+OBJ  = main.o \
+	   csv_read_write.o \
 	   CvRegressionData.o \
-	   doRegression.o \
+	   RegressionCV.o \
 	   fusionKernel.o \
 	   mathHelpers.o \
 	   RegressionData.o \
-	   RegressionDataSchemeActiveSet.o \
+	   RegressionDataScheme.o \
 	   RegressionDataSchemeApproximation.o \
 	   RegressionDataSchemeCdMoves.o \
 	   RegressionDataSchemeConstructors.o \
@@ -29,26 +30,31 @@ OBJ  = CvRegression.o \
 	   RegressionDataSchemeSimulatedAnnealing.o
 
 
-_DEPS = CvRegression.h \
+_DEPS = RegressionCV.h \
 		CvRegressionData.h \
 		fusionKernel.h \
 		mathHelpers.h \
 		RegressionData.h \
 		RegressionDataScheme.h \
-		regressions.h
+		RegressionCV.h
 
 DEPS = $(patsubst %,$(ZEROSUM_SRC)/%,$(_DEPS))
+
+all: $(OBJ)
+	$(MPICC) -flto $^ $(LIBS) -fopenmp -o zeroSum
+
+main.o: main.cpp
+	$(MPICC) $(CXXFLAGS) $(WARNINGS) -c main.cpp
+
+csv_read_write.o: csv_read_write.cpp csv_read_write.h
+	$(MPICC) $(CXXFLAGS) $(WARNINGS) -c csv_read_write.cpp
 
 %.o: $(ZEROSUM_SRC)/%.cpp $(DEPS)
 	$(CC) $(CXXFLAGS) $(WARNINGS) -c -o $@ $<
 
-all: $(OBJ)
-	$(MPICC) $(CXXFLAGS) $(WARNINGS) -c main.cpp
-	$(MPICC) main.o $^ $(LIBS) -fopenmp -o zeroSum
 
 .PHONY: clean
 clean:
 	rm -f *.o
 	rm -f zeroSum
 	rm -f *.gch
-
