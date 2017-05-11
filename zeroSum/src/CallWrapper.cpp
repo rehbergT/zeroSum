@@ -1,6 +1,6 @@
 
 #include "RegressionData.h"
-#include "regressions.h"
+#include "RegressionCV.h"
 #include "lambdaMax.h"
 
 
@@ -53,7 +53,7 @@ RegressionData rListToRegressionData( SEXP _dataObjects )
     int K    = INTEGER(GET_DIM( _y ))[1];
     int nc   = INTEGER( _nc )[0];
 
-    RegressionData data = RegressionData( N, P, K, nc, type);
+    RegressionData data( N, P, K, nc, type);
 
     data.cores   = INTEGER( _cores )[0];
     data.verbose = INTEGER( _verbose )[0];
@@ -133,7 +133,7 @@ SEXP CallWrapper( SEXP _dataObjects )
 {
     PROTECT( _dataObjects = AS_LIST( _dataObjects ) );
 
-    RegressionData data = rListToRegressionData(_dataObjects);
+    RegressionData data( rListToRegressionData(_dataObjects) );
     PRINT("TYPE: %d  ALGORITHM: %d  POLISH: %d DIAGONAL: %d OFFSET: %d APPROX: %d GAMMA: %e FUSION: %d ZEROSUM: %d\n",
           data.type, data.algorithm, data.polish, data.diagonalMoves,
           data.useOffset, data.useApprox, data.gamma, data.isFusion, data.isZeroSum  );
@@ -142,7 +142,7 @@ SEXP CallWrapper( SEXP _dataObjects )
     int seed = (int)(unif_rand()*1e4);
     PutRNGstate();
 
-    doRegression( &data, seed);
+    data.doRegression(seed);
 
     SEXP _beta = getListElement( _dataObjects, "beta");
     double* betaR = REAL( _beta );
@@ -163,10 +163,7 @@ SEXP CV( SEXP _dataObjects )
 {
     PROTECT( _dataObjects = AS_LIST( _dataObjects ) );
 
-    RegressionData data = rListToRegressionData(_dataObjects);
-    int cv_rows = data.lengthLambda * data.lengthGamma;
-    int cv_cols = 5 + ( 1 + data.P ) * data.K + data.N * data.K;
-    int cv_size = cv_rows * cv_cols;
+    RegressionData data( rListToRegressionData(_dataObjects) );
 
 
 // #ifdef AVX_VERSION_256
@@ -179,13 +176,6 @@ SEXP CV( SEXP _dataObjects )
 // PRINT("Compiled with AVX512\n");
 // #endif
 //
-    #ifdef AVX_VERSION
-        double* cv_stats = (double*)aligned_alloc( ALIGNMENT, cv_size * sizeof(double));
-    #else
-        double* cv_stats = (double*)malloc( cv_size * sizeof(double));
-    #endif
-
-    memset(cv_stats, 0, cv_size * sizeof(double));
 
     #ifdef _OPENMP
         if(data.cores != -1)
@@ -220,17 +210,18 @@ SEXP CV( SEXP _dataObjects )
     GetRNGstate();
     int seed = (int)(unif_rand()*1e4);
     PutRNGstate();
-    doCVRegression( &data, data.gammaSeq, data.lengthGamma, data.lambdaSeq,
-         data.lengthLambda, cv_stats, cv_cols, NULL, NULL, 0, seed );
+
+    RegressionCV cvRegression( data );
+    std::vector<double> cv_stats = cvRegression.doCVRegression( seed );
 
     SEXP measures;
-    PROTECT(measures = allocVector( REALSXP, cv_size ));
+    PROTECT(measures = allocVector( REALSXP, cv_stats.size() ));
     double* m = REAL(measures);
 
-    for( int i=0; i<cv_size; i++ )
+    for( size_t i=0; i<cv_stats.size(); i++ )
         m[i] = cv_stats[i];
 
-    free(cv_stats);
+
 
     UNPROTECT(2);
     return measures;

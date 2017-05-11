@@ -22,7 +22,7 @@ int RegressionDataScheme::lsSaMove( int k, int s, int l, double delta_k, double*
     double tmp_lasso         = 0.0;
     double tmp_fusion        = 0.0;
 
-    double betak, betas, betakNew, betasNew, delta_s;
+    double betak = 0.0, betas = 0.0, betakNew = 0.0, betasNew = 0.0, delta_s = 0.0;
 
     betak    = beta[INDEX(k,l,memory_P)];
     betakNew = betak + delta_k;

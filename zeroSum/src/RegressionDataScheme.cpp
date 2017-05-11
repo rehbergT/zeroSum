@@ -32,3 +32,29 @@ void RegressionDataScheme::checkWholeActiveSet()
             ++it;
     }
 }
+
+void RegressionDataScheme::doRegression( int seed )
+{
+    if( algorithm == 1 )
+    {
+        coordinateDescent( seed );
+        if( polish != FALSE )
+        {
+            localSearch( seed, polish );
+        }
+    }
+    else if( algorithm == 2 )
+    {
+        simulatedAnnealing( seed );
+    }
+    else if( algorithm == 3 )
+    {
+        localSearch( seed, FALSE );
+    }
+    else if( algorithm == 4 )
+    {
+        coordinateDescent( seed );
+        localSearch( seed, FALSE );
+    }
+
+}

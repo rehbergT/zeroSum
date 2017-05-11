@@ -13,9 +13,21 @@ class RegressionDataScheme
 {
 
 protected:
+    void regressionDataSchemeAlloc();
+    void regressionDataSchemeFree();
+    void regressionDataSchemeShallowCopy( const RegressionDataScheme& source );
+    void regressionDataSchemeDeepCopy( const RegressionDataScheme& source );
+    void regressionDataSchemePointerMove( RegressionDataScheme& source );
+
+
+    RegressionDataScheme();
     RegressionDataScheme( int _N, int _P, int _K, int _nc, int _type );
-    RegressionDataScheme( const RegressionDataScheme& source);
+    RegressionDataScheme( const RegressionDataScheme& source );
+    RegressionDataScheme( RegressionDataScheme&& source );
     ~RegressionDataScheme();
+
+    RegressionDataScheme& operator=( const RegressionDataScheme& source );
+    RegressionDataScheme& operator=( RegressionDataScheme&& source );
 
     std::set<int> activeSet;
 
@@ -28,6 +40,8 @@ public:
     int* foldid;
     int nFold;
 
+    // lambdaSeq and gammaSeq are managed from R
+    // -> only pointer to memory
     double* lambdaSeq;
     double* gammaSeq;
 
@@ -101,6 +115,10 @@ protected:
     bool checkActiveSet( int k );
     void checkWholeActiveSet();
 
+    void coordinateDescent( int seed );
+    void localSearch( int seed, int withPolish );
+    void simulatedAnnealing( int seed );
+
 public:
 
     void costFunction( void );
@@ -118,9 +136,8 @@ public:
     int lsSaMove( int k, int s, int l, double delta_k,
                     double* rng = NULL, double temperature = 0 );
 
-    void coordinateDescent( int seed );
-    void localSearch( int seed, int withPolish );
-    void simulatedAnnealing( int seed );
+
+    void doRegression( int seed );
 
 };
 
