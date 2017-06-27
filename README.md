@@ -56,7 +56,7 @@ with or without the zero-sum constraint can be easily compared.
 Open an R session as admin and load the [<em>devtools</em>](https://cran.r-project.org/web/packages/devtools/index.html) package:
 
     library("devtools")
-    install_github("rehbergT/zeroSum/zeroSum_1.0.4.zip")
+    install.packages("https://github.com/rehbergT/zeroSum/raw/master/zeroSum_1.0.4.zip", repos = NULL)
 
 ##### Linux / OS X
 Open an R session as root and load the [<em>devtools</em>](https://cran.r-project.org/web/packages/devtools/index.html) package:
