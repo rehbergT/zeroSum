@@ -6,7 +6,7 @@ regularization \[3\].
 
 
 The zero-sum constraint is
-recommended for fitting linear models between a response y<sub>i</sub> and log-transformed data x<sub>i</sub> where ambiguities in the reference point translate to sample-wise shifts. The influence of such sample-wise shifts on linear models
+recommended for fitting linear models between a response y<sub>i</sub> and log-transformed data x<sub>i</sub> where ambiguities in the reference point translate to sample-wise shifts. The influence of such sample-wise shifts &gamma;<sub>i</sub> on linear models
 is as follows:
 
 <img src="https://raw.github.com/rehbergT/zeroSum/master/images/equation2.png" width="295" />
@@ -55,7 +55,6 @@ with or without the zero-sum constraint can be easily compared.
 ##### Windows
 Open an R session as admin and load the [<em>devtools</em>](https://cran.r-project.org/web/packages/devtools/index.html) package:
 
-    library("devtools")
     install.packages("https://github.com/rehbergT/zeroSum/raw/master/zeroSum_1.0.4.zip", repos = NULL)
 
 ##### Linux / OS X
@@ -313,7 +312,7 @@ The same coefficients as above have been obtained (despite some numerical uncert
 ## References
 \[1\] M. Altenbuchinger, T. Rehberg, H. U. Zacharias, F. Staemmler, K. Dettmer, D. Weber, A. Hiergeist, A. Gessner, E. Holler, P. J. Oefner, R. Spang. Reference point insensitive molecular data analysis. Bioinformatics 33(2):219, 2017. doi: 10.1093/bioinformatics/btw598
 
-\[2\] H. U. Zacharias, T. Rehberg, S. Mehrl, D. Riechtman, T. Wettig, P. J. Oefner, R. Spang, W. Gronwald, M. Altenbuchinger. Scale-invariant biomarker discovery in urine and plasma metabolite fingerprints. ArXiv e-prints. <http://arxiv.org/abs/1703.07724>
+\[2\] H. U. Zacharias, T. Rehberg, S. Mehrl, D. Richtmann, T. Wettig, P. J. Oefner, R. Spang, W. Gronwald, M. Altenbuchinger. Scale-invariant biomarker discovery in urine and plasma metabolite fingerprints. J. Proteome Res. doi: 10.1021/acs.jproteome.7b00325, ArXiv e-prints. <http://arxiv.org/abs/1703.07724>
 
 \[3\] H. Zou and T. Hastie. Regularization and variable selection via the elastic
 net. Journal of the Royal Statistical Society: Series B (Statistical Methodology), 67(2):301–320, 2005.
