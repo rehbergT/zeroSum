@@ -6,7 +6,6 @@
 #'
 #' @param s determines which lambda of a zeroSumCVFit should be returned:
 #'          lambda.min or lamda.1SE
-#' @param precision all coefficients below this thresshold are set to 0
 #'
 #' @param ... other arguments for the normal predict function if the fit
 #'            is not a zeroSumFit or zeroSumCVFit object
@@ -21,7 +20,7 @@
 #' coef(fit, s="lambda.min")
 #'
 #' @export
-coef <- function( fit=NULL, s="lambda.min", precision=NULL, ... )
+coef <- function( fit=NULL, s="lambda.min", ... )
 {
     if( is.null(precision) )
         precision <- fit$precision
@@ -70,11 +69,7 @@ coef <- function( fit=NULL, s="lambda.min", precision=NULL, ... )
             }
         }
 
-        beta <- as.matrix(beta)
-
-        ## remove numerical uncertainties
-        beta[ abs(beta) < precision ] <- 0.0
-        return(beta)
+        return(as.matrix(beta))
 
     } else
     {
