@@ -22,9 +22,6 @@
 #' @export
 coef <- function( fit=NULL, s="lambda.min", ... )
 {
-    if( is.null(precision) )
-        precision <- fit$precision
-
     if( any( class(fit)=="ZeroSumCVFit") || any( class(fit)=="ZeroSumFit") )
     {
         beta <- NULL
