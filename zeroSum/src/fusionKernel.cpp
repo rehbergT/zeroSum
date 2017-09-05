@@ -9,10 +9,10 @@ struct fusionKernel* appendElement( struct fusionKernel *preElement, int i, doub
     element->value = value;
     element->next  = NULL;
 
-    if(preElement != NULL)
+    if( preElement != NULL )
     {
         struct fusionKernel* tmp = preElement;
-        while(tmp->next != NULL)
+        while( tmp->next != NULL)
             tmp = tmp->next;
 
         tmp->next = element;

@@ -15,11 +15,13 @@
 #'              a ridge regularization, for alpha = 1 the elastic net becomes
 #'              the lasso regularization
 #'
-#' @param weights samples weights
+#' @param weights samples weights (must be greater than zero)
 #'
 #' @param penalty.factor weights for the elatic net regularization
+#'        (must be greater than or equal to zero)
 #'
 #' @param zeroSumWeights weights of the zeroSum constraint
+#'        (must be greater than zero)
 #'
 #' @param cSum constant c of the zeroSum constraint
 #'

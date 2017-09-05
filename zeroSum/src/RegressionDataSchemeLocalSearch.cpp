@@ -239,9 +239,9 @@ void RegressionDataScheme::localSearch( int seed, int withPolish )
         }
 
         #ifdef DEBUG
-        PRINT("1: Loglikelihood: %e lasso: %e ridge: %e fusion: %e cost: %e sum=%e t1=%d t2=%d i_size: %e\n",
+        PRINT("1: Loglikelihood: %e lasso: %e ridge: %e fusion: %e cost: %e sum=%e sum=%e t1=%d t2=%d i_size: %e\n",
                         loglikelihood, lasso, ridge, fusion,
-                        cost, sum_a_times_b(beta, u, P),
+                        cost, sum_a(beta,P), sum_a_times_b(beta, u, P),
                         checkXtimesBeta(), checkYsubXtimesBeta(), intervalSize );
         #endif
 
@@ -252,9 +252,9 @@ void RegressionDataScheme::localSearch( int seed, int withPolish )
         if( useApprox )
             refreshApproximation( K-1, TRUE );
 
-        PRINT("2: Loglikelihood: %e lasso: %e ridge: %e fusion: %e cost: %e sum=%e t1=%d t2=%d\n",
+        PRINT("2: Loglikelihood: %e lasso: %e ridge: %e fusion: %e cost: %e sum=%e sum=%e t1=%d t2=%d\n",
                         loglikelihood, lasso, ridge, fusion,
-                        cost, sum_a_times_b(beta, u, P),
+                        cost, sum_a(beta,P), sum_a_times_b(beta, u, P),
                         checkXtimesBeta(), checkYsubXtimesBeta() );
         PRINT("e2-e1: %e %e\n", e2 - e1 , -precision);
 

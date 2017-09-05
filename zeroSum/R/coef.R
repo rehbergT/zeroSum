@@ -74,18 +74,7 @@ coef <- function( fit=NULL, s="lambda.min", precision=NULL, ... )
 
         ## remove numerical uncertainties
         beta[ abs(beta) < precision ] <- 0.0
-
-        ## try to remove numerical zerosum uncertainties
-        if( fit$type %% 2 == 0 && sum(beta[-1,]) != fit$cSum )
-        {
-            delta = sum(beta[-1,,drop=FALSE]) - fit$cSum
-            ids <- which( beta[-1,] != 0.0 )
-            if( length(ids) > 0){
-               beta[ids+1,] <- beta[ids+1,] - delta / length(ids)
-            }
-        }
-
-        return( as.matrix(beta) )
+        return(beta)
 
     } else
     {

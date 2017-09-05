@@ -5,10 +5,10 @@
 
 
 
-SEXP getListElement(SEXP list, const char *str)
+SEXP getListElement (SEXP list, const char *str)
 {
     SEXP elmt = R_NilValue, names = getAttrib(list, R_NamesSymbol);
-    for(int i=0; i<length(list); i++)
+    for ( int i=0; i<length(list); i++)
     {
         if(strcmp(CHAR(STRING_ELT(names, i)), str) == 0)
         {
@@ -92,7 +92,7 @@ RegressionData rListToRegressionData( SEXP _dataObjects )
                 data.N * sizeof(double) );
 
     double* betaR = REAL( _beta );
-    for(int l=0; l<data.K; ++l)
+    for( int l=0; l<data.K; ++l)
     {
         data.offset[l] = betaR[INDEX(0,l,data.P+1)];
         memcpy( &(data.beta[ INDEX(0,l,data.memory_P) ]),
@@ -100,7 +100,7 @@ RegressionData rListToRegressionData( SEXP _dataObjects )
                 data.P * sizeof(double) );
     }
 
-    if(data.isFusion)
+    if( data.isFusion )
     {
         double* fusionListR = REAL( _fusion);
         int rows = INTEGER(GET_DIM( _fusion ))[0];
@@ -108,7 +108,7 @@ RegressionData rListToRegressionData( SEXP _dataObjects )
         int i,j;
         double x;
 
-        for(int row=0; row<rows; row++)
+        for( int row=0; row<rows; row++ )
         {
             i = (int)fusionListR[ INDEX(row,0,rows) ];
             j = (int)fusionListR[ INDEX(row,1,rows) ];
@@ -123,7 +123,7 @@ RegressionData rListToRegressionData( SEXP _dataObjects )
     memcpy( data.v, REAL(_v), data.P * sizeof(double) );
     memcpy( data.u, REAL(_u), data.P * sizeof(double) );
 
-    if(type > 6)
+    if( type > 6 )
         memcpy( data.yOrg, data.y, data.memory_N * data.K * sizeof(double) );
 
     return data;
@@ -146,7 +146,7 @@ SEXP CallWrapper( SEXP _dataObjects )
 
     SEXP _beta = getListElement( _dataObjects, "beta");
     double* betaR = REAL( _beta );
-    for(int l=0; l<data.K; ++l)
+    for( int l=0; l<data.K; ++l)
     {
         betaR[INDEX(0,l,data.P+1)] = data.offset[l];
         memcpy( &betaR[INDEX(1,l,data.P+1)],
@@ -218,7 +218,7 @@ SEXP CV( SEXP _dataObjects )
     PROTECT(measures = allocVector( REALSXP, cv_stats.size() ));
     double* m = REAL(measures);
 
-    for(size_t i=0; i<cv_stats.size(); i++)
+    for( size_t i=0; i<cv_stats.size(); i++ )
         m[i] = cv_stats[i];
 
 
@@ -249,7 +249,7 @@ SEXP checkMoves( SEXP _dataObjects, SEXP _number, SEXP _k, SEXP _s, SEXP _t, SEX
     RegressionData data = rListToRegressionData(_dataObjects);
     data.costFunction();
 
-    if(data.type > 6)
+    if( data.type > 6 )
     {
         memcpy( data.w, data.wOrg, data.memory_N * sizeof(double) );
         memcpy( data.y, data.yOrg, data.memory_N * data.K * sizeof(double) );
@@ -265,21 +265,21 @@ SEXP checkMoves( SEXP _dataObjects, SEXP _number, SEXP _k, SEXP _s, SEXP _t, SEX
 
     SEXP result = R_NilValue;
 
-    if(num == 0)
+    if(      num == 0 )
     {
         data.cdMove( k, l );
 
         PROTECT( result = allocVector(REALSXP,1));
         REAL(result)[0] = data.beta[ INDEX(k,l,data.memory_P) ];
     }
-    else if(num == 1)
+    else if( num == 1)
     {
         data.offsetMove(l);
 
         PROTECT( result = allocVector(REALSXP,1));
         REAL(result)[0] = data.offset[l];
     }
-    else if(num == 2)
+    else if( num == 2)
     {
         data.cdMoveZS( k, s, l);
 
@@ -287,7 +287,7 @@ SEXP checkMoves( SEXP _dataObjects, SEXP _number, SEXP _k, SEXP _s, SEXP _t, SEX
         REAL(result)[0] = data.beta[ INDEX(k,l,data.memory_P) ];
         REAL(result)[1] = data.beta[ INDEX(s,l,data.memory_P) ];
     }
-    else if(num == 3)
+    else if( num == 3)
     {
         data.cdMoveZSRotated( k, s, t, l, 37.32);
 
@@ -296,7 +296,7 @@ SEXP checkMoves( SEXP _dataObjects, SEXP _number, SEXP _k, SEXP _s, SEXP _t, SEX
         REAL(result)[1] = data.beta[ INDEX(s,l,data.memory_P) ];
         REAL(result)[2] = data.beta[ INDEX(t,l,data.memory_P) ];
     }
-    else if(num == 4)
+    else if( num == 4)
     {
         data.cdMoveFused( k, l );
 

@@ -38,7 +38,7 @@ double sum_a(double* a, int n)
     if(n < 4)
     {
         double sum = 0.0;
-        for(int i=0; i<n; ++i)
+        for( int i=0; i<n; ++i )
             sum += a[i];
 
         return sum;
@@ -48,7 +48,7 @@ double sum_a(double* a, int n)
         __m256d _a;
         __m256d _res = _mm256_setzero_pd();
         int i=0;
-        for( ; i<n-(n%4); i+=4)
+        for( ; i<n-(n%4); i += 4 )
         {
             _a = _mm256_load_pd(&a[i]);
             _res = _mm256_add_pd(_a, _res);
@@ -65,10 +65,10 @@ double sum_a(double* a, int n)
 
 double sum_square_a(double* a, int n)
 {
-    if(n<4)
+    if(n < 4)
     {
         double sum = 0.0;
-        for(int i=0; i<n; ++i)
+        for( int i=0; i<n; ++i )
             sum += a[i] * a[i];
 
         return sum;
@@ -79,16 +79,16 @@ double sum_square_a(double* a, int n)
         __m256d _res = _mm256_setzero_pd();
 
         int i=0;
-        for( ; i<n-(n%4); i+=4)
+        for( ; i<n-(n%4); i += 4 )
         {
             _a   = _mm256_load_pd( &a[i] );
-
+            
             #ifdef FMA
             _res = _mm256_fmadd_pd( _a, _a, _res);
             #else
             _a   = _mm256_mul_pd( _a, _a);
             _res = _mm256_add_pd( _a, _res);
-            #endif
+            #endif            
         }
 
         double* res = (double*)&_res;
@@ -102,10 +102,10 @@ double sum_square_a(double* a, int n)
 
 double sum_abs_a(double* a,  int n)
 {
-    if(n<4)
+    if(n < 4)
     {
         double sum = 0.0;
-        for(int i=0; i<n; ++i )
+        for( int i=0; i<n; ++i )
             sum += fabs( a[i] );
 
         return sum;
@@ -119,7 +119,7 @@ double sum_abs_a(double* a,  int n)
                     0x7FFFFFFFFFFFFFFF, 0x7FFFFFFFFFFFFFFF ) );
 
         int i=0;
-        for( ; i<n-(n%4); i+=4)
+        for( ; i<n-(n%4); i += 4 )
         {
             _a   = _mm256_load_pd(&a[i]);
             _a   = _mm256_and_pd( _a, mask);
@@ -140,7 +140,7 @@ double sum_abs_a_times_b(double* a, double* b, int n)
     if(n < 4)
     {
         double sum = 0.0;
-        for(int i=0; i<n; ++i)
+        for( int i=0; i<n; ++i )
             sum += b[i] * fabs( a[i] );
 
         return sum;
@@ -154,13 +154,13 @@ double sum_abs_a_times_b(double* a, double* b, int n)
                     0x7FFFFFFFFFFFFFFF, 0x7FFFFFFFFFFFFFFF ) );
 
         int i=0;
-        for( ; i<n-(n%4); i+=4)
+        for( ; i<n-(n%4); i += 4 )
         {
             _a = _mm256_load_pd( &a[i] );
             _a = _mm256_and_pd( _a, mask );
 
             _b = _mm256_load_pd( &b[i] );
-
+            
             #ifdef FMA
             _res = _mm256_fmadd_pd( _a, _b, _res );
             #else
@@ -183,7 +183,7 @@ double sum_square_a_times_b(double* a, double* b, int n)
     if(n < 4)
     {
         double sum = 0.0;
-        for(int i=0; i<n; ++i)
+        for( int i=0; i<n; ++i )
             sum += a[i] * a[i] * b[i];
 
         return sum;
@@ -194,13 +194,13 @@ double sum_square_a_times_b(double* a, double* b, int n)
         __m256d _res = _mm256_setzero_pd();
 
         int i=0;
-        for( ; i<n-(n%4); i+=4)
+        for( ; i<n-(n%4); i += 4 )
         {
             _a = _mm256_load_pd( &a[i] );
             _a = _mm256_mul_pd( _a, _a);
 
             _b = _mm256_load_pd( &b[i] );
-
+            
             #ifdef FMA
             _res = _mm256_fmadd_pd( _a, _b, _res );
             #else
@@ -223,7 +223,7 @@ double sum_a_times_b(double* a, double* b, int n)
     if(n < 4)
     {
         double sum = 0.0;
-        for(int i=0; i<n; ++i)
+        for( int i=0; i<n; ++i )
             sum += a[i] * b[i];
 
         return sum;
@@ -234,14 +234,14 @@ double sum_a_times_b(double* a, double* b, int n)
         __m256d _res = _mm256_setzero_pd();
 
         int i=0;
-        for( ; i<n-(n%4); i+=4)
+        for( ; i<n-(n%4); i += 4 )
         {
             _a = _mm256_load_pd( &a[i] );
             _b = _mm256_load_pd( &b[i] );
 
             #ifdef FMA
             _res = _mm256_fmadd_pd( _a, _b, _res );
-            #else
+            #else 
             _a =   _mm256_mul_pd( _a, _b );
             _res = _mm256_add_pd( _a, _res );
             #endif
@@ -261,7 +261,7 @@ double sum_a_sub_b_times_c(double* a, double* b, double* c, int n)
     if(n < 4)
     {
         double sum = 0.0;
-        for(int i=0; i<n; ++i)
+        for ( int i=0; i<n; ++i )
             sum += ( a[i]-b[i] ) * c[i];
 
         return sum;
@@ -272,7 +272,7 @@ double sum_a_sub_b_times_c(double* a, double* b, double* c, int n)
         __m256d _res = _mm256_setzero_pd();
 
         int i=0;
-        for( ; i<n-(n%4); i+=4)
+        for( ; i<n-(n%4); i += 4 )
         {
             _a = _mm256_load_pd( &a[i] );
             _b = _mm256_load_pd( &b[i] );
@@ -291,7 +291,7 @@ double sum_a_sub_b_times_c(double* a, double* b, double* c, int n)
         double* res = (double*)&_res;
         double sum = res[0] + res[1] + res[2] + res[3];
 
-        for( ; i<n; ++i)
+        for ( ; i<n; ++i)
             sum += (a[i] - b[i]) * c[i];
         return sum;
     }
@@ -302,7 +302,7 @@ double sum_a_add_b_times_c(double* a, double* b, double* c, int n)
     if(n < 4)
     {
         double sum = 0.0;
-        for(int i=0; i<n; ++i)
+        for ( int i=0; i<n; ++i )
             sum += ( a[i] + b[i] ) * c[i];
 
         return sum;
@@ -313,7 +313,7 @@ double sum_a_add_b_times_c(double* a, double* b, double* c, int n)
         __m256d _res = _mm256_setzero_pd();
 
         int i=0;
-        for( ; i<n-(n%4); i+=4)
+        for( ; i<n-(n%4); i += 4 )
         {
             _a = _mm256_load_pd( &a[i] );
             _b = _mm256_load_pd( &b[i] );
@@ -332,7 +332,7 @@ double sum_a_add_b_times_c(double* a, double* b, double* c, int n)
         double* res = (double*)&_res;
         double sum = res[0] + res[1] + res[2] + res[3];
 
-        for( ; i<n; ++i)
+        for ( ; i<n; ++i)
             sum += (a[i] + b[i]) * c[i];
         return sum;
     }
@@ -343,7 +343,7 @@ void a_times_b(double* a, double* b, double* c, int n)
 {
     if(n < 4)
     {
-        for(int i=0; i<n; ++i)
+        for( int i=0; i<n; ++i )
             c[i] = a[i] * b[i];
     }
     else
@@ -351,7 +351,7 @@ void a_times_b(double* a, double* b, double* c, int n)
         __m256d _a, _b;
 
         int i=0;
-        for( ; i<n-(n%4); i+=4)
+        for( ; i<n-(n%4); i += 4 )
         {
             _a = _mm256_load_pd( &a[i] );
             _b = _mm256_load_pd( &b[i] );
@@ -360,16 +360,16 @@ void a_times_b(double* a, double* b, double* c, int n)
             _mm256_store_pd( &c[i], _a );
         }
 
-        for( ; i<n; ++i)
+        for ( ; i<n; ++i )
             c[i] = a[i] * b[i];
     }
 }
 
 void a_add_b(double* a, double* b, double* c, int n)
 {
-    if(n<4)
+    if(n < 4)
     {
-        for(int i=0; i<n; ++i)
+        for( int i=0; i<n; ++i )
             c[i] = a[i] + b[i];
     }
     else
@@ -377,7 +377,7 @@ void a_add_b(double* a, double* b, double* c, int n)
         __m256d _a, _b;
 
         int i=0;
-        for( ; i<n-(n%4); i+=4)
+        for( ; i<n-(n%4); i += 4 )
         {
             _a = _mm256_load_pd( &a[i] );
             _b = _mm256_load_pd( &b[i] );
@@ -386,14 +386,14 @@ void a_add_b(double* a, double* b, double* c, int n)
             _mm256_store_pd( &c[i], _a);
         }
 
-        for( ; i<n; ++i)
+        for ( ; i<n; ++i)
             c[i] = a[i] + b[i];
     }
 }
 
 void a_sub_b(double* a, double* b, double* c, int n)
 {
-    if(n<4)
+    if(n < 4)
     {
         for( int i=0; i<n; ++i )
             c[i] = a[i] - b[i];
@@ -403,7 +403,7 @@ void a_sub_b(double* a, double* b, double* c, int n)
         __m256d _a, _b;
 
         int i=0;
-        for( ; i<n-(n%4); i+=4)
+        for( ; i<n-(n%4); i += 4 )
         {
             _a = _mm256_load_pd( &a[i] );
             _b = _mm256_load_pd( &b[i] );
@@ -439,7 +439,7 @@ double sum_a_times_b_times_c(double* a, double* b, double* c, int n)
             _b = _mm256_mul_pd( _a, _b );
 
             _c = _mm256_load_pd( &c[i] );
-
+            
             #ifdef FMA
             _res = _mm256_fmadd_pd( _b, _c, _res);
             #else
@@ -600,14 +600,14 @@ void sub_a_times_scalar_b_sub_c_times_scalar_d_sub_d_times_scalar_f(double* a, d
             _a = _mm256_load_pd( &a[i] );
             _c = _mm256_load_pd( &c[i] );
             _e = _mm256_load_pd( &e[i] );
-
+            
             _res = _mm256_load_pd( &res[i] );
-
+                
             #ifdef FMA
             _res = _mm256_fnmadd_pd( _a, _b, _res );
             _res = _mm256_fnmadd_pd( _c, _d, _res );
             _res = _mm256_fnmadd_pd( _e, _f, _res );
-
+            
             #else
             _a = _mm256_mul_pd( _a, _b);
             _c = _mm256_mul_pd( _c, _d);
@@ -615,7 +615,7 @@ void sub_a_times_scalar_b_sub_c_times_scalar_d_sub_d_times_scalar_f(double* a, d
 
             _c = _mm256_add_pd( _a, _c);
             _e = _mm256_add_pd( _e, _c);
-
+            
             _res = _mm256_sub_pd( _res, _e);
             #endif
 
@@ -793,13 +793,13 @@ double sum_square_a(double* a, int n)
         for( ; i<n-(n%8); i += 8 )
         {
             _a   = _mm512_load_pd( &a[i] );
-
+            
             #ifdef FMA
             _res = _mm512_fmadd_pd( _a, _a, res);
             #else
             _a   = _mm512_mul_pd( _a, _a);
             _res = _mm512_add_pd( _a, _res);
-            #endif
+            #endif             
         }
 
         double* res = (double*)&_res;
@@ -853,14 +853,14 @@ double sum_square_a_times_b(double* a, double* b, int n)
             _a = _mm512_load_pd( &a[i] );
             _a = _mm512_mul_pd( _a, _a);
 
-            _b = _mm512_load_pd( &b[i] );
-
+            _b = _mm512_load_pd( &b[i] );           
+            
             #ifdef FMA
             _res = _mm512_fmadd_pd( _a, _b, _res);
             #else
             _a = _mm512_mul_pd( _a, _b);
             _res = _mm512_add_pd(_a, _res);
-            #endif
+            #endif            
         }
 
         double* res = (double*)&_res;
@@ -896,7 +896,7 @@ double sum_a_times_b(double* a, double* b, int n)
 
             #ifdef FMA
             _res = _mm512_fmadd_pd( _a, _b, _res);
-            #else
+            #else 
             _a = _mm512_mul_pd( _a, _b );
             _res = _mm512_add_pd(_a, _res);
             #endif
@@ -1097,7 +1097,7 @@ double sum_a_times_b_times_c(double* a, double* b, double* c, int n)
             _b = _mm512_mul_pd( _a, _b );
 
             _c = _mm512_load_pd( &c[i] );
-
+            
             #ifdef FMA
             _res = _mm512_fmadd_pd( _b, _c, _res);
             #else
@@ -1600,6 +1600,10 @@ int getMinIndex(double* a, int N)
     int min=0;
     for(int i=1; i<N; ++i)
         if(a[min]>a[i]) min=i;
-
+        
     return min;
 }
+
+
+
+

@@ -48,7 +48,7 @@ regressionObject <- function(x, y, beta , lambda, alpha, gamma=0.0, cSum=0.0,
         weights <- rep( 1/N, N)
 
     } else {
-        checkNonNegativeWeights(weights, N, "weights")
+        checkNonNegativeNonZeroWeights(weights, N, "weights")
     }
     dataObject$w <- weights
 
@@ -62,7 +62,7 @@ regressionObject <- function(x, y, beta , lambda, alpha, gamma=0.0, cSum=0.0,
     if( is.null(zeroSumWeights)) {
         zeroSumWeights <- rep( 1, P)
     } else {
-        checkWeights(zeroSumWeights, P, "zeroSumWeights")
+        checkNonNegativeNonZeroWeights(zeroSumWeights, P, "zeroSumWeights")
     }
 
     dataObject$u <- zeroSumWeights
@@ -176,13 +176,13 @@ regressionObject <- function(x, y, beta , lambda, alpha, gamma=0.0, cSum=0.0,
         {
             nM  <- mean(dataObject$y)
             res <- as.matrix( dataObject$y - nM, ncol=1 ) * dataObject$w
-            lambdaMax <- max(abs( t(dataObject$x) %*% res )) / ( min(dataObject$v) * dataObject$alpha )
+            lambdaMax <- max((abs( t(dataObject$x) %*% res ) / (dataObject$v * dataObject$alpha ))[dataObject$v != 0])
 
         }else if( type %in% zeroSumTypes[7:12,1] )
         {
             nM  <- getLogisticNullModel( dataObject$y, dataObject$w, 10)
             res <- as.matrix( ( nM$z - nM$beta0 ) * nM$w, ncol=1 )
-            lambdaMax <- max(abs( t(dataObject$x) %*% res )) / ( min(dataObject$v) * dataObject$alpha )
+            lambdaMax <- max((abs( t(dataObject$x) %*% res ) / (dataObject$v * dataObject$alpha ))[dataObject$v != 0])
 
         } else if( type %in% zeroSumTypes[13:18,1] )
         {
@@ -191,7 +191,7 @@ regressionObject <- function(x, y, beta , lambda, alpha, gamma=0.0, cSum=0.0,
             for(i in 1:nrow(res) )
                 res[i,] <- ( nM$z[i,] - nM$beta0 ) * nM$w[i,]
 
-            lambdaMax <- max(abs( t(dataObject$x) %*% res )) / ( min(dataObject$v) * dataObject$alpha )
+            lambdaMax <- max((abs( t(dataObject$x) %*% res ) / (dataObject$v * dataObject$alpha ))[dataObject$v != 0])
         }
 
         epsilon      <- checkDouble(epsilon)

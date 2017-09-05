@@ -14,8 +14,8 @@ void RegressionDataScheme::coordinateDescent( int seed )
 
     #ifdef DEBUG
     costStart = cost;
-    PRINT("Loglikelihood: %e lasso: %e ridge: %e cost: %e sum=%e\n",
-           loglikelihood, lasso, ridge, cost, sum_a_times_b(beta, u, P) );
+    PRINT("Loglikelihood: %e lasso: %e ridge: %e cost: %e sum=%e sum=%e\n",
+           loglikelihood, lasso, ridge, cost, sum_a(beta,P), sum_a_times_b(beta, u, P) );
     double e3;
     #endif
 
@@ -359,8 +359,8 @@ void RegressionDataScheme::coordinateDescent( int seed )
             e2 = cost;
 
             #ifdef DEBUG
-            PRINT("Loglikelihood: %e lasso: %e ridge: %e cost: %e\tChange: e1=%e e2=%e %e %e (success:%d)\n",
-                  loglikelihood, lasso, ridge, cost, e1, e2,
+            PRINT("Loglikelihood: %e lasso: %e ridge: %e cost: %e sum=%e sum=%e\tChange: e1=%e e2=%e %e %e (success:%d)\n",
+                  loglikelihood, lasso, ridge, cost, sum_a(beta,P), sum_a_times_b(beta, u, P), e1, e2,
                   fabs(e2 - e1), precision, success );
             #endif
 

@@ -23,11 +23,13 @@ x should be log-transformed data.}
 a ridge regularization, for alpha = 1 the elastic net becomes
 the lasso regularization}
 
-\item{weights}{samples weights}
+\item{weights}{samples weights (must be greater than zero)}
 
-\item{penalty.factor}{weights for the elatic net regularization}
+\item{penalty.factor}{weights for the elatic net regularization
+(must be greater than or equal to zero)}
 
-\item{zeroSumWeights}{weights of the zeroSum constraint}
+\item{zeroSumWeights}{weights of the zeroSum constraint
+(must be greater than zero)}
 
 \item{cSum}{constant c of the zeroSum constraint}
 

@@ -64,7 +64,7 @@ checkSparseMatrix <- function( x, varName)
     {
         message <- sprintf("Type of %s is not a sparse matrix or cannot be casted to a sparse matrix\n", varName)
         stop(message)
-    }    
+    }
 }
 
 checkNumericVector <- function( x, varName)
@@ -167,7 +167,7 @@ checkInteger <- function( x, name)
 
 checkWeights <- function( x, n, name)
 {
-    checkNumericVector <- function( x, name)
+    checkNumericVector( x, name)
     if( length(x) != n )
     {
         message <- sprintf("Length of %s is not correct!", name)
@@ -177,13 +177,28 @@ checkWeights <- function( x, n, name)
 
 checkNonNegativeWeights <- function( x, n, name)
 {
-    checkNumericVector <- function( x, name)
+    checkNumericVector( x, name)
     if( length(x) != n )
     {
         message <- sprintf("Length of %s is not correct!", name)
         stop(message)
     }
     if( any(x<0) )
+    {
+        message <- sprintf("%s are not allowed to be negative!", name)
+        stop(message)
+    }
+}
+
+checkNonNegativeNonZeroWeights <- function( x, n, name)
+{
+    checkNumericVector( x, name)
+    if( length(x) != n )
+    {
+        message <- sprintf("Length of %s is not correct!", name)
+        stop(message)
+    }
+    if( any(x<=0) )
     {
         message <- sprintf("%s are not allowed to be negative!", name)
         stop(message)
