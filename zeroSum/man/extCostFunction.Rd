@@ -6,9 +6,9 @@
 wraps input into a regression object and
 calls the costFunction and returns the result}
 \usage{
-extCostFunction(x, y, beta, lambda, alpha, gamma = 0, cSum = 0,
-  type = zeroSumTypes[1, 1], weights = NULL, zeroSumWeights = NULL,
-  penalty.factor = NULL, fusion = NULL, standardize = FALSE)
+extCostFunction(x, y, beta, lambda, alpha = 1, gamma = 0,
+  type = zeroSumTypes[1, 1], weights = NULL, penalty.factor = NULL,
+  fusion = NULL)
 }
 \description{
 Description of costFunction function

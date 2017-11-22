@@ -5,13 +5,13 @@
 #' @keywords internal
 #'
 #' @export
-extCostFunction <- function(x, y, beta , lambda, alpha, gamma=0, cSum=0,
-        type=zeroSumTypes[1,1], weights=NULL, zeroSumWeights=NULL, 
-        penalty.factor=NULL, fusion=NULL, standardize=FALSE )
+extCostFunction <- function( x, y, beta, lambda, alpha=1, gamma=0,
+        type=zeroSumTypes[1,1], weights=NULL, penalty.factor=NULL, fusion=NULL )
 {
-    data <- regressionObject(x, y, beta , lambda, alpha, gamma,
-        type=type, weights=weights, zeroSumWeights=zeroSumWeights, 
-        penalty.factor=penalty.factor, fusion=fusion, standardize=standardize )
-        
+
+    data <- regressionObject( x, y, beta, lambda, alpha, gamma,
+                    type=type, weights=weights, penalty.factor=penalty.factor,
+                    fusion=fusion, standardize=FALSE, useOffset=FALSE)
+    
     return(costFunction(data))
 }

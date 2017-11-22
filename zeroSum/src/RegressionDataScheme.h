@@ -1,39 +1,38 @@
 #ifndef REGRESSIONDATASCHEME_H
 #define REGRESSIONDATASCHEME_H
 
-#include "fusionKernel.h"
-#include "settings.h"
-#include "mathHelpers.h"
 #include <string.h>
+#include <algorithm>
 #include <cstdio>
 #include <random>
-#include <set>
+#include "fusionKernel.h"
+#include "mathHelpers.h"
+#include "settings.h"
 
-class RegressionDataScheme
-{
-
-protected:
+class RegressionDataScheme {
+   protected:
     void regressionDataSchemeAlloc();
     void regressionDataSchemeFree();
-    void regressionDataSchemeShallowCopy( const RegressionDataScheme& source );
-    void regressionDataSchemeDeepCopy( const RegressionDataScheme& source );
-    void regressionDataSchemePointerMove( RegressionDataScheme& source );
-
+    void regressionDataSchemeShallowCopy(const RegressionDataScheme& source);
+    void regressionDataSchemeDeepCopy(const RegressionDataScheme& source);
+    void regressionDataSchemePointerMove(RegressionDataScheme& source);
 
     RegressionDataScheme();
-    RegressionDataScheme( int _N, int _P, int _K, int _nc, int _type );
-    RegressionDataScheme( const RegressionDataScheme& source );
-    RegressionDataScheme( RegressionDataScheme&& source );
+    RegressionDataScheme(int _N, int _P, int _K, int _nc, int _type);
+    RegressionDataScheme(const RegressionDataScheme& source);
+    RegressionDataScheme(RegressionDataScheme&& source);
     ~RegressionDataScheme();
 
-    RegressionDataScheme& operator=( const RegressionDataScheme& source );
-    RegressionDataScheme& operator=( RegressionDataScheme&& source );
+    RegressionDataScheme& operator=(const RegressionDataScheme& source);
+    RegressionDataScheme& operator=(RegressionDataScheme&& source);
 
-    std::set<int> activeSet;
+    std::vector<int> activeSet;
 
-public:
+   public:
     double* x;
     double* yOrg;
+    int* status;
+    double* d;
     double* v;
     double* u;
 
@@ -50,7 +49,6 @@ public:
 
     int type;
     int isFusion;
-    int isFused;
     int isZeroSum;
 
     int N;
@@ -70,7 +68,6 @@ public:
     double* xTimesBeta;
     double* beta;
     double* offset;
-
 
     struct fusionKernel** fusionKernel;
     double* fusionPartialSums;
@@ -99,46 +96,46 @@ public:
     double fusion;
     double cost;
 
-protected:
+   protected:
     // used to update costfunction after offset update
-    void updateCost( int l );
+    void updateCost(int l);
 
-    double penaltyCost( double *coefs, double t );
+    double penaltyCost(double* coefs, double t);
     int checkXtimesBeta();
     int checkYsubXtimesBeta();
 
-    void optimizeParameterAmbiguity( int iterations = 10 );
+    void optimizeParameterAmbiguity(int iterations = 10);
 
     // quadratic approximation of logistic loglikelihood
-    void refreshApproximation( int l, int _updateCost = FALSE );
+    void refreshApproximation(int l, int _updateCost = FALSE);
 
-    bool checkActiveSet( int k );
+    bool checkActiveSet(int k);
     void checkWholeActiveSet();
 
-    void coordinateDescent( int seed );
-    void localSearch( int seed, int withPolish );
-    void simulatedAnnealing( int seed );
+    void coordinateDescent(int seed);
+    void localSearch(int seed);
+    void simulatedAnnealing(int seed);
 
-public:
-
-    void costFunction( void );
-
+   public:
+    void costFunction(void);
+    void calcCoxRegressionD();
     // make predictions and store in xb (used for cv error calculation)
     void predict();
 
-    void offsetMove( int l, int _updateCost = FALSE );
-    int cdMove( int k, int l );
-    int cdMoveFused( int k, int l );
-    int cdMoveZS( int k, int s, int l );
-    int cdMoveZSRotated( int n, int m, int s, int l, double theta );
+    void offsetMove(int l, int _updateCost = FALSE);
+    int cdMove(int k, int l);
+    int cdMoveZS(int k, int s, int l);
+    int cdMoveZSRotated(int n, int m, int s, int l, double theta);
 
-    void lsSaOffsetMove( int l );
-    int lsSaMove( int k, int s, int l, double delta_k,
-                    double* rng = NULL, double temperature = 0 );
+    void lsSaOffsetMove(int l);
+    int lsSaMove(int k,
+                 int s,
+                 int l,
+                 double delta_k,
+                 double* rng = NULL,
+                 double temperature = 0);
 
-
-    void doRegression( int seed );
-
+    void doRegression(int seed);
 };
 
 #endif /* REGRESSIONDATASCHEME_H */

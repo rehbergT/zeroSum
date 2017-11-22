@@ -4,13 +4,12 @@
 \alias{regressionObject}
 \title{Description of regresion object}
 \usage{
-regressionObject(x, y, beta, lambda, alpha, gamma = 0, cSum = 0,
-  type = zeroSumTypes[1, 1], weights = NULL, zeroSumWeights = NULL,
-  penalty.factor = NULL, fusion = NULL, precision = 1e-08,
-  useOffset = TRUE, useApprox = TRUE, downScaler = 1, algorithm = "CD",
-  diagonalMoves = TRUE, polish = 10, standardize = TRUE,
-  lambdaSteps = 1, gammaSteps = 1, nFold = 1, foldid = NULL,
-  epsilon = 0.001, cvStop = 0.1, verbose = FALSE, lambdaScaler = 1,
+regressionObject(x, y, beta, lambda, alpha, gamma = 0,
+  type = zeroSumTypes[1, 1], weights = NULL, penalty.factor = NULL,
+  fusion = NULL, precision = 1e-08, useOffset = TRUE, useApprox = TRUE,
+  downScaler = 1, algorithm = "CD", diagonalMoves = TRUE, polish = TRUE,
+  standardize = TRUE, lambdaSteps = 1, gammaSteps = 1, nFold = 1,
+  foldid = NULL, epsilon = NULL, cvStop = 0.1, verbose = FALSE,
   cores = 1)
 }
 \description{

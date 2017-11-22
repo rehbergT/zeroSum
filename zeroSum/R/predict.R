@@ -42,16 +42,16 @@ predict <- function( fit=NULL, newx=NULL, s="lambda.min", ... )
             stop(paste0(message1, message2))
         }
 
-        if( fit$type %in% zeroSumTypes[1:6,2] )
+        if( fit$type %in% zeroSumTypes[1:4,2] )
         {
-            predict <- newx %*% beta[-1] + beta[1]
+            predict <- newx %*% beta[-1,] + beta[1,]
             return(predict)
 
-        } else if( fit$type %in% zeroSumTypes[7:12,2] )
+        } else if(fit$type %in% zeroSumTypes[5:12,2] )
         {
             N <- nrow(newx)
             y <- rep(0,N)
-            xb <- newx %*% beta[-1] + beta[1]
+            xb <- newx %*% beta[-1,] + beta[1,]
             for(i in 1:N)
             {
                 y[i] <- 1 / (1+ exp(-xb[i]))
@@ -59,6 +59,19 @@ predict <- function( fit=NULL, newx=NULL, s="lambda.min", ... )
             #y[ y>=0.5 ] <- 1
             #y[ y<0.5 ]  <- 0
             return(as.matrix(y))
+
+        } else if( fit$type %in% zeroSumTypes[9:12,2] )
+        {
+            N <- nrow(newx)
+            xb <- newx %*% beta[-1,] + beta[1,]
+            xb <- exp(xb)
+            prob <- xb / rowSums(xb)
+
+            y <- rep(0,N)
+            for(i in 1:N)
+               y[i] <- which( prob[i,]== max(prob[i,]))
+
+            return(as.matrix(prob))
         }
 
     } else

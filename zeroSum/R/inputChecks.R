@@ -14,23 +14,22 @@
 zeroSumTypes <- data.frame( c(
                         "gaussian",
                         "gaussianZS",
-                        "fusedGaussian",
-                        "fusedGaussianZS",
                         "fusionGaussian",
                         "fusionGaussianZS",
                         "binomial",
                         "binomialZS",
-                        "fusedBinomial",
-                        "fusedBinomialZS",
                         "fusionBinomial",
                         "fusionBinomialZS",
                         "multinomial",
                         "multinomialZS",
-                        "fusedMultinomial",
-                        "fusedMultinomialZS",
                         "fusionMultinomial",
-                        "fusionMultinomialZS" ),
-                    1:18,
+                        "fusionMultinomialZS",
+                        "cox",
+                        "coxZS",
+                        "fusionCox",
+                        "fusionCoxZS"
+                     ),
+                    1:16,
                     stringsAsFactors = FALSE )
 
 colnames(zeroSumTypes) <- c("Type", "Int")
@@ -95,22 +94,52 @@ checkMultinominalVector <- function( x, varName)
     }
 }
 
-
-checkResponse <- function( y, varName, type)
+checkSurvialDataVector <- function( x, varName)
 {
-    if( type %in% zeroSumTypes[1:6,1] )
+    if( NCOL(x) != 2 )
     {
-        checkNumericVector(y, varName)
-        return(as.matrix(y))
+        message <- sprintf("%s does not consist of two columns", varName)
+        stop(message)
+    }
+    checkNumericVector(x[,1], varName)
+    checkBinominalVector(x[,2], varName)
+}
 
-    } else if( type %in% zeroSumTypes[7:12,1] )
-    {
-        checkBinominalVector(y, varName)
-        return(as.matrix(as.numeric(y)))
+checkData <- function( x, y, w, type)
+{
+    x <- checkNumericMatrix(x, 'x')
+    if(is.null(colnames(x)))
+        colnames(x) <- as.character(seq(1, ncol(x)))
 
-    } else if( type %in% zeroSumTypes[13:18,1] )
+    N <- nrow(x)
+
+    if( is.null(w)) {
+        w <- rep( 1/N, N)
+    } else {
+        checkNonNegativeNonZeroWeights(w, N, "weights")
+    }
+    w <- w / sum(w)
+
+    if( nrow(x) != nrow(as.matrix(y)) )
+        stop("nrow(x) != nrow(y) !")
+
+    if( type %in% zeroSumTypes[1:4,1] )
     {
-        checkMultinominalVector(y, varName)
+        checkNumericVector(y, "y")
+        return( list( x=x,
+                      y=as.matrix(y),
+                      w=w ) )
+
+    } else if( type %in% zeroSumTypes[5:8,1] )
+    {
+        checkBinominalVector(y, "y")
+        return( list( x=x,
+                      y=as.matrix(as.numeric(y)),
+                      w=w ) )
+
+    } else if( type %in% zeroSumTypes[9:12,1] )
+    {
+        checkMultinominalVector(y, "y")
         N <- length(y)
         K <- max(y)
         ymatrix <- matrix(0.0, nrow=N, ncol=K )
@@ -118,7 +147,22 @@ checkResponse <- function( y, varName, type)
         {
             ymatrix[ i, y[i] ] <- 1.0
         }
-        return(ymatrix)
+        return( list( x=x,
+                      y=ymatrix,
+                      w=w ) )
+
+    } else if( type %in% zeroSumTypes[13:16,1] )
+    {
+        checkSurvialDataVector(y, "y")
+        ord <- order(y[,1], y[,2] )
+        y <- as.matrix(y)
+        x <- x[ord, ]
+        y <- y[ord, ]
+        w <- w[ord]
+
+        return( list( x=x,
+                      y=as.matrix(y[,1]), status=as.integer(y[,2,drop=FALSE]),
+                      w=w ) )
     }
 }
 

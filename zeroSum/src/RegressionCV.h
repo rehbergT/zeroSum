@@ -5,10 +5,8 @@
 #include "CvRegressionData.h"
 #include "RegressionData.h"
 
-class RegressionCV
-{
-
-private:
+class RegressionCV {
+   private:
     double* gammaSeq;
     int lengthGamma;
 
@@ -17,23 +15,23 @@ private:
 
     int nFold;
     int N, memory_N, P, memory_P, K;
+    int type;
 
     int cvStop;
     int verbose;
 
-public:
-
+   public:
     std::vector<std::vector<CvRegressionData>> cv_data;
 
     std::vector<std::vector<double>> cv_tmp;
     std::vector<std::vector<double>> cv_predict;
 
-    RegressionCV( RegressionData& data );
+    RegressionCV(RegressionData& data);
 
-    std::vector<double> doCVRegression( int seed, char* path=nullptr,
-                                char* name=nullptr, int mpi_rank=0 );
+    std::vector<double> doCVRegression(int seed,
+                                       char* path = nullptr,
+                                       char* name = nullptr,
+                                       int mpi_rank = 0);
 };
-
-
 
 #endif

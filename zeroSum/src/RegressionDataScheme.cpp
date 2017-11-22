@@ -1,60 +1,73 @@
 #include "RegressionDataScheme.h"
 
-bool RegressionDataScheme::checkActiveSet( int k )
-{
+bool RegressionDataScheme::checkActiveSet(int k) {
     bool isZero = false;
-    for( int l=0; l<K; l++ )
-        if( beta[ INDEX(k,l,memory_P) ] == 0.0 ) isZero = true;
+    for (int l = 0; l < K; l++)
+        if (beta[INDEX(k, l, memory_P)] == 0.0)
+            isZero = true;
 
-    if( isZero )
-    {
-        auto result = activeSet.erase(k);
+    auto it = std::find(activeSet.begin(), activeSet.end(), k);
+    bool found = it != activeSet.end();
 
-        if( result != 0 )
-            return true;
-        else
-            return false;
+    if (found && isZero) {
+        activeSet.erase(it, activeSet.end());
+        return true;
+    } else if (!found && !isZero) {
+        activeSet.push_back(k);
+        return true;
     }
-    else
-    {
-        auto result = activeSet.insert(k);
-        return result.second;
+    return false;
+}
+
+bool is_zero(double i) {
+    return fabs(i) < DBL_EPSILON;
+}
+
+void RegressionDataScheme::checkWholeActiveSet() {
+    activeSet.erase(std::remove_if(activeSet.begin(), activeSet.end(), is_zero),
+                    activeSet.end());
+}
+
+void RegressionDataScheme::doRegression(int seed) {
+    if (algorithm == 1) {
+        coordinateDescent(seed);
+    } else if (algorithm == 2) {
+        simulatedAnnealing(seed);
+        localSearch(seed);
+    } else if (algorithm == 3) {
+        localSearch(seed);
+    } else if (algorithm == 4) {
+        coordinateDescent(seed);
+        localSearch(seed);
     }
 }
 
-void RegressionDataScheme::checkWholeActiveSet()
-{
-    for( auto it=activeSet.begin(); it!=activeSet.end(); )
-    {
-        if( fabs(beta[*it]) < DBL_EPSILON )
-            activeSet.erase(it++);
-        else
-            ++it;
-    }
-}
+void RegressionDataScheme::calcCoxRegressionD() {
+    memset(&status[INDEX(0, 1, memory_N)], 0.0, memory_N * sizeof(int));
+    memset(d, 0.0, memory_N * sizeof(double));
 
-void RegressionDataScheme::doRegression( int seed )
-{
-    if( algorithm == 1 )
-    {
-        coordinateDescent( seed );
-        if( polish != FALSE )
-        {
-            localSearch( seed, polish );
+    for (int i = 0; i < N - 1; i++) {
+        while (yOrg[i] == yOrg[i + 1]) {
+            if (status[INDEX(i, 0, memory_N)] == 1 &&
+                status[INDEX(i + 1, 0, memory_N)] == 1)
+                status[INDEX(i + 1, 1, memory_N)] = 1;
+            i++;
         }
     }
-    else if( algorithm == 2 )
-    {
-        simulatedAnnealing( seed );
-    }
-    else if( algorithm == 3 )
-    {
-        localSearch( seed, FALSE );
-    }
-    else if( algorithm == 4 )
-    {
-        coordinateDescent( seed );
-        localSearch( seed, FALSE );
-    }
 
+    int i = 0;
+    while (i < N) {
+        if (status[INDEX(i, 0, memory_N)] == 0 || wOrg[i] == 0.0) {
+            i++;
+            continue;
+        }
+
+        d[i] = wOrg[i];
+        int k;
+        for (k = i + 1; k < N && status[INDEX(k, 1, memory_N)] == 1; k++) {
+            if (status[INDEX(k, 0, memory_N)] == 1)
+                d[i] += wOrg[k];
+        }
+        i = k;
+    }
 }

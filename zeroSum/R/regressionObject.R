@@ -1,15 +1,18 @@
 #' Description of regresion object
 #'
+#' @importFrom stats rnorm sd weighted.mean
+#'
+#' @useDynLib zeroSum
+#'
 #' @keywords internal
 #'
 #' @export
-regressionObject <- function(x, y, beta , lambda, alpha, gamma=0.0, cSum=0.0,
-        type=zeroSumTypes[1,1], weights=NULL, zeroSumWeights=NULL,
-        penalty.factor=NULL, fusion=NULL, precision=1e-8,
-        useOffset=TRUE, useApprox=TRUE, downScaler=1, algorithm="CD",
-        diagonalMoves=TRUE, polish=10, standardize=TRUE, lambdaSteps=1,
-        gammaSteps=1, nFold=1, foldid=NULL, epsilon=0.001, cvStop = 0.1,
-        verbose=FALSE, lambdaScaler=1, cores=1 )
+regressionObject <- function(x, y, beta , lambda, alpha, gamma=0.0,
+        type=zeroSumTypes[1,1], weights=NULL, penalty.factor=NULL,
+        fusion=NULL, precision=1e-8, useOffset=TRUE, useApprox=TRUE,
+        downScaler=1, algorithm="CD", diagonalMoves=TRUE, polish=TRUE,
+        standardize=TRUE, lambdaSteps=1, gammaSteps=1, nFold=1, foldid=NULL,
+        epsilon=NULL, cvStop = 0.1, verbose=FALSE, cores=1 )
 {
     dataObject <- list()
 
@@ -17,14 +20,10 @@ regressionObject <- function(x, y, beta , lambda, alpha, gamma=0.0, cSum=0.0,
     id <- which( zeroSumTypes[,1] == type)
     dataObject$type <- as.integer( zeroSumTypes[id,2] )
 
-    dataObject$x <- checkNumericMatrix(x, 'x')
-    if(is.null(colnames(dataObject$x)))
-        colnames(dataObject$x) <- as.character(seq(1, ncol(dataObject$x)))
-
-    dataObject$y <- checkResponse( y, 'y', type )
-
-    if( nrow(dataObject$x)!= nrow(dataObject$y) )
-        stop("nrow(x) != nrow(y) !")
+    tmp <- checkData(x, y, weights, type )
+    dataObject$x <- tmp$x
+    dataObject$y <- tmp$y
+    dataObject$w <- tmp$w
 
     N <- nrow(dataObject$x)
     P <- ncol(dataObject$x)
@@ -33,7 +32,7 @@ regressionObject <- function(x, y, beta , lambda, alpha, gamma=0.0, cSum=0.0,
     dataObject$P <- P
     dataObject$N <- N
 
-    dataObject$cSum  <- checkDouble( cSum,  "cSum")
+    dataObject$cSum  <- 0.0
     dataObject$downScaler <- checkDouble( downScaler,  "downScaler")
     dataObject$alpha <- checkDouble( alpha, "alpha")
     dataObject$nFold <- checkInteger( nFold, "nFold")
@@ -44,13 +43,11 @@ regressionObject <- function(x, y, beta , lambda, alpha, gamma=0.0, cSum=0.0,
         dataObject$cores = checkInteger( cores, "cores")
     }
 
-    if( is.null(weights)) {
-        weights <- rep( 1/N, N)
-
-    } else {
-        checkNonNegativeNonZeroWeights(weights, N, "weights")
+    if( type %in% zeroSumTypes[13:16,1] ) {
+        dataObject$K <- 1
+        useOffset <- FALSE
+        dataObject$status <- tmp$status
     }
-    dataObject$w <- weights
 
     if( is.null(penalty.factor)) {
         penalty.factor <- rep( 1, P)
@@ -58,14 +55,7 @@ regressionObject <- function(x, y, beta , lambda, alpha, gamma=0.0, cSum=0.0,
         checkNonNegativeWeights(penalty.factor, P, "penalty.factors")
     }
     dataObject$v <- penalty.factor
-
-    if( is.null(zeroSumWeights)) {
-        zeroSumWeights <- rep( 1, P)
-    } else {
-        checkNonNegativeNonZeroWeights(zeroSumWeights, P, "zeroSumWeights")
-    }
-
-    dataObject$u <- zeroSumWeights
+    dataObject$u <- rep( 1, P)
 
     dataObject$lambdaSteps <- checkInteger( lambdaSteps, "lambdaSteps" )
     dataObject$lambda      <- checkDouble( lambda, "lambda")
@@ -99,42 +89,59 @@ regressionObject <- function(x, y, beta , lambda, alpha, gamma=0.0, cSum=0.0,
         dataObject$nc     <- as.integer(nrow(fusion))
     }
 
-    if( is.null(dataObject$fusion) && type %in% zeroSumTypes[c(5,6,11,12,17,18),1]  )
+    if( is.null(dataObject$fusion) && type %in% zeroSumTypes[c(3,4,7,8,11,12,15,16),1] )
         stop("no fusion kernel supplied\n")
 
+
+    ## calculate the weighted means
+    dataObject$xM  <- as.numeric( (t(dataObject$x) %*% dataObject$w) / sum(dataObject$w) )
+    dataObject$yM  <- as.numeric( (t(dataObject$y) %*% dataObject$w) / sum(dataObject$w) )
 
     if(standardize==TRUE)
     {
         dataObject$standardize = TRUE
 
-        ## we need the sd which is devided by N
-        ## to get the same results as the glmnet
-        ## -> we have to write our own scale methode
-        scaleNew <- function(r,s,c) { (r-c)/s }
-        sdNew <- function(v) { sqrt(mean((mean(v)-v)^2)) }
+        sdFunction <- function(v,w) {
+            wm <- weighted.mean(v,w)
+            return(sqrt( weighted.mean( (v-wm)^2, w) ))
+        }
 
-        dataObject$xSD <- apply( x,2,sdNew)
-        dataObject$xM  <- colMeans(x)
-
-        dataObject$ySD <- sdNew(y)
-        dataObject$yM  <- mean(y)
+        dataObject$xSD <- apply( dataObject$x, 2, sdFunction, dataObject$w)
+        dataObject$ySD <- apply( dataObject$y, 2, sdFunction, dataObject$w)
 
         if( any(dataObject$xSD==0) ) stop("sd calculation of x created 0")
         if( any(dataObject$ySD==0) ) stop("sd calculation of y created 0")
 
-        dataObject$x <- t(apply( x, 1, scaleNew, dataObject$xSD, dataObject$xM ))
+    } else
+    {
+        dataObject$standardize = FALSE
 
-        ## y can only be standardized if it is numeric
-        if( type %in% zeroSumTypes[c(1:6),1])
+        dataObject$xSD <- rep( 1, dataObject$P )
+        dataObject$ySD <- rep( 1, dataObject$K )
+    }
+
+    if( !(type %in% zeroSumTypes[1:4,1]) )
+    {
+        dataObject$ySD <- rep( 1, dataObject$K )
+        dataObject$yM  <- rep( 0, dataObject$K )
+    }
+
+    dataObject$useOffset <- checkInteger(useOffset)
+    dataObject$calcOffsetByCentering <- FALSE
+
+    if( dataObject$standardize==TRUE )
+    {
+        scaleFunction <- function(r,s,c) { (r-c)/s }
+        dataObject$x <- t(apply( dataObject$x, 1, scaleFunction, dataObject$xSD, dataObject$xM ))
+
+        if( type %in% zeroSumTypes[1:4,1] )
         {
-            dataObject$y <- scaleNew(dataObject$y, dataObject$ySD, dataObject$yM)
+            dataObject$y <- scaleFunction(dataObject$y, dataObject$ySD, dataObject$yM)
             dataObject$lambda <- dataObject$lambda / dataObject$ySD
-            dataObject$u <- dataObject$ySD / dataObject$xSD
-
+            dataObject$u      <- dataObject$u * ( dataObject$ySD / dataObject$xSD )
         } else
         {
-            dataObject$lambda <- dataObject$lambda
-            dataObject$u <- rep(1.0,P) / dataObject$xSD
+            dataObject$u  <- dataObject$u / dataObject$xSD
         }
 
         if( !is.null(dataObject$fusion) )
@@ -146,10 +153,19 @@ regressionObject <- function(x, y, beta , lambda, alpha, gamma=0.0, cSum=0.0,
                 dataObject$fusion[i,] <- dataObject$fusion[i,] * scaler
             }
         }
-
-    } else
+    } else if ( dataObject$useOffset==1 )
     {
-        dataObject$standardize = FALSE
+        centerFunction <- function(r,c) { (r-c) }
+        dataObject$x <- t(apply( dataObject$x, 1, centerFunction, dataObject$xM ))
+
+        if( type %in% zeroSumTypes[1:4,1] )
+        {
+            dataObject$y <- dataObject$y - dataObject$yM
+
+            # calculating an offset is unnecessary if centering is done
+            dataObject$useOffset <- as.integer(FALSE)
+            dataObject$calcOffsetByCentering <- TRUE
+        }
     }
 
     dataObject$verbose <- as.integer(verbose)
@@ -170,35 +186,50 @@ regressionObject <- function(x, y, beta , lambda, alpha, gamma=0.0, cSum=0.0,
             ridge <- TRUE
         }
         lambdaMax <- NULL
+        nM  <- NULL
         res <- NULL
 
-        if( type %in% zeroSumTypes[1:6,1] )
+        if( type %in% zeroSumTypes[1:4,1] )
         {
-            nM  <- mean(dataObject$y)
+            nM  <- sum(dataObject$y * dataObject$w )
             res <- as.matrix( dataObject$y - nM, ncol=1 ) * dataObject$w
-            lambdaMax <- max((abs( t(dataObject$x) %*% res ) / (dataObject$v * dataObject$alpha ))[dataObject$v != 0])
 
-        }else if( type %in% zeroSumTypes[7:12,1] )
+        }else if( type %in% zeroSumTypes[5:8,1] )
         {
-            nM  <- getLogisticNullModel( dataObject$y, dataObject$w, 10)
+            nM  <- getLogisticNullModel( dataObject$y, dataObject$w )
             res <- as.matrix( ( nM$z - nM$beta0 ) * nM$w, ncol=1 )
-            lambdaMax <- max((abs( t(dataObject$x) %*% res ) / (dataObject$v * dataObject$alpha ))[dataObject$v != 0])
 
-        } else if( type %in% zeroSumTypes[13:18,1] )
+        } else if( type %in% zeroSumTypes[9:12,1] )
         {
             nM <- getMultinomialNullModel( dataObject$y, dataObject$w, 10)
             res <- matrix(0,ncol=ncol(nM$z),nrow=nrow(nM$z) )
             for(i in 1:nrow(res) )
                 res[i,] <- ( nM$z[i,] - nM$beta0 ) * nM$w[i,]
 
-            lambdaMax <- max((abs( t(dataObject$x) %*% res ) / (dataObject$v * dataObject$alpha ))[dataObject$v != 0])
+        }  else if( type %in% zeroSumTypes[13:16,1] )
+        {
+            res <- getCoxNullModel( dataObject$y, dataObject$status, dataObject$w )
         }
 
-        epsilon      <- checkDouble(epsilon)
-        lambdaScaler <- checkDouble(lambdaScaler)
+        if( type %in% zeroSumTypes[seq(1,16,2),1] )
+        {
+            lambdaMax <- max((abs( t(dataObject$x) %*% res ) / (dataObject$v * dataObject$alpha ))[dataObject$v != 0])
+        } else
+        {
+            lambdaMax <- .Call( "lambdaMax", dataObject$x, res, dataObject$u, dataObject$v, dataObject$alpha, PACKAGE="zeroSum")
+        }
 
+        if( !is.null(epsilon) )
+        {
+            epsilon <- checkDouble(epsilon)
+        } else {
+            if( N < P ) {
+                epsilon <- 0.01
+            } else {
+                epsilon <- 0.0001
+            }
 
-        lambdaMax <- lambdaMax * lambdaScaler
+        }
 
         # lambdaMin is calculated with the epsilon paramter
         lambdaMin <- epsilon * lambdaMax
@@ -252,86 +283,50 @@ regressionObject <- function(x, y, beta , lambda, alpha, gamma=0.0, cSum=0.0,
 
     if( is.null(beta) )
     {
-        if( type %in% zeroSumTypes[ c(1,3,5,7,9,11),1] )
-        {
-            beta <- rep( 0, ncol(x)+1 )  ## +1 for the offset
+        cols <- dataObject$K
+        if(type %in% zeroSumTypes[13:16,1]) cols <- 1
+        beta <- matrix( 0, ncol=cols, nrow=dataObject$P+1 )
 
-        } else if( type %in% zeroSumTypes[ c(2,4,6,8,10,12),1] )
+        if( type %in% zeroSumTypes[seq(2,16,2),1] )
         {
-            beta <- rep( 0, ncol(x)+1 )
-            beta[2] <- dataObject$cSum / dataObject$u[1]
-
-        } else if( type %in% zeroSumTypes[c(13,15,17),1] )
-        {
-            beta <- matrix( 0, ncol=ncol(dataObject$y), nrow=ncol(x)+1 )
-
-        } else if( type %in% zeroSumTypes[ c(14,16,18),1] )
-        {
-            beta <- matrix( 0, ncol=ncol(dataObject$y), nrow=ncol(x)+1 )
-            beta[2,] <- rep( dataObject$cSum / dataObject$u[1], ncol(dataObject$y) )
+            beta[2,] <- rep( dataObject$cSum / dataObject$u[1], cols )
         }
 
     } else
     {
-        if( type %in% zeroSumTypes[ 1:12,1] )
+        beta <- as.matrix(beta)
+        if( nrow(beta) != ncol(x)+1)
         {
-            if( length(beta) != ncol(x)+1)
-            {
-                stop("Length of betas doesn't match ncol(x)!")
-            }
-
-        } else
+            stop("Length of betas doesn't match ncol(x)!")
+        }
+        if( type %in% zeroSumTypes[seq(2,16,2),1] )
         {
-            if( nrow(beta) != ncol(x)+1)
+            if( !(any( as.numeric(beta[-1,] %*% dataObject$u) != dataObject$cSum )) )
             {
-                stop("Length of betas doesn't match ncol(x)!")
+                stop("Sum of betas doesn't match cSum!")
             }
         }
 
-
-        if( type %in% zeroSumTypes[c(2,4,6,8,10,12),1] &&
-                as.numeric(beta[-1] %*% dataObject$u) != dataObject$cSum )
-        {
-            stop("Sum of betas doesn't match cSum!")
-        }
-
-        if( type %in% zeroSumTypes[c(14,16,18),1] &&
-                !(any( as.numeric(beta[-1,] %*% dataObject$u) != dataObject$cSum )) )
-        {
-            stop("Sum of betas doesn't match cSum!")
-        }
     }
+
     dataObject$beta <- beta
-
-    if(is.null(colnames(x)))
-        colnames(x) <- as.character(seq(1,ncol(x)))
-
-    if( type %in% zeroSumTypes[ 1:12,1] )
-    {
-        names(dataObject$beta) <- c( "Intercept",colnames(x))
-
-    } else
-    {
-        rownames(dataObject$beta) <- c( "Intercept",colnames(x))
-    }
+    rownames(dataObject$beta) <- c( "Intercept",colnames(dataObject$x))
 
     dataObject$precision   <- checkDouble( precision, "precision")
-    dataObject$useOffset   <- checkInteger(useOffset)
-
 
     checkAlgo(algorithm)
     id <- which( zeroSumAlgos[,1] == algorithm)
     dataObject$algorithm <- as.integer( zeroSumAlgos[id,2] )
 
 
-    if( type %in% zeroSumTypes[ c(4,5,6,10,11,12,16,17,18),1] )
+    if( type %in% zeroSumTypes[ c(3,4,7,8,11,12,15,16),1] )
     {
          dataObject$algorithm   <- as.integer(3)
     }
 
     dataObject$useApprox   <- checkInteger(useApprox)
 
-    if( dataObject$type <= 6  )
+    if( dataObject$type <= 4  )
     {
         dataObject$useApprox <- as.integer(FALSE)
 
@@ -339,11 +334,6 @@ regressionObject <- function(x, y, beta , lambda, alpha, gamma=0.0, cSum=0.0,
     {
         dataObject$useApprox <- as.integer(TRUE)
     }
-
-#     if( type %in% zeroSumTypes[ c(4,10,16),1] )
-#     {
-#          stop("Not implemented yet!")
-#     }
 
     dataObject$diagonalMoves <- checkInteger(diagonalMoves)
     dataObject$polish        <- checkInteger(polish)

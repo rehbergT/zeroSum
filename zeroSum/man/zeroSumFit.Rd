@@ -5,10 +5,9 @@
 \title{Description of zeroSumFit function}
 \usage{
 zeroSumFit(x, y, lambda, alpha = 1, weights = NULL, penalty.factor = NULL,
-  zeroSumWeights = NULL, cSum = 0, standardize = FALSE, gamma = 0,
-  fusion = NULL, useOffset = TRUE, useApprox = TRUE, downScaler = 1,
-  type = "gaussianZS", algorithm = "CD", precision = 1e-08,
-  diagonalMoves = TRUE, polish = 0, verbose = FALSE, beta = NULL)
+  standardize = FALSE, useOffset = TRUE, type = "gaussianZS",
+  precision = 1e-08, diagonalMoves = FALSE, polish = TRUE,
+  verbose = FALSE, beta = NULL, ...)
 }
 \arguments{
 \item{x}{data as a numeric matrix object (rows=samples).
@@ -23,65 +22,45 @@ x should be log-transformed data.}
 a ridge regularization, for alpha = 1 the elastic net becomes
 the lasso regularization}
 
-\item{weights}{samples weights (must be greater than zero)}
+\item{weights}{sample weights (must be greater than zero)}
 
 \item{penalty.factor}{weights for the elatic net regularization
 (must be greater than or equal to zero)}
 
-\item{zeroSumWeights}{weights of the zeroSum constraint
-(must be greater than zero)}
-
-\item{cSum}{constant c of the zeroSum constraint}
-
-\item{standardize}{standardize x and y}
-
-\item{gamma}{penalizing parameter of the fusion term}
-
-\item{fusion}{penalizing matrix of the fusion term}
+\item{standardize}{standardize the data (be careful standardization causes that
+the scale of the data affects the coefficients! This can act contray to
+scale invariance caused by the zero-sum constraint!)}
 
 \item{useOffset}{determines if an offset should be used in the
 model or not (TRUE/FALSE)}
-
-\item{useApprox}{determines if the quadratic approximation of the
-log-likelihood or the log-likelihood itself should be used
-by the local search algorithm for fitting binomial or
-multinomial models}
-
-\item{downScaler}{allows to reduce the number of moves}
 
 \item{type}{choose the regression type:
 \describe{
         \item{gaussian:}{}
         \item{gaussianZS:}{}
-        \item{fusionGaussian:}{}
-        \item{fusionGaussianZS:}{}
         \item{binomial:}{}
         \item{binomialZS:}{}
-        \item{fusionBinomial:}{}
-        \item{fusionBinomialZS:}{}
         \item{multinomial:}{}
         \item{multinomialZS:}{}
-        \item{fusionMultinomial:}{}
-        \item{fusionMultinomialZS:}{}
 }}
-
-\item{algorithm}{choose an algorithm:
-\describe{
-\item{CD:}{ Coordinate descent (very fast, not so accurate)}
-\item{CD+LS:}{ Coordinate descent + Local search (fast, very accurate)}
-\item{LS:}{ Local search (slow, accurate)} }}
 
 \item{precision}{stopping criterion of the used algorithms. Determines how
 small the improvement of the cost function has to be to stop
 the algorithm. Default is 1e-6.}
 
-\item{diagonalMoves}{allows the coordinate descent to use diagonal moves}
+\item{diagonalMoves}{allows the CD to use diagonal moves (can in rare cases
+slightly increase the accuracy of the models but
+increases the computing time)}
 
-\item{polish}{enables a local search at the end of CD to polish the result}
+\item{polish}{enables a local search at the end of CD to polish the result
+(removes small numeric uncertainties causing very small but non-zero
+coeffiencts and has only minimal effects on the computing time)}
 
-\item{verbose}{verbose = TRUE enables output}
+\item{verbose}{verbose = TRUE enables additional output about the regression}
 
-\item{beta}{start coeffiencts of algorithm}
+\item{beta}{start coeffiencts of the algorithm}
+
+\item{...}{can be used for adjusting internal parameters}
 }
 \value{
 zeroSumFitObject

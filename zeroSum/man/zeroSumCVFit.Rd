@@ -5,13 +5,10 @@
 \title{Description of zeroSumCVFit function}
 \usage{
 zeroSumCVFit(x, y, lambda = 0, lambdaSteps = 100, alpha = 1,
-  weights = NULL, penalty.factor = NULL, zeroSumWeights = NULL,
-  cSum = 0, standardize = FALSE, gamma = 0, gammaSteps = 1,
-  fusion = NULL, epsilon = 0.001, nFold = 10, foldid = NULL,
-  useOffset = TRUE, useApprox = TRUE, downScaler = 1, cores = 1,
-  verbose = FALSE, type = "gaussianZS", algorithm = "CD",
-  precision = 1e-08, diagonalMoves = TRUE, lambdaScaler = 1, polish = 0,
-  cvStop = 0.1)
+  weights = NULL, penalty.factor = NULL, standardize = FALSE,
+  epsilon = NULL, nFold = 10, foldid = NULL, useOffset = TRUE,
+  cores = 1, verbose = FALSE, type = "gaussianZS", precision = 1e-08,
+  diagonalMoves = FALSE, polish = TRUE, cvStop = 0.1, ...)
 }
 \arguments{
 \item{x}{data as a numeric matrix object (rows=samples).
@@ -36,21 +33,9 @@ the lasso regularization}
 \item{penalty.factor}{weights for the elatic net regularization
 (must be greater than or equal to zero)}
 
-\item{zeroSumWeights}{weights of the zeroSum constraint
-(must be greater than zero)}
-
-\item{cSum}{constant c of the zeroSum constraint. Default 0. Anything else is experimental.}
-
-\item{standardize}{standardize x and y}
-
-\item{gamma}{sequence of gamma values to be tested.
-If gamma==0 and a fused/fusion regression type set a sequence will be approximated (not implemented yet...)}
-
-\item{gammaSteps}{this parameters determines the number of gamma steps between
-gammaMin and gammaMax, i.e higher values for gammaSteps
-increase the resolution of the regularization path.}
-
-\item{fusion}{penalizing matrix of the fusion term}
+\item{standardize}{standardize the data (be careful standardization causes that
+the scale of the data affects the coefficients! This can act contray to
+scale invariance caused by the zero-sum constraint!)}
 
 \item{epsilon}{If a lambda sequence is estimated, lambdaMax is chosen such
 that all coefficients become zero, i.e. lambdaMax is the upper
@@ -65,41 +50,32 @@ parameter.}
 \item{useOffset}{determines if an offset should be used in the
 model or not (TRUE/FALSE)}
 
-\item{useApprox}{determines if the quadratic approximation of the
-log-likelihood or the log-likelihood itself should be used
-by the local search algorithm for fitting binomial or
-multinomial models}
-
-\item{downScaler}{allows to reduce the number of moves}
-
 \item{cores}{The cross validation can be executed in parallel. cores
 defines the amount of cpu cores to be used!}
 
-\item{verbose}{verbose = TRUE enables output}
+\item{verbose}{verbose = TRUE enables additional output about the regression}
 
 \item{type}{choose the regression type:
 \describe{
-        \item{gaussian:}{linear regression}
-        \item{gaussianZS:}{linear zero-Sum regression (default)}
-        \item{binomial:}{logistic regression}
-        \item{binomialZS:}{logistic zero-Sum regression}
+        \item{gaussian:}{}
+        \item{gaussianZS:}{}
+        \item{binomial:}{}
+        \item{binomialZS:}{}
+        \item{multinomial:}{}
+        \item{multinomialZS:}{}
 }}
-
-\item{algorithm}{determines the used algorithm:
-\describe{
-\item{CD:}{ Coordinate descent (very fast, not so accurate)}
-\item{CD+LS:}{ Coordinate descent + Local search (fast, very accurate)}
-\item{LS:}{ Local search (slow, accurate)} }}
 
 \item{precision}{stopping criterion of the used algorithms.
 Determines how small the improvement of the cost function
 has to be to stop the algorithm. Default is 1e-8.}
 
-\item{diagonalMoves}{allows the CD to use diagonal moves}
+\item{diagonalMoves}{allows the CD to use diagonal moves (can in rare cases
+slightly increase the accuracy of the models but
+increases the computing time)}
 
-\item{lambdaScaler}{allows to adjust the approximated lambdaMax}
-
-\item{polish}{enables a local search at the end of CD to polish the result}
+\item{polish}{enables a local search at the end of CD to polish the result
+(removes small numeric uncertainties causing very small but non-zero
+coeffiencts and has only minimal effects on the computing time)}
 
 \item{cvStop}{stops the CV progress if the model's CV-error becomes worse
 for lower lambda values. The number of worse
@@ -107,6 +83,8 @@ values which is tolerated is calculated by multiplying
 the lambdaSteps (Default: 100) with the value of cvStop
 parameter. (Default: 0.1). Use cvStop = 0 or FALSE to
 deactivate the devianceStop.}
+
+\item{...}{can be used for adjusting internal parameters}
 }
 \value{
 zeroSumCVFitObject

@@ -14,25 +14,24 @@ costFunction <- function( data )
     weights <- data$w
     penalty.factor <- data$v
 
-    if( data$type %in% zeroSumTypes[1:6,2] )
+    if( data$type %in% zeroSumTypes[1:4,2] )
     {
         ## calculation of the residuals
-        xTimesBeta <- x %*% beta[-1] + beta[1]
+        xtb <- x %*% beta[-1,] + beta[1,]
 
         ## calculation of the residual sum of squares
-        res <-  y - xTimesBeta
+        res <-  y - xtb
         out$loglikelihood <- -as.numeric( weights %*% (res^2) ) / 2
 
-    } else if( data$type %in% zeroSumTypes[7:12,2] )
+    } else if( data$type %in% zeroSumTypes[5:8,2] )
     {
-        ## calculation of the residuals
-        xTimesBeta <- x %*% beta[-1] + beta[1]
+        xtb <- x %*% beta[-1,] + beta[1,]
 
         ## calculation of the loglikelihood
-        expXB <- log( 1 + exp( xTimesBeta ) )
-        out$loglikelihood <- as.numeric( weights %*% (y * xTimesBeta - expXB ))
+        expXB <- log( 1 + exp( xtb ) )
+        out$loglikelihood <- as.numeric( weights %*% (y * xtb - expXB ))
 
-    } else if( data$type %in% zeroSumTypes[13:18,2] )
+    } else if( data$type %in% zeroSumTypes[9:12,2] )
     {
         xb <- x %*% beta[-1,]
         for( i in 1:ncol(beta))
@@ -40,9 +39,41 @@ costFunction <- function( data )
            xb[,i] <- xb[,i] + rep(beta[1,i],N)
         }
         out$loglikelihood <- as.numeric( weights %*% ( rowSums(xb * y) - log(rowSums(exp(xb))) ))
+    }  else if( data$type %in% zeroSumTypes[13:16,2] )
+    {
+        y <- cbind( data$y, data$status )
+        y <- cbind( y, duplicated(y[,1]+y[,2]) )
+        d <- rep(0,N)
+        ## calculate d for each set D_i
+        j <- 1
+        while( j <= N ) {
+            ## skip if there is no event
+            if( y[j,2] == 0 ) { j <- j+1;  next; }
+            d[j] <- weights[j]
+            k <- j+1
+            ## search for duplicates (ties) and add the weights
+            while( k <= N && y[k,3] == 1)
+            {
+                if( y[k,2] == 1 )
+                    d[j] <- d[j] + weights[k]
+                k <- k + 1
+            }
+            j <- k
+        }
+
+        xtb <- x %*% beta[-1,]
+        exp_xtb <- weights * exp(xtb)
+
+        out$loglikelihood <- sum( (weights * xtb)[y[,2]!=0,] )
+
+        u <- rep(0.0,N)
+        u[1] <- sum(exp_xtb)
+        for(i in 2:N) u[i] <- u[i-1] - exp_xtb[i-1]
+
+        id <- d != 0.0
+        out$loglikelihood <- out$loglikelihood - sum( d[id] * log(u[id]) )
     }
 
-    beta <- as.matrix(beta)
     ## calculation of the ridge penalty (the offset is not penalized
     ## therefore beta[1] is excluded)
     out$ridge <- sum(t( (beta[-1,,drop=FALSE])^2  )  %*% penalty.factor)
@@ -56,12 +87,7 @@ costFunction <- function( data )
                     ((1-data$alpha)*out$ridge/2 + data$alpha * out$lasso)
 
     out$fusion <- 0
-    if( data$type %in% zeroSumTypes[c(5,6,11,12),2] )
-    {
-        out$fusion <- sum(abs(as.numeric( data$fusion %*% data$beta[-1])))
-        out$cost <- out$cost + data$gamma * out$fusion
-
-    } else if( data$type %in% zeroSumTypes[c(17,18),2] )
+    if( data$type %in% zeroSumTypes[c(3,4,7,8,11,12,15,16),2] )
     {
         out$fusion <- 0.0
         for( i in 1:ncol(data$beta))
@@ -70,27 +96,6 @@ costFunction <- function( data )
         }
         out$cost <- out$cost + data$gamma * out$fusion
     }
-
-    if( data$type %in% zeroSumTypes[c(3,4,9,10),2] )
-    {
-        beta       <- data$beta[-1] ## remove offset
-        fused      <- beta[ -length(beta) ] - beta[-1]
-        out$fusion <- sum(abs(fused))
-        out$cost   <- out$cost + data$gamma * out$fusion
-
-    } else if( data$type %in% zeroSumTypes[c(15,16),2] )
-    {
-        out$fusion <- 0.0
-        for( i in 1:ncol(data$beta))
-        {
-            beta       <- as.numeric(data$beta[-1,i]) ## remove offset
-            fused      <- beta[ -length(beta) ] - beta[-1]
-            out$fusion <- out$fusion + sum(abs(fused))
-        }
-        out$cost <- out$cost + data$gamma * out$fusion
-    }
-
-#     out$test <- .Call( "costFunctionWrapper", data,
-#              PACKAGE="zeroSum" )
+    # out$test <- .Call( "costFunctionWrapper", data, PACKAGE="zeroSum" )
     return(out)
 }

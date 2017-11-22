@@ -31,42 +31,21 @@ coef <- function( fit=NULL, s="lambda.min", ... )
         }
         else
         {
-            if( fit$type %in% zeroSumTypes[1:12,2] )
+            if( s == "lambda.min")
             {
-                if( s == "lambda.min")
-                {
-                    beta <- fit$coef[ fit$LambdaMinIndex, ]
-                }
-                else if( s == "lambda.1SE" || s == "lambda.1se")
-                {
-                    beta <- fit$coef[ fit$Lambda1SEIndex, ]
-                }
-                else
-                {
-                    beta <- fit$coef[s,]
-                    if(is.na(beta))
-                        stop("s not valid")
-                }
-            } else
+                beta <- fit$coef[[ fit$LambdaMinIndex ]]
+            }
+            else if( s == "lambda.1SE" || s == "lambda.1se")
             {
-                if( s == "lambda.min")
-                {
-                    beta <- fit$coef[[ fit$LambdaMinIndex ]]
-                }
-                else if( s == "lambda.1SE" || s == "lambda.1se")
-                {
-                    beta <- fit$coef[[ fit$Lambda1SEIndex ]]
-                }
-                else
-                {
-                    beta <- fit$coef[[s]]
-                    if(is.na(beta))
-                        stop("s not valid")
-                }
+                beta <- fit$coef[[ fit$Lambda1SEIndex ]]
+            }
+            else
+            {
+                beta <- fit$coef[[s]]
             }
         }
 
-        return(as.matrix(beta))
+        return(beta)
 
     } else
     {

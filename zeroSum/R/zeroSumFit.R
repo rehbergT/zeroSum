@@ -15,69 +15,49 @@
 #'              a ridge regularization, for alpha = 1 the elastic net becomes
 #'              the lasso regularization
 #'
-#' @param weights samples weights (must be greater than zero)
+#' @param weights sample weights (must be greater than zero)
 #'
 #' @param penalty.factor weights for the elatic net regularization
 #'        (must be greater than or equal to zero)
 #'
-#' @param zeroSumWeights weights of the zeroSum constraint
-#'        (must be greater than zero)
-#'
-#' @param cSum constant c of the zeroSum constraint
-#'
-#' @param standardize standardize x and y
-#'
-#' @param gamma penalizing parameter of the fusion term
-#'
-#' @param fusion penalizing matrix of the fusion term
+#' @param standardize standardize the data (be careful standardization causes that
+#'        the scale of the data affects the coefficients! This can act contray to
+#'        scale invariance caused by the zero-sum constraint!)
 #'
 #' @param useOffset determines if an offset should be used in the
 #'               model or not (TRUE/FALSE)
-#'
-#' @param downScaler allows to reduce the number of moves
-#'
-#' @param useApprox determines if the quadratic approximation of the
-#'               log-likelihood or the log-likelihood itself should be used
-#'               by the local search algorithm for fitting binomial or
-#'               multinomial models
 #'
 #' @param type choose the regression type:
 #'              \describe{
 #'                      \item{gaussian:}{}
 #'                      \item{gaussianZS:}{}
-#'                      \item{fusionGaussian:}{}
-#'                      \item{fusionGaussianZS:}{}
 #'                      \item{binomial:}{}
 #'                      \item{binomialZS:}{}
-#'                      \item{fusionBinomial:}{}
-#'                      \item{fusionBinomialZS:}{}
 #'                      \item{multinomial:}{}
 #'                      \item{multinomialZS:}{}
-#'                      \item{fusionMultinomial:}{}
-#'                      \item{fusionMultinomialZS:}{}
 #'              }
-#'
-#' @param algorithm choose an algorithm:
-#'            \describe{
-#'            \item{CD:}{ Coordinate descent (very fast, not so accurate)}
-#'            \item{CD+LS:}{ Coordinate descent + Local search (fast, very accurate)}
-#'            \item{LS:}{ Local search (slow, accurate)} }
-#'
 #'
 #' @param precision stopping criterion of the used algorithms. Determines how
 #'                  small the improvement of the cost function has to be to stop
 #'                  the algorithm. Default is 1e-6.
 #'
-#' @param diagonalMoves allows the coordinate descent to use diagonal moves
+#' @param diagonalMoves allows the CD to use diagonal moves (can in rare cases
+#'                      slightly increase the accuracy of the models but
+#'                      increases the computing time)
 #'
 #' @param polish enables a local search at the end of CD to polish the result
+#'               (removes small numeric uncertainties causing very small but non-zero
+#'               coeffiencts and has only minimal effects on the computing time)
 #'
-#' @param verbose verbose = TRUE enables output
+#' @param verbose verbose = TRUE enables additional output about the regression
 #'
-#' @param beta start coeffiencts of algorithm
+#' @param beta start coeffiencts of the algorithm
 #'
+#' @param ... can be used for adjusting internal parameters
 #'
 #' @return zeroSumFitObject
+#'
+#' @importFrom methods hasArg
 #'
 #' @examples
 #' set.seed(1)
@@ -93,28 +73,29 @@ zeroSumFit <- function(
                 alpha          = 1.0,
                 weights        = NULL,
                 penalty.factor = NULL,
-                zeroSumWeights = NULL,
-                cSum           = 0.0,
                 standardize    = FALSE,
-                gamma          = 0.0,
-                fusion         = NULL,
                 useOffset      = TRUE,
-                useApprox      = TRUE,
-                downScaler     = 1,
                 type           = "gaussianZS",
-                algorithm      = "CD",
                 precision      = 1e-8,
-                diagonalMoves  = TRUE,
-                polish         = 0,
+                diagonalMoves  = FALSE,
+                polish         = TRUE,
                 verbose        = FALSE,
-                beta           = NULL )
+                beta           = NULL,
+                ... )
 {
-    data <- regressionObject(x, y, beta , lambda, alpha, gamma, cSum,
-        type, weights, zeroSumWeights, penalty.factor, fusion,
-        precision, useOffset, useApprox, downScaler,
-        algorithm, diagonalMoves, polish, standardize)
+    args <- list(...)
+    if(hasArg(fusion))     { fusion = args$fusion }         else { fusion <- NULL }
+    if(hasArg(gamma))      { gamma = args$gamma }           else { gamma <- 0.0 }
+    if(hasArg(useApprox))  { useApprox = args$useApprox }   else { useApprox <- TRUE }
+    if(hasArg(downScaler)) { downScaler = args$downScaler } else { downScaler <- 1.0 }
+    if(hasArg(algorithm))  { algorithm = args$algorithm }   else { algorithm <- "CD" }
+
+    data <- regressionObject(x, y, beta , lambda, alpha, gamma, type, weights,
+                penalty.factor, fusion, precision, useOffset, useApprox,
+                downScaler, algorithm, diagonalMoves, polish, standardize)
 
     energy1 <- costFunction( data )
+
     if(verbose)
     {
         print( sprintf( "Energy before: %e", energy1$cost))

@@ -20,13 +20,6 @@
 #'                    lambdaMin and lambdaMax, i.e higher values for lambdaSteps
 #'                    increase the resolution of the regularization path.
 #'
-#' @param gamma sequence of gamma values to be tested.
-#'          If gamma==0 and a fused/fusion regression type set a sequence will be approximated (not implemented yet...)
-#'
-#' @param gammaSteps this parameters determines the number of gamma steps between
-#'                    gammaMin and gammaMax, i.e higher values for gammaSteps
-#'                    increase the resolution of the regularization path.
-#'
 #' @param alpha Lasso/Ridge adjustment: For alpha = 0 the elastic net becomes
 #'              a ridge regularization, for alpha = 1 the elastic net becomes
 #'              the lasso regularization
@@ -36,14 +29,9 @@
 #' @param penalty.factor weights for the elatic net regularization
 #'        (must be greater than or equal to zero)
 #'
-#' @param zeroSumWeights weights of the zeroSum constraint
-#'        (must be greater than zero)
-#'
-#' @param cSum constant c of the zeroSum constraint. Default 0. Anything else is experimental.
-#'
-#' @param standardize standardize x and y
-#'
-#' @param fusion penalizing matrix of the fusion term
+#' @param standardize standardize the data (be careful standardization causes that
+#'        the scale of the data affects the coefficients! This can act contray to
+#'        scale invariance caused by the zero-sum constraint!)
 #'
 #' @param epsilon If a lambda sequence is estimated, lambdaMax is chosen such
 #'              that all coefficients become zero, i.e. lambdaMax is the upper
@@ -58,41 +46,32 @@
 #' @param useOffset determines if an offset should be used in the
 #'               model or not (TRUE/FALSE)
 #'
-#' @param useApprox determines if the quadratic approximation of the
-#'               log-likelihood or the log-likelihood itself should be used
-#'               by the local search algorithm for fitting binomial or
-#'               multinomial models
-#'
-#' @param downScaler allows to reduce the number of moves
-#'
 #' @param cores The cross validation can be executed in parallel. cores
 #'              defines the amount of cpu cores to be used!
 #'
-#' @param verbose verbose = TRUE enables output
+#' @param verbose verbose = TRUE enables additional output about the regression
 #'
 #' @param type choose the regression type:
 #'              \describe{
-#'                      \item{gaussian:}{linear regression}
-#'                      \item{gaussianZS:}{linear zero-Sum regression (default)}
-#'                      \item{binomial:}{logistic regression}
-#'                      \item{binomialZS:}{logistic zero-Sum regression}
+#'                      \item{gaussian:}{}
+#'                      \item{gaussianZS:}{}
+#'                      \item{binomial:}{}
+#'                      \item{binomialZS:}{}
+#'                      \item{multinomial:}{}
+#'                      \item{multinomialZS:}{}
 #'              }
-#'
-#' @param algorithm determines the used algorithm:
-#'            \describe{
-#'            \item{CD:}{ Coordinate descent (very fast, not so accurate)}
-#'            \item{CD+LS:}{ Coordinate descent + Local search (fast, very accurate)}
-#'            \item{LS:}{ Local search (slow, accurate)} }
 #'
 #' @param precision stopping criterion of the used algorithms.
 #'                    Determines how small the improvement of the cost function
 #'                    has to be to stop the algorithm. Default is 1e-8.
 #'
-#' @param diagonalMoves allows the CD to use diagonal moves
-#'
-#' @param lambdaScaler allows to adjust the approximated lambdaMax
+#' @param diagonalMoves allows the CD to use diagonal moves (can in rare cases
+#'                      slightly increase the accuracy of the models but
+#'                      increases the computing time)
 #'
 #' @param polish enables a local search at the end of CD to polish the result
+#'               (removes small numeric uncertainties causing very small but non-zero
+#'               coeffiencts and has only minimal effects on the computing time)
 #'
 #' @param cvStop    stops the CV progress if the model's CV-error becomes worse
 #'                  for lower lambda values. The number of worse
@@ -100,6 +79,10 @@
 #'                  the lambdaSteps (Default: 100) with the value of cvStop
 #'                  parameter. (Default: 0.1). Use cvStop = 0 or FALSE to
 #'                  deactivate the devianceStop.
+#'
+#' @param ... can be used for adjusting internal parameters
+#'
+#' @importFrom methods hasArg
 #'
 #' @return zeroSumCVFitObject
 #'
@@ -111,8 +94,6 @@
 #' plot( fit, "test")
 #' coef(fit, s="lambda.min")
 #'
-#' @importFrom stats rnorm sd
-#'
 #' @export
 zeroSumCVFit <- function(
             x,
@@ -122,45 +103,35 @@ zeroSumCVFit <- function(
             alpha               = 1.0,
             weights             = NULL,
             penalty.factor      = NULL,
-            zeroSumWeights      = NULL,
-            cSum                = 0.0,
             standardize         = FALSE,
-            gamma               = 0.0,
-            gammaSteps          = 1,
-            fusion              = NULL,
-            epsilon             = 0.001,
+            epsilon             = NULL,
             nFold               = 10,
             foldid              = NULL,
             useOffset           = TRUE,
-            useApprox           = TRUE,
-            downScaler          = 1,
             cores               = 1,
             verbose             = FALSE,
             type                = "gaussianZS",
-            algorithm           = "CD",
             precision           = 1e-8,
-            diagonalMoves       = TRUE,
-            lambdaScaler        = 1,
-            polish              = 0,
-            cvStop              = 0.1 )
+            diagonalMoves       = FALSE,
+            polish              = TRUE,
+            cvStop              = 0.1,
+            ... )
 {
-    # some basic checks for the passed arguments
-    data <- regressionObject(x, y, NULL, lambda, alpha,
-                gamma, cSum, type, weights, zeroSumWeights,
-                penalty.factor, fusion, precision,
-                useOffset, useApprox, downScaler, algorithm,
-                diagonalMoves, polish, standardize, lambdaSteps,
-                gammaSteps, nFold, foldid, epsilon, cvStop, verbose,
-                lambdaScaler, cores)
+    args <- list(...)
+    if(hasArg(fusion))     { fusion = args$fusion }         else { fusion <- NULL }
+    if(hasArg(gamma))      { gamma = args$gamma }           else { gamma <- 0.0 }
+    if(hasArg(gammaSteps)) { gammaSteps = args$gammaSteps } else { gammaSteps <- 1 }
+    if(hasArg(useApprox))  { useApprox = args$useApprox }   else { useApprox <- TRUE }
+    if(hasArg(downScaler)) { downScaler = args$downScaler } else { downScaler <- 1.0 }
+    if(hasArg(algorithm))  { algorithm = args$algorithm }   else { algorithm <- "CD" }
 
-    if( !(data$type %in% zeroSumTypes[c(1,2,7,8),2] ) )
-    {
-        print("Experimental data type!")
-        print("This is work in progress so take the results with a grain of salt!")
-    }
+    data <- regressionObject(x, y, NULL, lambda, alpha, gamma, type, weights,
+                penalty.factor, fusion, precision, useOffset, useApprox,
+                downScaler, algorithm, diagonalMoves, polish, standardize,
+                lambdaSteps, gammaSteps, nFold, foldid, epsilon, cvStop,
+                verbose, cores)
 
     if(verbose) start <- Sys.time()
-
     data$result <- zeroSumRegression( data, TRUE )
 
     if(verbose) {

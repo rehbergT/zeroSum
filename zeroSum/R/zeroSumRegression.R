@@ -14,9 +14,9 @@ zeroSumRegression <- function( data, CV )
 {
     if( CV==TRUE )
     {
-        .Call( "CV", data,  PACKAGE="zeroSum")
+        .Call( "CV", data, PACKAGE="zeroSum")
     } else
     {
-        .Call( "CallWrapper", data,  PACKAGE="zeroSum")
+        .Call( "CallWrapper", data, PACKAGE="zeroSum")
     }
 }

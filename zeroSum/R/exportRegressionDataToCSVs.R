@@ -1,6 +1,8 @@
 #' Description of exportRegressionDataToCSV function
 #' exports all zeroSum settings for using the c version of zeroSum
 #'
+#' @importFrom methods hasArg
+#'
 #' @keywords internal
 #'
 #' @export
@@ -12,36 +14,32 @@ exportRegressionDataToCSV <- function(
             alpha               = 1.0,
             weights             = NULL,
             penalty.factor      = NULL,
-            zeroSumWeights      = NULL,
-            cSum                = 0.0,
             standardize         = TRUE,
-            gamma               = 0.0,
-            gammaSteps          = 1,
-            fusion              = NULL,
-            epsilon             = 0.001,
+            epsilon             = NULL,
             nFold               = 10,
             foldid              = NULL,
             useOffset           = TRUE,
-            useApprox           = TRUE,
-            downScaler          = 1,
             verbose             = FALSE,
             type                = "gaussianZS",
-            algorithm           = "CD",
             precision           = 1e-8,
             diagonalMoves       = TRUE,
-            lambdaScaler        = 1,
             polish              = 0,
             cvStop              = 0.1,
             path                = "",
             name                = "" )
 {
+    if( !hasArg(fusion) )     fusion     <- NULL
+    if( !hasArg(gamma) )      gamma      <- 0.0
+    if( !hasArg(gammaSteps) ) gammaSteps <- 1
+    if( !hasArg(useApprox) )  useApprox  <- TRUE
+    if( !hasArg(downScaler) ) downScaler <- 1.0
+    if( !hasArg(algorithm) )  algorithm  <- "CD"
+
     data <- regressionObject(x, y, NULL, lambda, alpha,
-                gamma, cSum, type, weights, zeroSumWeights,
-                penalty.factor, fusion, precision,
+                gamma, type, weights, penalty.factor, fusion, precision,
                 useOffset, useApprox, downScaler, algorithm,
                 diagonalMoves, polish, standardize, lambdaSteps,
-                gammaSteps, nFold, foldid, epsilon, cvStop, verbose,
-                lambdaScaler)
+                gammaSteps, nFold, foldid, epsilon, cvStop, verbose )
 
     utils::write.csv( data$x, file=paste0( path, "x", name, ".csv" ) )
     utils::write.csv( data$y, file=paste0( path, "y", name, ".csv" ) )

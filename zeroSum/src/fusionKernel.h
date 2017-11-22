@@ -3,13 +3,14 @@
 
 #include <stdlib.h>
 
-struct fusionKernel
-{
+struct fusionKernel {
     int i;
     double value;
     struct fusionKernel* next;
 };
 
-struct fusionKernel* appendElement( struct fusionKernel *preElement, int i, double value) ;
+struct fusionKernel* appendElement(struct fusionKernel* preElement,
+                                   int i,
+                                   double value);
 
 #endif /* REGRESSIONDATA_H */

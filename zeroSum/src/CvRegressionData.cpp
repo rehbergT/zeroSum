@@ -1,38 +1,43 @@
 #include "CvRegressionData.h"
 
-
-void CvRegressionData::cvRegressionDataAlloc()
-{
-    #ifdef AVX_VERSION
-        wCV = (double*)aligned_alloc( ALIGNMENT, memory_N * sizeof(double) );
-    #else
-        wCV = (double*)malloc( memory_N * sizeof(double) );
-    #endif
+void CvRegressionData::cvRegressionDataAlloc() {
+#ifdef AVX_VERSION
+    wCV = (double*)aligned_alloc(ALIGNMENT, memory_N * sizeof(double));
+#else
+    wCV = (double*)malloc(memory_N * sizeof(double));
+#endif
 }
 
-void CvRegressionData::cvRegressionDataFree()
-{
+void CvRegressionData::cvRegressionDataFree() {
     free(wCV);
 }
 
-void CvRegressionData::cvRegressionDataDeepCopy(const CvRegressionData& source)
-{
-    memcpy( wCV, source.wCV, memory_N * sizeof(double) );
+void CvRegressionData::cvRegressionDataDeepCopy(
+    const CvRegressionData& source) {
+    memcpy(wCV, source.wCV, memory_N * sizeof(double));
 }
 
-CvRegressionData::CvRegressionData( RegressionData& source ) :
-    RegressionDataScheme( source.N, source.P, source.K, source.nc, source.type )
-{
+CvRegressionData::CvRegressionData(RegressionData& source)
+    : RegressionDataScheme(source.N,
+                           source.P,
+                           source.K,
+                           source.nc,
+                           source.type) {
+    // PRINT("special copy constructor\n");
     regressionDataSchemeShallowCopy(source);
     regressionDataSchemeDeepCopy(source);
-
     cvRegressionDataAlloc();
-    memcpy( wCV, source.wOrg, memory_N * sizeof(double) );
+    memcpy(wCV, source.wOrg, memory_N * sizeof(double));
 }
 
-CvRegressionData::CvRegressionData( const CvRegressionData& source ) :
-    RegressionDataScheme( source.N, source.P, source.K, source.nc, source.type )
-{
+// copy constructor
+CvRegressionData::CvRegressionData(const CvRegressionData& source)
+    : RegressionDataScheme(source.N,
+                           source.P,
+                           source.K,
+                           source.nc,
+                           source.type) {
+    // PRINT("copy constructor\n");
     regressionDataSchemeShallowCopy(source);
     regressionDataSchemeDeepCopy(source);
 
@@ -40,9 +45,9 @@ CvRegressionData::CvRegressionData( const CvRegressionData& source ) :
     cvRegressionDataDeepCopy(source);
 }
 
-
-CvRegressionData::CvRegressionData( CvRegressionData&& source )
-{
+// move constructor
+CvRegressionData::CvRegressionData(CvRegressionData&& source) {
+    // PRINT("move constructor\n");
     regressionDataSchemeShallowCopy(source);
     regressionDataSchemePointerMove(source);
 
@@ -50,8 +55,9 @@ CvRegressionData::CvRegressionData( CvRegressionData&& source )
     source.wCV = nullptr;
 }
 
-CvRegressionData& CvRegressionData::operator=( const CvRegressionData& source )
-{
+// copy assignment operator
+CvRegressionData& CvRegressionData::operator=(const CvRegressionData& source) {
+    // PRINT("copy assignment\n");
     cvRegressionDataFree();
     regressionDataSchemeFree();
 
@@ -65,8 +71,9 @@ CvRegressionData& CvRegressionData::operator=( const CvRegressionData& source )
     return *this;
 }
 
-CvRegressionData& CvRegressionData::operator=( CvRegressionData&& source )
-{
+// move assignment operator
+CvRegressionData& CvRegressionData::operator=(CvRegressionData&& source) {
+    // PRINT("move assignment\n");
     regressionDataSchemeShallowCopy(source);
     regressionDataSchemePointerMove(source);
 
@@ -76,7 +83,8 @@ CvRegressionData& CvRegressionData::operator=( CvRegressionData&& source )
     return *this;
 }
 
-CvRegressionData::~CvRegressionData()
-{
+// destructor
+CvRegressionData::~CvRegressionData() {
+    // PRINT("DESTRUCTOR CV!\n");
     cvRegressionDataFree();
 }

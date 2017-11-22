@@ -6,13 +6,11 @@
 exports all zeroSum settings for using the c version of zeroSum}
 \usage{
 exportRegressionDataToCSV(x, y, lambda = 0, lambdaSteps = 100, alpha = 1,
-  weights = NULL, penalty.factor = NULL, zeroSumWeights = NULL,
-  cSum = 0, standardize = TRUE, gamma = 0, gammaSteps = 1,
-  fusion = NULL, epsilon = 0.001, nFold = 10, foldid = NULL,
-  useOffset = TRUE, useApprox = TRUE, downScaler = 1, verbose = FALSE,
-  type = "gaussianZS", algorithm = "CD", precision = 1e-08,
-  diagonalMoves = TRUE, lambdaScaler = 1, polish = 0, cvStop = 0.1,
-  path = "", name = "")
+  weights = NULL, penalty.factor = NULL, standardize = TRUE,
+  epsilon = NULL, nFold = 10, foldid = NULL, useOffset = TRUE,
+  verbose = FALSE, type = "gaussianZS", precision = 1e-08,
+  diagonalMoves = TRUE, polish = 0, cvStop = 0.1, path = "",
+  name = "")
 }
 \description{
 Description of exportRegressionDataToCSV function

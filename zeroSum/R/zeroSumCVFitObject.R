@@ -9,36 +9,32 @@
 #'
 zeroSumCVFitObject <- function( obj )
 {
-    K <- ncol(obj$y)
-    P <- ncol(obj$x)
-    N <- nrow(obj$x)
+    K <- obj$K
+    P <- obj$P
+    N <- obj$N
 
     tmp <- matrix( obj$result, ncol=(5+K*(P+1)+N*K), byrow=TRUE )
 
     cv_predict <- tmp[ , -c(1:(5+K*(P+1))), drop=FALSE ]
 
     tmp <- tmp[ , c(1:(5+K*(P+1))), drop=FALSE ]
-
     numberCoef <- rep(0,nrow(tmp))
-    if( obj$type <= 12 )
-    {
-        obj$coef <- tmp[,-c(1:5), drop=FALSE]
-        colnames(obj$coef) <- c( "intercept", colnames(obj$x))
-        numberCoef <- rowSums( obj$coef[,-1, drop=FALSE]!=0)
-        obj$cv_predict <- cv_predict
-    }
-    else
-    {
-        obj$coef <- list()
-        obj$cv_predict <- list()
-        for(i in 1:nrow(tmp))
-        {
-            obj$coef[[i]] <- matrix( tmp[i,-c(1:5)], ncol=obj$K )
-            numberCoef[i] <- sum( rowSums( obj$coef[[i]][-1,,drop=FALSE] ) != 0 )
 
-            obj$cv_predict[[i]] <- matrix( cv_predict[i,], ncol=obj$K )
+    obj$coef <- list()
+    obj$cv_predict <- list()
+    for(i in 1:nrow(tmp))
+    {
+        obj$coef[[i]] <- matrix( tmp[i,-c(1:5)], ncol=K )
+
+        if(is.null(colnames(obj$x))) {
+            rownames(obj$coef[[i]]) <- c( "intercept", as.character(1:P))
+        } else {
+            rownames(obj$coef[[i]]) <- c( "intercept", colnames(obj$x))
         }
 
+        numberCoef[i] <- sum( rowSums( obj$coef[[i]][-1,,drop=FALSE] ) != 0 )
+
+        obj$cv_predict[[i]] <- matrix( cv_predict[i,], ncol=obj$K )
     }
 
     obj$cv_stats <- cbind( tmp[,1:5, drop=FALSE], numberCoef )
@@ -86,42 +82,37 @@ zeroSumCVFitObject <- function( obj )
 
     }
 
-    if(obj$standardize==TRUE)
+
+    if( obj$calcOffsetByCentering == TRUE )
     {
-        xSD <- obj$xSD
-        xM  <- obj$xM
+        obj$useOffset <- 1
+    }
 
-        ySD <- obj$ySD
-        yM  <- obj$yM
+    xSD <- obj$xSD
+    xM  <- obj$xM
 
-        if( obj$type <= 12 )
+    ySD <- obj$ySD
+    yM  <- obj$yM
+
+    ## revert standardization or centering
+    for(i in 1:length(obj$coef))
+    {
+        beta <- obj$coef[[i]]
+
+        if(obj$standardize==TRUE)
         {
-            for(i in 1:nrow(obj$coef))
-            {
-                if( obj$type %in% zeroSumTypes[ 1:6,2] )
-                {
-                    obj$coef[i,1] <- ( obj$coef[i,1] -
-                        as.numeric( obj$coef[i,-1] %*% ( xM / xSD )) ) * ySD + yM
+            if( obj$useOffset ) beta[1,] <- ( beta[1,] - as.numeric( beta[-1,] %*% ( xM / xSD )) ) * ySD + yM
+            beta[-1,] <- beta[-1,] / xSD * ySD
 
-                    obj$coef[i,-1] <- obj$coef[i,-1] / xSD * ySD
+            obj$cv_predict[[i]] <- obj$cv_predict[[i]] * ySD + yM
 
-                } else if( obj$type %in% zeroSumTypes[ 7:12,2] )
-                {
-                    obj$coef[i,1] <- ( obj$coef[i,1] -
-                        as.numeric( obj$coef[i,-1] %*% ( xM / xSD )) )
-
-                    obj$coef[i,-1] <- obj$coef[i,-1] / xSD
-
-                }
-            }
+        } else if( obj$useOffset )
+        { 
+            beta[1,] <- beta[1,] - as.numeric( t(beta[-1,]) %*% xM ) + yM
+            obj$cv_predict[[i]] <- obj$cv_predict[[i]] + yM
         }
-        else
-        {
-            for(i in 1:length(obj$coef))
-            {
-                # todo
-            }
-        }
+
+        obj$coef[[i]] <- beta
     }
 
     obj$x <- NULL
