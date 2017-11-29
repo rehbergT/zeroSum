@@ -71,7 +71,6 @@ void RegressionDataScheme::localSearch(int seed) {
         }
 
         int P2 = (isZeroSum) ? activeSet.size() : 1;
-
         // active set sweeps -> adjust coeffiecnts
         for (int sw = 0; sw < SWEEPS_ACTIVESET + SWEEPS_NULL; sw++) {
             for (int l = 0; l < K; l++) {
@@ -121,6 +120,9 @@ void RegressionDataScheme::localSearch(int seed) {
             intervalSize);
 #endif
 
+        if (type == MULTINOMIAL || type == MULTINOMIAL_ZS) {
+            optimizeParameterAmbiguity(100);
+        }
         costFunction();
         e2 = cost;
 
@@ -141,10 +143,13 @@ void RegressionDataScheme::localSearch(int seed) {
 #endif
 
         intervalSize *= INTERVAL_SHRINK;
-
         if (e2 - e1 > -precision)
             break;
     }
+
+    for (int j = 0; j < K * memory_P; j++)
+        if (fabs(beta[j]) < 100 * DBL_EPSILON)
+            beta[j] = 0.0;
 
 #ifdef DEBUG
     costFunction();

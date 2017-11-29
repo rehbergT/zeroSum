@@ -18,7 +18,7 @@ void RegressionDataScheme::optimizeParameterAmbiguity(int iterations) {
             tmp[l] = beta[INDEX(j, l, memory_P)];
 
         v1 = sum_a(tmp, K) / K;
-        if (u[j] == 0) {
+        if (v[j] == 0.0) {
             for (int l = 0; l < K; l++)
                 beta[INDEX(j, l, memory_P)] -= v1;
         } else {
@@ -48,6 +48,8 @@ void RegressionDataScheme::optimizeParameterAmbiguity(int iterations) {
             }
         }
     }
+
+    cSum = sum_a(beta, P);
 
     free(tmp);
 }

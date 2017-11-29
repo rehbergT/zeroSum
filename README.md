@@ -53,9 +53,9 @@ with or without the zero-sum constraint can be easily compared.
 
 ### Using devtools
 ##### Windows
-Open an R session as admin and load the [<em>devtools</em>](https://cran.r-project.org/web/packages/devtools/index.html) package:
+Open an R session as admin and install the package:
 
-    install.packages("https://github.com/rehbergT/zeroSum/raw/master/zeroSum_1.0.6.zip", repos = NULL)
+    install.packages("https://github.com/rehbergT/zeroSum/raw/master/zeroSum_1.0.7.zip", repos = NULL)
 
 ##### Linux / OS X
 Open an R session as root and load the [<em>devtools</em>](https://cran.r-project.org/web/packages/devtools/index.html) package:
@@ -66,16 +66,16 @@ Open an R session as root and load the [<em>devtools</em>](https://cran.r-projec
 
 ### Manual Installation
 ##### Windows
-Download the precompiled [<em>windows package</em>](https://github.com/rehbergT/zeroSum/raw/master/zeroSum_1.0.6.zip) (a zip file), open an
+Download the precompiled [<em>windows package</em>](https://github.com/rehbergT/zeroSum/raw/master/zeroSum_1.0.7.zip) (a zip file), open an
 R session as admin, navigate to the folder with the zip file and install it with:
 
-    install.packages("zeroSum_1.0.6.zip", repos = NULL)
+    install.packages("zeroSum_1.0.7.zip", repos = NULL)
 
 ##### Linux
-Download the [<em>package</em>](https://github.com/rehbergT/zeroSum/raw/master/zeroSum_1.0.6.tar.gz), open an
+Download the [<em>package</em>](https://github.com/rehbergT/zeroSum/raw/master/zeroSum_1.0.7.tar.gz), open an
 R session as admin, navigate to the folder with the tar.gz file and install it with:
 
-    install.packages("zeroSum_1.0.6.tar.gz", repos = NULL)
+    install.packages("zeroSum_1.0.7.tar.gz", repos = NULL)
 
 
 
@@ -91,7 +91,7 @@ Change the working directory to the downloaded folder:
 Build and install the created package:
 
     R CMD build zeroSum
-    R CMD INSTALL zeroSum_1.0.6.tar.gz
+    R CMD INSTALL zeroSum_1.0.7.tar.gz
 
 ### Performance advice
 

@@ -118,6 +118,7 @@ int RegressionDataScheme::cdMoveZS(int k, int s, int l) {
     double diffk = -*betak;
     double diffs = -*betas;
 
+    int defined = true;
     if (bk1 > 0 && bs1 > 0) {
         *betak = bk1;
         *betas = bs1 / u[s];
@@ -130,17 +131,16 @@ int RegressionDataScheme::cdMoveZS(int k, int s, int l) {
     } else if (bk4 < 0 && bs4 < 0) {
         *betak = bk4;
         *betas = bs4 / u[s];
+    } else {
+        defined = false;
     }
-    // else {
-    //     PRINT("UNDEFINED k=%d s=%d!\n", k, s);
-    // }
 
-    diffk += *betak;
-    diffs += *betas;
-    sub_a_times_scalar_b_sub_c_times_scalar_d(xk, diffk, xs, diffs, xb, N);
-    if (fabs(diffk) < BETA_CHANGE_PRECISION)
+    if (defined == false)
         return 0;
     else {
+        diffk += *betak;
+        diffs += *betas;
+        sub_a_times_scalar_b_sub_c_times_scalar_d(xk, diffk, xs, diffs, xb, N);
         if (useApprox)
             refreshApproximation(l);
 

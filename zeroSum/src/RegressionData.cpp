@@ -51,7 +51,7 @@ void RegressionData::regressionDataFree() {
 
 void RegressionData::regressionDataDeepCopy(const RegressionData& source) {
     memcpy(x, source.x, memory_N * P * sizeof(double));
-    memcpy(v, source.y, memory_P * sizeof(double));
+    memcpy(v, source.v, memory_P * sizeof(double));
     memcpy(u, source.u, memory_P * sizeof(double));
 
     if (type > 4)

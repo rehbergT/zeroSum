@@ -147,11 +147,14 @@ void RegressionDataScheme::coordinateDescent(int seed) {
                 }
             }
 
+            if (type == MULTINOMIAL || type == MULTINOMIAL_ZS) {
+                optimizeParameterAmbiguity(100);
+            }
+
             costFunction();
             e2 = cost;
 
 #ifdef DEBUG
-            // printMatrix(beta, memory_P, K);
             PRINT(
                 "Loglikelihood: %e lasso: %e ridge: %e cost: %e sum=%e "
                 "sum=%e\tChange: e1=%e e2=%e %e %e (success:%d)\n",
@@ -165,15 +168,8 @@ void RegressionDataScheme::coordinateDescent(int seed) {
         }
     }
 
-    if (type == MULTINOMIAL || type == MULTINOMIAL_ZS) {
-        optimizeParameterAmbiguity(100);
-        costFunction();
-    }
-
     // polish to get small coefs where the cd is undefined to zero
     if (isZeroSum && polish) {
-        costFunction();
-
         for (int l = 0; l < K; l++) {
             double* betaPtr = &beta[INDEX(0, l, memory_P)];
 
@@ -196,6 +192,10 @@ void RegressionDataScheme::coordinateDescent(int seed) {
 
             useOffset = useOffsetBak;
         }
+    }
+
+    if (type == MULTINOMIAL || type == MULTINOMIAL_ZS) {
+        optimizeParameterAmbiguity(100);
     }
 
     for (int j = 0; j < K * memory_P; j++)

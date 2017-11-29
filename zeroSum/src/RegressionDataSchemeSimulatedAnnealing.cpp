@@ -158,9 +158,13 @@ void RegressionDataScheme::simulatedAnnealing(int seed) {
 #endif
 
         // call cost function to prevent numerical uncertainties
+        if (type == MULTINOMIAL || type == MULTINOMIAL_ZS) {
+            optimizeParameterAmbiguity(100);
+        }
         costFunction();
 
         temperature *= COOLING_FAKTOR;
+
         if (cost - costOld > -precision && step > 4)
             break;
     }
@@ -169,6 +173,10 @@ void RegressionDataScheme::simulatedAnnealing(int seed) {
     memcpy(offset, best_offset, K * sizeof(double));
 
     costFunction();
+
+    for (int j = 0; j < K * memory_P; j++)
+        if (fabs(beta[j]) < 100 * DBL_EPSILON)
+            beta[j] = 0.0;
 
     free(best_beta);
 
