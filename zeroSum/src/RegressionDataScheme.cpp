@@ -1,10 +1,10 @@
 #include "RegressionDataScheme.h"
 
 bool RegressionDataScheme::checkActiveSet(int k) {
-    bool isZero = false;
+    bool isZero = true;
     for (int l = 0; l < K; l++)
-        if (beta[INDEX(k, l, memory_P)] == 0.0)
-            isZero = true;
+        if (beta[INDEX(k, l, memory_P)] != 0.0)
+            isZero = false;
 
     auto it = std::find(activeSet.begin(), activeSet.end(), k);
     bool found = it != activeSet.end();
@@ -24,8 +24,19 @@ bool is_zero(double i) {
 }
 
 void RegressionDataScheme::checkWholeActiveSet() {
-    activeSet.erase(std::remove_if(activeSet.begin(), activeSet.end(), is_zero),
-                    activeSet.end());
+    bool isZero;
+    int k, l;
+    for (int j = activeSet.size() - 1; j >= 0; j--) {
+        k = activeSet[j];
+        isZero = true;
+
+        for (l = 0; l < K; l++)
+            if (beta[INDEX(k, l, memory_P)] != 0.0)
+                isZero = false;
+
+        if (isZero)
+            activeSet.erase(activeSet.begin() + j);
+    }
 }
 
 void RegressionDataScheme::doRegression(int seed) {

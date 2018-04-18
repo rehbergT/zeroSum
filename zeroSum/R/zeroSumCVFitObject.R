@@ -24,17 +24,15 @@ zeroSumCVFitObject <- function( obj )
     obj$cv_predict <- list()
     for(i in 1:nrow(tmp))
     {
-        obj$coef[[i]] <- matrix( tmp[i,-c(1:5)], ncol=K )
-
-        if(is.null(colnames(obj$x))) {
-            rownames(obj$coef[[i]]) <- c( "intercept", as.character(1:P))
-        } else {
-            rownames(obj$coef[[i]]) <- c( "intercept", colnames(obj$x))
-        }
-
-        numberCoef[i] <- sum( rowSums( obj$coef[[i]][-1,,drop=FALSE] ) != 0 )
-
+        obj$coef[[i]] <- Matrix( tmp[i,-c(1:5)], ncol=K, sparse=TRUE )
+        numberCoef[i] <- sum( rowSums( abs(obj$coef[[i]][-1,,drop=FALSE]) ) != 0 )
         obj$cv_predict[[i]] <- matrix( cv_predict[i,], ncol=obj$K )
+    }
+
+    if(is.null(colnames(obj$x))) {
+        obj$varNames <- c( "intercept", as.character(1:P))
+    } else {
+        obj$varNames <- c( "intercept", colnames(obj$x))
     }
 
     obj$cv_stats <- cbind( tmp[,1:5, drop=FALSE], numberCoef )
@@ -107,7 +105,7 @@ zeroSumCVFitObject <- function( obj )
             obj$cv_predict[[i]] <- obj$cv_predict[[i]] * ySD + yM
 
         } else if( obj$useOffset )
-        { 
+        {
             beta[1,] <- beta[1,] - as.numeric( t(beta[-1,]) %*% xM ) + yM
             obj$cv_predict[[i]] <- obj$cv_predict[[i]] + yM
         }
@@ -117,7 +115,29 @@ zeroSumCVFitObject <- function( obj )
 
     obj$x <- NULL
     obj$y <- NULL
+
+    obj$xM <- NULL
+    obj$xSD <- NULL
+
+    obj$yM <- NULL
+    obj$ySD <- NULL
+
+    obj$v <- NULL
+    obj$u <- NULL
+    obj$w <- NULL
+    obj$v <- NULL
+    obj$downScaler <- NULL
+    obj$cSum <- NULL
+    obj$lambdaSteps <- NULL
+    obj$calcOffsetByCentering <- NULL
+
+    obj$N <- NULL
+    obj$K <- NULL
+    obj$M <- NULL
+
     obj$fusion <- NULL
+    obj$result <- NULL
+    obj$beta   <- NULL
 
     class(obj) <- append( class(obj), "ZeroSumCVFit")
     return(obj)

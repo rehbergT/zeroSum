@@ -1,6 +1,8 @@
 #include "RegressionDataScheme.h"
 
 void RegressionDataScheme::offsetMove(int l, int _updateCost) {
+    if (approxFailed)
+        return;
     int ii = INDEX(0, l, memory_N);
 
     double* xb = &xTimesBeta[ii];
@@ -34,6 +36,8 @@ void RegressionDataScheme::offsetMove(int l, int _updateCost) {
 }
 
 int RegressionDataScheme::cdMove(int k, int l) {
+    if (approxFailed)
+        return 0;
     double* betak = &beta[INDEX(k, l, memory_P)];
     double* xk = &x[INDEX(0, k, memory_N)];
 
@@ -78,6 +82,8 @@ int RegressionDataScheme::cdMove(int k, int l) {
 }
 
 int RegressionDataScheme::cdMoveZS(int k, int s, int l) {
+    if (approxFailed)
+        return 0;
     double* betak = &beta[INDEX(k, l, memory_P)];
     double* betas = &beta[INDEX(s, l, memory_P)];
 
@@ -156,6 +162,8 @@ int RegressionDataScheme::cdMoveZSRotated(int n,
                                           int s,
                                           int l,
                                           double theta) {
+    if (approxFailed)
+        return 0;
     double* betan = &beta[INDEX(n, l, memory_P)];
     double* betam = &beta[INDEX(m, l, memory_P)];
     double* betas = &beta[INDEX(s, l, memory_P)];

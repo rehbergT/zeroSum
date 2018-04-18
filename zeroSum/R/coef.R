@@ -43,6 +43,7 @@ coef <- function( fit=NULL, s="lambda.min", ... )
             {
                 beta <- fit$coef[[s]]
             }
+            rownames(beta) <- fit$varNames
         }
 
         return(beta)

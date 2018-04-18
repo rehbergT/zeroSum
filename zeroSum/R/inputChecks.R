@@ -111,31 +111,20 @@ checkData <- function( x, y, w, type)
     if(is.null(colnames(x)))
         colnames(x) <- as.character(seq(1, ncol(x)))
 
-    N <- nrow(x)
+    status <- NULL
+    ord    <- NULL
 
-    if( is.null(w)) {
-        w <- rep( 1/N, N)
-    } else {
-        checkNonNegativeNonZeroWeights(w, N, "weights")
-    }
-    w <- w / sum(w)
+    if( nrow(x) != NROW(y) )
+            stop("nrow(x) != nrow(y) !")
 
-    if( nrow(x) != nrow(as.matrix(y)) )
-        stop("nrow(x) != nrow(y) !")
 
-    if( type %in% zeroSumTypes[1:4,1] )
-    {
+    if( type %in% zeroSumTypes[1:4,1] ) {
         checkNumericVector(y, "y")
-        return( list( x=x,
-                      y=as.matrix(y),
-                      w=w ) )
 
     } else if( type %in% zeroSumTypes[5:8,1] )
     {
         checkBinominalVector(y, "y")
-        return( list( x=x,
-                      y=as.matrix(as.numeric(y)),
-                      w=w ) )
+        y=as.matrix(as.numeric(y))
 
     } else if( type %in% zeroSumTypes[9:12,1] )
     {
@@ -147,23 +136,36 @@ checkData <- function( x, y, w, type)
         {
             ymatrix[ i, y[i] ] <- 1.0
         }
-        return( list( x=x,
-                      y=ymatrix,
-                      w=w ) )
+         y=ymatrix
 
     } else if( type %in% zeroSumTypes[13:16,1] )
     {
         checkSurvialDataVector(y, "y")
-        ord <- order(y[,1], y[,2] )
         y <- as.matrix(y)
-        x <- x[ord, ]
-        y <- y[ord, ]
-        w <- w[ord]
 
-        return( list( x=x,
-                      y=as.matrix(y[,1]), status=as.integer(y[,2,drop=FALSE]),
-                      w=w ) )
+        ## sort
+        ord <- order(y[,1], y[,2] )
+
+        ## remove censored samples with time lower than the first event
+        i <- 1
+        while( y[ord[i],2]==0 ) i <- i+1
+        ord <- ord[i:length(ord)]
+
+        status=as.integer(y[,2,drop=FALSE])
+        y=as.matrix(y[,1])
     }
+
+
+    N <- nrow(x)
+    if( is.null(w)) {
+        w <- rep( 1/N, N)
+    } else {
+        checkNonNegativeNonZeroWeights(w, N, "weights")
+    }
+    w <- w / sum(w)
+    y <- as.matrix(y)
+
+    return( list( x=x, y=y, w=w, status=status, ord=ord ) )
 }
 
 checkType <- function( type )
@@ -245,6 +247,26 @@ checkNonNegativeNonZeroWeights <- function( x, n, name)
     if( any(x<=0) )
     {
         message <- sprintf("%s are not allowed to be negative!", name)
+        stop(message)
+    }
+}
+
+checkFolds <- function( status, foldid, nFold, type)
+{
+    check <- TRUE
+    if( any( !(1:nFold %in% foldid) ) )  check <- FALSE
+
+    if( type %in% zeroSumTypes[13:16,2] )
+    {
+        for(i in 1:nFold)
+        {
+            if( !any( status[ foldid==i ] != 0 ) ) check <- FALSE
+        }
+    }
+
+    if(check==FALSE)
+    {
+        message <- sprintf("Wrong specified foldids!")
         stop(message)
     }
 }

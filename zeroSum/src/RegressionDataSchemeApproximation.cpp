@@ -19,7 +19,13 @@ void RegressionDataScheme::refreshApproximation(int l, int _updateCost) {
     if (type <= FUSION_MULTINOMIAL_ZS) {
         for (int i = 0; i < N; i++) {
             if (type <= 8) {
-                p = 1.0 / (exp(-xb[i]) + 1.0);
+                if (xb[i] >= 0.0) {
+                    p = 1.0 / (exp(-xb[i]) + 1.0);
+                } else {
+                    p = exp(xb[i]);
+                    p = p / (p + 1.0);
+                }
+
             } else {
                 p = 0.0;
                 for (int k = 0; k < K; k++)
@@ -44,9 +50,11 @@ void RegressionDataScheme::refreshApproximation(int l, int _updateCost) {
 
         double tmp1 = sum_a(tmp_array1, N);
         tmp_array2[0] = tmp1;
-        for (int i = 1; i < N; ++i)
-            tmp_array2[i] = tmp_array2[i - 1] - tmp_array1[i - 1];
-
+        for (int i = 1; i < N; ++i) {
+            // tmp_array2[i] = tmp_array2[i - 1] - tmp_array1[i - 1];
+            // if (tmp_array2[i] < COX_MIN_PRECISION)
+            tmp_array2[i] = sum_a(&tmp_array1[i], N - i);
+        }
         memset(w, 0.0, memory_N * sizeof(double));
         memset(y, 0.0, memory_N * sizeof(double));
 
@@ -66,6 +74,26 @@ void RegressionDataScheme::refreshApproximation(int l, int _updateCost) {
             }
         }
     }
+
+    approxFailed = FALSE;
+    int lowW = 0;
+    for (int i = 0; i < N; ++i) {
+        if (w[i] < 1e-6)
+            lowW++;
+        if (std::isnan(w[i])) {
+            approxFailed = TRUE;
+            break;
+        }
+    }
+    if ((double)lowW / (double)N > 0.7) {
+        approxFailed = TRUE;
+    }
+
+#ifdef DEBUG
+    if (approxFailed)
+        PRINT("approximation failed! lowW: %f\n", (double)lowW / (double)N);
+
+#endif
 
     if (useApprox) {
         for (int k = 0; k < K; k++) {

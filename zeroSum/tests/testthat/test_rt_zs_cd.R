@@ -19,7 +19,8 @@
             t2 <- data$beta[m+1]
 
             part2 <- ( data$cSum - data$u[-c(n,m,s)] %*% data$beta[-c(1,n+1,m+1,s+1)] -
-                        data$u[n] * t1 - data$u[m] * t2 ) / data$u[s]
+                      data$u[n] * t1 - data$u[m] * t2 ) / data$u[s]
+            part2 <- as.numeric(part2)
             part3 <- data$y - data$beta[1] - data$x[,-c(n,m,s)] %*% data$beta[-c(1,n+1,m+1,s+1)] -
                      data$x[,n] * t1 - data$x[,m] * t2 - data$x[,s] * part2
 
@@ -108,7 +109,10 @@
         s <- 2
         theta <- 37.32
 
-        R <- as.numeric( zeroSumCdRT(data,n,m,s,theta) )
+        R <- zeroSumCdRT(data,n,m,s,theta)
+
+        R <- as.numeric(R)
+
         C <- .Call( "checkMoves", data, as.integer(3), as.integer(n-1),
                 as.integer(m-1), as.integer(s-1), as.integer(0),
                 PACKAGE="zeroSum")

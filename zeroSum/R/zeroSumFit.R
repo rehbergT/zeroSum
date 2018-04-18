@@ -92,19 +92,17 @@ zeroSumFit <- function(
 
     data <- regressionObject(x, y, beta , lambda, alpha, gamma, type, weights,
                 penalty.factor, fusion, precision, useOffset, useApprox,
-                downScaler, algorithm, diagonalMoves, polish, standardize)
+                downScaler, algorithm, diagonalMoves, polish, standardize, nFold=0)
 
     energy1 <- costFunction( data )
 
-    if(verbose)
-    {
-        print( sprintf( "Energy before: %e", energy1$cost))
-        start <- Sys.time()
-    }
+    if(verbose) print( sprintf( "Energy before: %e", energy1$cost))
 
+    start <- Sys.time()
     zeroSumRegression( data, FALSE )
 
-    if(verbose) end <- Sys.time()
+    end <- Sys.time()
+    runtime <- as.numeric(end-start, units="secs")
 
     energy2 <- costFunction( data )
 
@@ -112,11 +110,11 @@ zeroSumFit <- function(
     {
         print( sprintf( "Energy later %e   Dif %e runtime: %.3fs",
                 energy2$cost, energy2$cost-energy1$cost,
-                as.numeric(end-start, units="secs") ))
+                runtime ))
     }
 
     fitresult <- zeroSumFitObject( data )
-
+    fitresult$runtime <- runtime
     return(fitresult)
 
 }

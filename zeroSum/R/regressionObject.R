@@ -25,6 +25,13 @@ regressionObject <- function(x, y, beta , lambda, alpha, gamma=0.0,
     dataObject$y <- tmp$y
     dataObject$w <- tmp$w
 
+    if( !is.null(tmp$ord) )
+    {
+        dataObject$x <- dataObject$x[ tmp$ord, ]
+        dataObject$y <- dataObject$y[ tmp$ord, , drop=FALSE ]
+        dataObject$w <- dataObject$w[ tmp$ord ]
+    }
+
     N <- nrow(dataObject$x)
     P <- ncol(dataObject$x)
 
@@ -47,6 +54,8 @@ regressionObject <- function(x, y, beta , lambda, alpha, gamma=0.0,
         dataObject$K <- 1
         useOffset <- FALSE
         dataObject$status <- tmp$status
+        if( !is.null(tmp$ord) )
+            dataObject$status <- dataObject$status[ tmp$ord ]
     }
 
     if( is.null(penalty.factor)) {
@@ -63,20 +72,46 @@ regressionObject <- function(x, y, beta , lambda, alpha, gamma=0.0,
     dataObject$gammaSteps  <- checkInteger( gammaSteps, "gammaSteps" )
     dataObject$gamma       <- checkDouble( gamma, "gamma")
 
-    if( dataObject$nFold > N )
-        stop("nFold bigger than sample size\n")
+    if( dataObject$nFold > N ){
+        print(paste0("more CV folds (default nFold=10) than sample size! Setting nFold to ", N))
+        dataObject$nFold <- N
+    }
 
     if( is.null(foldid) )
     {
-        dataObject$foldid <- sample(rep( rep(1:nFold), length.out=N))
+        if( type %in% zeroSumTypes[13:16,1] ) {
+            nonCensored <- sum( dataObject$status==1 )
+
+            if( nonCensored < nFold ){
+                print(paste0("more CV folds (default nFold=10) than non-censored ! Setting nFold to ", nonCensored))
+                dataObject$nFold <- nonCensored
+            }
+
+            dataObject$foldid <- rep(0,N)
+            dataObject$foldid[ dataObject$status==1 ] <- sample(rep( rep(1:dataObject$nFold),
+                                            length.out=nonCensored))
+            dataObject$foldid[ dataObject$status==0 ] <- sample(rep( rep(1:dataObject$nFold),
+                                            length.out=dataObject$N-nonCensored))
+        } else {
+            dataObject$foldid <- sample(rep( rep(1:dataObject$nFold), length.out=N))
+        }
     } else
     {
+        if( !is.null(tmp$ord) )
+            foldid <- foldid[ tmp$ord ]
+
         if( length(foldid) != N )
             stop("invalid fold numbering (( length(foldid) != N ))\n")
+
         dataObject$nFold <- max(foldid)
         dataObject$foldid <- foldid
     }
 
+    dataObject$foldid <- as.integer(dataObject$foldid)
+    dataObject$nFold  <- as.integer(dataObject$nFold)
+
+    if( dataObject$nFold != 0 )
+        checkFolds( dataObject$status, dataObject$foldid, dataObject$nFold, dataObject$type )
 
     if( is.null(fusion))
     {
@@ -321,7 +356,7 @@ regressionObject <- function(x, y, beta , lambda, alpha, gamma=0.0,
 
     if( type %in% zeroSumTypes[ c(3,4,7,8,11,12,15,16),1] )
     {
-         dataObject$algorithm   <- as.integer(3)
+        dataObject$algorithm   <- as.integer(3)
     }
 
     dataObject$useApprox   <- checkInteger(useApprox)

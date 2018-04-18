@@ -3,6 +3,7 @@
 
 #include <string.h>
 #include <algorithm>
+#include <cmath>
 #include <cstdio>
 #include <random>
 #include "fusionKernel.h"
@@ -89,6 +90,7 @@ class RegressionDataScheme {
     int verbose;
     int cores;
     int cvStop;
+    int approxFailed;
 
     double loglikelihood;
     double lasso;

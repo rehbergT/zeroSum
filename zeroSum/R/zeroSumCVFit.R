@@ -131,14 +131,18 @@ zeroSumCVFit <- function(
                 lambdaSteps, gammaSteps, nFold, foldid, epsilon, cvStop,
                 verbose, cores)
 
-    if(verbose) start <- Sys.time()
+    start <- Sys.time()
+
     data$result <- zeroSumRegression( data, TRUE )
 
+    end <- Sys.time()
+    runtime <- as.numeric(end-start, units="secs")
+
     if(verbose) {
-        end <- Sys.time()
-        print( sprintf("runtime: %.3fs", as.numeric(end-start, units="secs")))
+        print( sprintf("runtime: %.3fs", runtime ))
     }
 
     fitresult <- zeroSumCVFitObject( data )
+    fitresult$runtime <- runtime
     return(fitresult)
 }

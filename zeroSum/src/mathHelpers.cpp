@@ -1,14 +1,5 @@
 #include "mathHelpers.h"
 
-int getMax(double* a, int n) {
-    int max = 0;
-    for (int i = 1; i < n; ++i) {
-        if (a[max] < a[i])
-            max = i;
-    }
-    return a[max];
-}
-
 int cmpfunc(const void* a, const void* b) {
     if (*(double*)a < *(double*)b)
         return -1;

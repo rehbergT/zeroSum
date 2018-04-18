@@ -66,7 +66,7 @@ int RegressionDataScheme::lsSaMove(int k,
         } else {
             for (int i = 0; i < N; ++i)
                 tmp_loglikelihood +=
-                    wOrg[i] * (yOrg[i] * xbTmp[i] - log(1.0 + exp(xbTmp[i])));
+                    wOrg[i] * (yOrg[i] * xbTmp[i] - log1p(exp(xbTmp[i])));
         }
     } else if (type <= 12) {
         if (useApprox) {
@@ -76,6 +76,15 @@ int RegressionDataScheme::lsSaMove(int k,
             double tmp2 = 0.0;
             double tmp3 = 0.0;
             double tmp4 = 0.0;
+
+            double a = *std::max_element(xb, xb + N);
+            double* tmpPtr;
+            for (int l = 0; l < K; ++l) {
+                tmpPtr = &xTimesBeta[INDEX(0, l, memory_N)];
+                double a1 = *std::max_element(tmpPtr, tmpPtr + N);
+                if (a1 > a)
+                    a = a1;
+            }
 
             for (int i = 0; i < N; ++i) {
                 tmp1 = 0.0;
@@ -87,9 +96,9 @@ int RegressionDataScheme::lsSaMove(int k,
                         tmp3 = xbTmp[i];
 
                     tmp1 += yOrg[INDEX(i, ll, memory_N)] * tmp3;
-                    tmp2 += exp(tmp3);
+                    tmp2 += exp(tmp3 - a);
                 }
-                tmp4 += wOrg[i] * (tmp1 - log(tmp2));
+                tmp4 += wOrg[i] * (tmp1 - log(tmp2) - a);
             }
 
             tmp_loglikelihood = tmp4;
@@ -98,19 +107,25 @@ int RegressionDataScheme::lsSaMove(int k,
         if (useApprox) {
             tmp_loglikelihood = -sum_square_a_times_b(xbTmp, w, N) * 0.5;
         } else {
-            double tmp1 = 0.0;
-            for (int i = 0; i < N; ++i) {
-                tmp_array2[i] = exp(xbTmp[i]);
-                tmp1 += wOrg[i] * tmp_array2[i];
+            double a = *std::max_element(xb, xb + N);
 
+            for (int i = 0; i < N; ++i) {
+                tmp_array2[i] = wOrg[i] * exp(xbTmp[i] - a);
                 if (status[i] != 0.0)
                     tmp_loglikelihood += wOrg[i] * xbTmp[i];
             }
 
-            double tmp2 = log(tmp1) * d[0];
+            double tmp1 = sum_a(tmp_array2, N);
+            double tmp2 = (log(tmp1) + a) * d[0];
+
             for (int i = 1; i < N; ++i) {
-                tmp1 = tmp1 - wOrg[i - 1] * tmp_array2[i - 1];
-                tmp2 += log(tmp1) * d[i];
+                tmp1 -= tmp_array2[i - 1];
+                if (tmp1 < COX_MIN_PRECISION)
+                    tmp1 = sum_a(&tmp_array2[i], N - i);
+
+                if (d[i] == 0.0)
+                    continue;
+                tmp2 += (log(tmp1) + a) * d[i];
             }
             tmp_loglikelihood -= tmp2;
         }

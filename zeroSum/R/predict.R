@@ -32,7 +32,7 @@ predict <- function( fit=NULL, newx=NULL, s="lambda.min", ... )
             stop("type of passed x is not a numeric matrix\n")
         }
 
-        beta <- coef(fit, s=s)
+        beta <- as.matrix(coef(fit, s=s))
 
         if( ncol(newx) != length(beta[-1]) ){
             message1 <- sprintf("newx has wrong dimensions: nrow=%d (samples) ncol=%d (features). ",
@@ -63,13 +63,16 @@ predict <- function( fit=NULL, newx=NULL, s="lambda.min", ... )
         } else if( fit$type %in% zeroSumTypes[9:12,2] )
         {
             N <- nrow(newx)
-            xb <- newx %*% beta[-1,] + beta[1,]
+            xb <- newx %*% beta[-1,]
+            for(i in 1:ncol(xb))
+                xb[,i] <- xb[,i] + beta[1,i]
+
             xb <- exp(xb)
             prob <- xb / rowSums(xb)
 
             y <- rep(0,N)
             for(i in 1:N)
-               y[i] <- which( prob[i,]== max(prob[i,]))
+               y[i] <- which.max(prob[i,])
 
             return(as.matrix(prob))
         }

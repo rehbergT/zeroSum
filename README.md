@@ -11,7 +11,7 @@ is as follows:
 
 <img src="https://raw.github.com/rehbergT/zeroSum/master/images/equation2.png" width="295" />
 
-By restricting the sum of coefficients (red) to zero the model becomes reference point insensitive!
+By restricting the sum of coefficients (red) to zero the model becomes reference point insensitive.
 
 This approach of  has been proposed in the context of compositional data in \[4\] and in the
 context of reference points in \[1\]. The corresponding minimization problem reads:
@@ -41,8 +41,8 @@ with or without the zero-sum constraint can be easily compared.
     * [Building from source](#building-from-source)
     * [Performance Advice](#performance-advice)
   * [Dependencies](#dependencies)
-  * [Quick start](#quick-start)
   * [Supported Regression Types](#supported-regression-types)
+  * [Quick start](#quick-start)
   * [Standalone HPC version](#standalone-hpc-version)
       * [Build Instructions](#build-instructions)
       * [Basic usage](#basic-usage)
@@ -55,7 +55,7 @@ with or without the zero-sum constraint can be easily compared.
 ##### Windows
 Open an R session as admin and install the package:
 
-    install.packages("https://github.com/rehbergT/zeroSum/raw/master/zeroSum_1.0.7.zip", repos = NULL)
+    install.packages("https://github.com/rehbergT/zeroSum/raw/master/zeroSum_1.1.0.zip", repos = NULL)
 
 ##### Linux / OS X
 Open an R session as root and load the [<em>devtools</em>](https://cran.r-project.org/web/packages/devtools/index.html) package:
@@ -66,16 +66,16 @@ Open an R session as root and load the [<em>devtools</em>](https://cran.r-projec
 
 ### Manual Installation
 ##### Windows
-Download the precompiled [<em>windows package</em>](https://github.com/rehbergT/zeroSum/raw/master/zeroSum_1.0.7.zip) (a zip file), open an
+Download the precompiled [<em>windows package</em>](https://github.com/rehbergT/zeroSum/raw/master/zeroSum_1.1.0.zip) (a zip file), open an
 R session as admin, navigate to the folder with the zip file and install it with:
 
-    install.packages("zeroSum_1.0.7.zip", repos = NULL)
+    install.packages("zeroSum_1.1.0.zip", repos = NULL)
 
 ##### Linux
-Download the [<em>package</em>](https://github.com/rehbergT/zeroSum/raw/master/zeroSum_1.0.7.tar.gz), open an
+Download the [<em>package</em>](https://github.com/rehbergT/zeroSum/raw/master/zeroSum_1.1.0.tar.gz), open an
 R session as admin, navigate to the folder with the tar.gz file and install it with:
 
-    install.packages("zeroSum_1.0.7.tar.gz", repos = NULL)
+    install.packages("zeroSum_1.1.0.tar.gz", repos = NULL)
 
 
 
@@ -91,7 +91,7 @@ Change the working directory to the downloaded folder:
 Build and install the created package:
 
     R CMD build zeroSum
-    R CMD INSTALL zeroSum_1.0.7.tar.gz
+    R CMD INSTALL zeroSum_1.1.0.tar.gz
 
 ### Performance advice
 
@@ -134,6 +134,29 @@ this means AVX and AVX2 is supported by the CPU.
   *  <em>zeroSum</em> requires a modern compiler which supports C++11 and openMP.
   * The R-package [<em>testthat</em>](https://cran.r-project.org/web/packages/testthat/index.html)
     is required for unit testing.
+
+## Supported regression types
+
+### Overview
+
+<em>zeroSum</em> supports linear regression (gaussian response) and logistic regression (binomial response).
+<!-- <em>zeroSum</em> supports linear regression (gaussian response), logistic regression (binomial response) and multinomial regression. -->
+
+The functions zeroSumFit() and zeroSumCVFit() have the parameter <em>type</em> with which the regression type can be determined.
+Models for these types can be created with and without the zero-sum constraint. Types with the zero-sum constraint are denoted with
+the suffix ZS.
+<!-- Moreover fused and fusion regression are available and can be enabled with the prefix <em>fused</em> or <em>fusion</em>  -->
+
+<!-- **Please note that only the types gaussian, gaussianZS, binomial and binomialZS are well tested and all other are experimental!** -->
+
+ The following different types are supported:
+
+| **normal regression** | **zero-sum regression**     |
+| --------------------- | ---------------- |
+| gaussian              |  gaussianZS      |
+| binomial              |  binomialZS      |
+| multinomial           |  multionomialZS  |
+| cox                   |  coxZS           |
 
 ## Quick start
 
@@ -188,26 +211,6 @@ Use the predict() function to obtain new predictions with the cv.fit:
 
 
 
-## Supported regression types
-
-### Overview
-
-<em>zeroSum</em> supports linear regression (gaussian response) and logistic regression (binomial response).
-<!-- <em>zeroSum</em> supports linear regression (gaussian response), logistic regression (binomial response) and multinomial regression. -->
-
-The functions zeroSumFit() and zeroSumCVFit() have the parameter <em>type</em> with which the regression type can be determined.
-Models for these types can be created with and without the zero-sum constraint. Types with the zero-sum constraint are denoted with
-the suffix ZS.
-<!-- Moreover fused and fusion regression are available and can be enabled with the prefix <em>fused</em> or <em>fusion</em>  -->
-
-<!-- **Please note that only the types gaussian, gaussianZS, binomial and binomialZS are well tested and all other are experimental!** -->
-
- The following different types are supported:
-
-| **normal regression** | **zero-sum**     |
-| --------------------- | ---------------- |
-| gaussian              |  gaussianZS      |
-| binomial              |  binomialZS      |
 
 ### Example: zero-sum logistic regression
 
@@ -238,10 +241,11 @@ The predict function now returns the probability of the sample i being class 1 P
 
 
 
-## Standalone HPC (high performance computing) version
+## Standalone HPC version
 
 <em>zeroSum</em> is available as a standalone C++ program which allows
-an easy utilization on computing clusters.
+an easy utilization on computing clusters. Note that the mpi parellelization can only
+be used for the fused LASSO regularization.
 
 ### Build instructions
 Open a terminal and download the source from github (git client needs to be installed, or downloaded manually):
@@ -256,7 +260,7 @@ Build the <em>zeroSum</em> hpc version with:
 
     make
 
-As explained in [performance advice](#performance-advice) AVX instructions can be used when your compiler and your CPU architecture
+As explained in [performance advice](#performance-advice) AVX instructions can be used if your compiler and your CPU architecture
 supports them. By default the Makefile is configured  to compile <em>zeroSum</em> for the currently used architecture (<em>native</em>).
 This can be adjusted in the beginning of the Makefile.
 
@@ -265,7 +269,7 @@ This can be adjusted in the beginning of the Makefile.
 We provide R functions for exporting all necessary files for the standalone HPC version and for importing the generated results.
 
 
-Open a terminal and create an empty folder. Change the working directory to the created folder. As shown above, load <em>zeroSum</em> and the example data:
+Open a terminal and create an empty folder. Change the working directory to the created folder. Load <em>zeroSum</em> and the example data:
 
     library(zeroSum)
     set.seed(1)

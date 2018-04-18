@@ -15,7 +15,7 @@
             ak <- ak + data$lambda * ( 1 - data$alpha) * ( data$v[k] + data$v[s] * data$u[k]^2 / data$u[s]^2  )
 
             part2 <- data$y - data$beta[1] - data$x[,-c(k,s)] %*% data$beta[-c(1,k+1,s+1)] -
-                data$x[,s] / data$u[s] * ( data$cSum  - data$u[-c(s,k)] %*% data$beta[-c(1,s+1,k+1)])
+                data$x[,s] / data$u[s] * as.numeric( data$cSum  - data$u[-c(s,k)] %*% data$beta[-c(1,s+1,k+1)])
 
             bk <- -sum( part1 *  part2 * data$w )  +  data$lambda * ( 1 - data$alpha) * data$v[s] *
                     ( data$u[k] / (data$u[s]^2) ) * ( data$cSum - data$u[-c(s,k)] %*% data$beta[-c(1,s+1,k+1)]  )

@@ -55,7 +55,7 @@ void RegressionData::regressionDataDeepCopy(const RegressionData& source) {
     memcpy(u, source.u, memory_P * sizeof(double));
 
     if (type > 4)
-        memcpy(yOrg, source.y, memory_N * K * sizeof(double));
+        memcpy(yOrg, source.yOrg, memory_N * K * sizeof(double));
 
     if (isFusion) {
         for (int j = 0; j < P; j++) {

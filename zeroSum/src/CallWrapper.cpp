@@ -234,7 +234,7 @@ SEXP checkMoves(SEXP _dataObjects,
 
     RegressionData data = rListToRegressionData(_dataObjects);
     data.costFunction();
-
+    data.approxFailed = FALSE;
     if (data.type > 4) {
         memcpy(data.w, data.wOrg, data.memory_N * sizeof(double));
         memcpy(data.y, data.yOrg, data.memory_N * data.K * sizeof(double));

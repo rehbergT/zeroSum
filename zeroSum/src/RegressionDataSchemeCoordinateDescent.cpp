@@ -29,17 +29,32 @@ void RegressionDataScheme::coordinateDescent(int seed) {
 
     double e1, e2, rn;
     int change, success, attempts, P2, k;
+    int gettingWorse = FALSE;
+
+#ifdef AVX_VERSION
+    double* last_beta =
+        (double*)aligned_alloc(ALIGNMENT, memory_P * K * sizeof(double));
+    double* last_offset = (double*)aligned_alloc(ALIGNMENT, K * sizeof(double));
+#else
+    double* last_beta = (double*)malloc(memory_P * K * sizeof(double));
+    double* last_offset = (double*)malloc(K * sizeof(double));
+#endif
 
     std::mt19937_64 mt(seed);
     std::uniform_real_distribution<double> rng(0.0, 1.0);
 
-    for (int steps = 0; steps < 100; steps++) {
+    for (int steps = 0; steps < 100 && !gettingWorse; steps++) {
 #ifdef DEBUG
         PRINT("Step: %d\nFind active set\n", steps);
 #endif
         activeSetChange = 0;
 
+        e1 = cost;
+        memcpy(last_beta, beta, memory_P * K * sizeof(double));
+        memcpy(last_offset, offset, K * sizeof(double));
+
         for (int l = 0; l < K; l++) {
+            approxFailed = FALSE;
             if (type >= BINOMIAL)
                 refreshApproximation(l);
             if (useOffset)
@@ -82,10 +97,50 @@ void RegressionDataScheme::coordinateDescent(int seed) {
                     }
                 }
             }
+
+            if (type == MULTINOMIAL || type == MULTINOMIAL_ZS) {
+                optimizeParameterAmbiguity(200);
+            }
+        }
+        costFunction();
+        // polish to get small coefs where the cd is undefined to zero
+        if (polish) {
+            int useOffsetBak = useOffset;
+            useOffset = false;
+            int useApproxBak = useApprox;
+            if (approxFailed)
+                useApprox = FALSE;
+
+            for (int l = 0; l < K; l++) {
+                double* betaPtr = &beta[INDEX(0, l, memory_P)];
+                if (useApprox)
+                    refreshApproximation(l, TRUE);
+
+                for (const int& s : activeSet) {
+                    if (fabs(betaPtr[s]) < DBL_EPSILON * 100)
+                        continue;
+                    for (const int& k : activeSet) {
+                        if (s == k || fabs(betaPtr[k]) < DBL_EPSILON * 100)
+                            continue;
+
+                        lsSaMove(k, s, l, -betaPtr[k]);
+                    }
+                }
+            }
+
+            useOffset = useOffsetBak;
+            useApprox = useApproxBak;
+        }
+        costFunction();
+        e2 = cost;
+        if (std::isnan(e2) || e1 < e2) {
+            memcpy(beta, last_beta, memory_P * K * sizeof(double));
+            memcpy(offset, last_offset, K * sizeof(double));
+            costFunction();
+            break;
         }
 
         if (activeSetChange == 0 || activeSet.empty()) {
-            costFunction();
             break;
         }
         warmStart = true;
@@ -98,9 +153,13 @@ void RegressionDataScheme::coordinateDescent(int seed) {
         while (TRUE) {
             costFunction();
             e1 = cost;
+            memcpy(last_beta, beta, memory_P * K * sizeof(double));
+            memcpy(last_offset, offset, K * sizeof(double));
+
             success = 0;
 
             for (int l = 0; l < K; l++) {
+                approxFailed = FALSE;
                 if (type >= BINOMIAL)
                     refreshApproximation(l);
                 if (useOffset)
@@ -148,12 +207,11 @@ void RegressionDataScheme::coordinateDescent(int seed) {
             }
 
             if (type == MULTINOMIAL || type == MULTINOMIAL_ZS) {
-                optimizeParameterAmbiguity(100);
+                optimizeParameterAmbiguity(200);
             }
 
             costFunction();
             e2 = cost;
-
 #ifdef DEBUG
             PRINT(
                 "Loglikelihood: %e lasso: %e ridge: %e cost: %e sum=%e "
@@ -162,46 +220,29 @@ void RegressionDataScheme::coordinateDescent(int seed) {
                 sum_a_times_b(beta, u, P), e1, e2, fabs(e2 - e1), precision,
                 success);
 #endif
+            if (std::isnan(e2) || e1 < e2) {
+                gettingWorse = TRUE;
+                memcpy(beta, last_beta, memory_P * K * sizeof(double));
+                memcpy(offset, last_offset, K * sizeof(double));
+                costFunction();
+                break;
+            }
 
-            if (success == 0 || e1 < e2 || fabs(e2 - e1) < precision)
+            if (success == 0 || fabs(e2 - e1) < precision)
                 break;
         }
     }
 
-    // polish to get small coefs where the cd is undefined to zero
-    if (isZeroSum && polish) {
-        for (int l = 0; l < K; l++) {
-            double* betaPtr = &beta[INDEX(0, l, memory_P)];
-
-            if (useApprox)
-                refreshApproximation(l, TRUE);
-
-            int useOffsetBak = useOffset;
-            useOffset = false;
-
-            for (const int& s : activeSet) {
-                if (fabs(betaPtr[s]) < DBL_EPSILON * 100)
-                    continue;
-                for (const int& k : activeSet) {
-                    if (s == k || fabs(betaPtr[k]) < DBL_EPSILON * 100)
-                        continue;
-
-                    lsSaMove(k, s, l, -betaPtr[k]);
-                }
-            }
-
-            useOffset = useOffsetBak;
-        }
-    }
-
     if (type == MULTINOMIAL || type == MULTINOMIAL_ZS) {
-        optimizeParameterAmbiguity(100);
+        optimizeParameterAmbiguity(200);
     }
 
     for (int j = 0; j < K * memory_P; j++)
         if (fabs(beta[j]) < 100 * DBL_EPSILON)
             beta[j] = 0.0;
 
+    free(last_beta);
+    free(last_offset);
 #ifdef DEBUG
     costFunction();
     costEnd = cost;

@@ -28,7 +28,7 @@ costFunction <- function( data )
         xtb <- x %*% beta[-1,] + beta[1,]
 
         ## calculation of the loglikelihood
-        expXB <- log( 1 + exp( xtb ) )
+        expXB <- log1p(exp(xtb))
         out$loglikelihood <- as.numeric( weights %*% (y * xtb - expXB ))
 
     } else if( data$type %in% zeroSumTypes[9:12,2] )
@@ -38,7 +38,11 @@ costFunction <- function( data )
         {
            xb[,i] <- xb[,i] + rep(beta[1,i],N)
         }
-        out$loglikelihood <- as.numeric( weights %*% ( rowSums(xb * y) - log(rowSums(exp(xb))) ))
+
+        xby <- rowSums(xb * y)
+        a <- max(xb)
+        xb <- xb - a
+        out$loglikelihood <- as.numeric( weights %*% ( xby - log(rowSums(exp(xb))) - a ))
     }  else if( data$type %in% zeroSumTypes[13:16,2] )
     {
         y <- cbind( data$y, data$status )
@@ -60,18 +64,18 @@ costFunction <- function( data )
             }
             j <- k
         }
-
+        id <- d != 0.0
         xtb <- x %*% beta[-1,]
-        exp_xtb <- weights * exp(xtb)
 
         out$loglikelihood <- sum( (weights * xtb)[y[,2]!=0,] )
 
         u <- rep(0.0,N)
-        u[1] <- sum(exp_xtb)
-        for(i in 2:N) u[i] <- u[i-1] - exp_xtb[i-1]
+        for(i in 1:N){
+            a <- max(xtb[i:N])
+            u[i] <- a + log( sum( weights[i:N] * exp( xtb[i:N] - a ) ) )
+        }
 
-        id <- d != 0.0
-        out$loglikelihood <- out$loglikelihood - sum( d[id] * log(u[id]) )
+        out$loglikelihood <- out$loglikelihood - sum( d[id] * u[id] )
     }
 
     ## calculation of the ridge penalty (the offset is not penalized
@@ -96,6 +100,7 @@ costFunction <- function( data )
         }
         out$cost <- out$cost + data$gamma * out$fusion
     }
+
     # out$test <- .Call( "costFunctionWrapper", data, PACKAGE="zeroSum" )
     return(out)
 }

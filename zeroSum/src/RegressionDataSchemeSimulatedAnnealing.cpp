@@ -152,7 +152,7 @@ void RegressionDataScheme::simulatedAnnealing(int seed) {
         double sd_E = sd(average_Eng, MEASURE, &mean_E);
         PRINT(
             "temperatur %e energy: %e var eng %e  accept: %f best E: %e, "
-            "crit=%e   test=%d accept: %d\n",
+            "crit=%e   test=%d accept: %f\n",
             temperature, mean_E, sd_E, acceptrate, best_cost, acceptrate,
             acceptrate > precision, acceptrate);
 #endif
@@ -179,6 +179,7 @@ void RegressionDataScheme::simulatedAnnealing(int seed) {
             beta[j] = 0.0;
 
     free(best_beta);
+    free(best_offset);
 
 #ifdef DEBUG
     costFunction();

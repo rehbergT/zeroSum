@@ -11,7 +11,7 @@ void RegressionDataScheme::localSearch(int seed) {
     costFunction();
     costStart = cost;
 
-    PRINT("Loglikelihood: %e lasso: %e ridge: %e cost: %e sum=%e\n",
+    PRINT("0: Loglikelihood: %e lasso: %e ridge: %e cost: %e sum=%e\n",
           loglikelihood, lasso, ridge, cost, sum_a_times_b(beta, u, P));
 #endif
 
@@ -27,6 +27,7 @@ void RegressionDataScheme::localSearch(int seed) {
     double intervalSize = INTERVAL_SIZE;
 
     int sweep = isZeroSum ? P * (P - 1) : P;
+    sweep = (int)ceil((double)sweep * downScaler);
 
     for (int step = 0; step < MAX_STEPS; step++) {
         long counter = 0;
@@ -44,7 +45,7 @@ void RegressionDataScheme::localSearch(int seed) {
                 if (useOffset)
                     lsSaOffsetMove(l);
 
-                for (int i = 0; i < sweep * downScaler; i++) {
+                for (int i = 0; i < sweep; i++) {
                     k = floor(rng(mt) * P);
 
                     if (isZeroSum) {
@@ -68,9 +69,16 @@ void RegressionDataScheme::localSearch(int seed) {
                     }
                 }
             }
+
+            if (type == MULTINOMIAL || type == MULTINOMIAL_ZS) {
+                optimizeParameterAmbiguity(100);
+                costFunction();
+            }
         }
 
         int P2 = (isZeroSum) ? activeSet.size() : 1;
+        P2 = (int)ceil((double)P2 * downScaler);
+
         // active set sweeps -> adjust coeffiecnts
         for (int sw = 0; sw < SWEEPS_ACTIVESET + SWEEPS_NULL; sw++) {
             for (int l = 0; l < K; l++) {
@@ -106,6 +114,30 @@ void RegressionDataScheme::localSearch(int seed) {
                             counter++;
                     }
                 }
+
+                if (type == MULTINOMIAL || type == MULTINOMIAL_ZS) {
+                    optimizeParameterAmbiguity(100);
+                    costFunction();
+                }
+
+                if (isFusion) {
+                    for (const int& k : activeSet) {
+                        s = k + 1;
+                        if (s == P)
+                            s = k - 1;
+
+                        if (isZeroSum)
+                            delta_k = (betaPtr[s] - betaPtr[k]) * 0.5;
+                        else
+                            delta_k = (betaPtr[s] - betaPtr[k]);
+
+                        t = lsSaMove(k, s, l, delta_k);
+
+                        attempts++;
+                        if (t != 0)
+                            counter++;
+                    }
+                }
             }
         }
 
@@ -120,9 +152,6 @@ void RegressionDataScheme::localSearch(int seed) {
             intervalSize);
 #endif
 
-        if (type == MULTINOMIAL || type == MULTINOMIAL_ZS) {
-            optimizeParameterAmbiguity(100);
-        }
         costFunction();
         e2 = cost;
 

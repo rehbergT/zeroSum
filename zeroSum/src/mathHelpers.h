@@ -13,7 +13,6 @@
 #include "fusionKernel.h"
 #include "settings.h"
 
-int getMax(double* a, int n);
 double median(double* x, int N);
 double mean(double* a, int N);
 double sd(double* a, int N, double* mean_ptr = nullptr);

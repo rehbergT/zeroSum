@@ -79,21 +79,11 @@
 #define FUSION_MULTINOMIAL 11
 #define FUSION_MULTINOMIAL_ZS 12
 
-#ifdef EXP_TYPES
-
 #define COX 13
 #define COX_ZS 14
 #define FUSION_COX 15
 #define FUSION_COX_ZS 16
 
-#else
-
-#define COX 20
-#define COX_ZS 20
-#define FUSION_COX 20
-#define FUSION_COX_ZS 20
-
-#endif
 
 // localSearch setttings
 #define MAX_STEPS 500
@@ -116,5 +106,6 @@
 #define COOLING_FAKTOR 0.8
 
 #define BETA_CHANGE_PRECISION 1e-14
+#define COX_MIN_PRECISION 1e-10
 
 #endif /* SETTINGS_H */

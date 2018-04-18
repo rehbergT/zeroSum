@@ -26,7 +26,7 @@ RegressionCV::RegressionCV(RegressionData& data) {
         for (int f = 0; f < nFold + 1; f++)
             tmp.push_back(CvRegressionData(data));
 
-        cv_data.push_back(tmp);
+        cv_data.push_back(std::move(tmp));
     }
     cv_predict.resize(lengthGamma);
     cv_tmp.resize(lengthGamma);
@@ -116,7 +116,7 @@ std::vector<double> RegressionCV::doCVRegression(int seed,
                     for (int ii = 0; ii < N; ii++) {
                         if (cv_data[i][f].wCV[ii] != 0.0) {
                             for (int l = 0; l < K; ++l)
-                                cv_predict[i][INDEX(ii, l, memory_N)] =
+                                cv_predict[i][INDEX(ii, l, N)] =
                                     cv_data[i][f]
                                         .xTimesBeta[INDEX(ii, l, memory_N)];
                         }
@@ -125,16 +125,21 @@ std::vector<double> RegressionCV::doCVRegression(int seed,
             }
 
         int cvImproving = 0;
+        double cvError, cvErrorSD;
         for (int i = 0; i < lengthGamma; i++) {
             double trainingError = cv_tmp[i][nFold];
 
-            double cvError = 0.0;
+            cvError = 0.0;
             for (int ff = 0; ff < nFold; ff++)
                 cvError += cv_tmp[i][ff];
 
+            if (std::isnan(cvError) || std::isinf(cvError) ||
+                std::isnan(trainingError) || std::isinf(trainingError))
+                break;
+
             cvError /= nFold;
 
-            double cvErrorSD = 0.0;
+            cvErrorSD = 0.0;
             for (int ff = 0; ff < nFold; ff++)
                 cvErrorSD += cv_tmp[i][ff] * cv_tmp[i][ff];
 
@@ -213,7 +218,7 @@ std::vector<double> RegressionCV::doCVRegression(int seed,
         else
             worseLambdaSteps = 0;
 
-        if (worseLambdaSteps > cvStop)
+        if (worseLambdaSteps > cvStop || std::isnan(cvError))
             break;
     }
 
