@@ -8,7 +8,7 @@ calls the costFunction and returns the result}
 \usage{
 extCostFunction(x, y, beta, lambda, alpha = 1, gamma = 0,
   type = zeroSumTypes[1, 1], weights = NULL, penalty.factor = NULL,
-  fusion = NULL)
+  fusion = NULL, useC = FALSE)
 }
 \description{
 Description of costFunction function

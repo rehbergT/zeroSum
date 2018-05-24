@@ -23,7 +23,13 @@ bool is_zero(double i) {
     return fabs(i) < DBL_EPSILON;
 }
 
-void RegressionDataScheme::checkWholeActiveSet() {
+bool RegressionDataScheme::isInActiveSet(int k) {
+    auto it = std::find(activeSet.begin(), activeSet.end(), k);
+    bool found = it != activeSet.end();
+    return found;
+}
+
+void RegressionDataScheme::removeCoefsWithZeroFromActiveSet() {
     bool isZero;
     int k, l;
     for (int j = activeSet.size() - 1; j >= 0; j--) {
@@ -36,20 +42,6 @@ void RegressionDataScheme::checkWholeActiveSet() {
 
         if (isZero)
             activeSet.erase(activeSet.begin() + j);
-    }
-}
-
-void RegressionDataScheme::doRegression(int seed) {
-    if (algorithm == 1) {
-        coordinateDescent(seed);
-    } else if (algorithm == 2) {
-        simulatedAnnealing(seed);
-        localSearch(seed);
-    } else if (algorithm == 3) {
-        localSearch(seed);
-    } else if (algorithm == 4) {
-        coordinateDescent(seed);
-        localSearch(seed);
     }
 }
 

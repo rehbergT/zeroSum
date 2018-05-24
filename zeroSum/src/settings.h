@@ -84,7 +84,6 @@
 #define FUSION_COX 15
 #define FUSION_COX_ZS 16
 
-
 // localSearch setttings
 #define MAX_STEPS 500
 #define INTERVAL_SIZE 0.2

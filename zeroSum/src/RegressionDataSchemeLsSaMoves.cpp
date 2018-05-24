@@ -29,7 +29,10 @@ int RegressionDataScheme::lsSaMove(int k,
     betak = beta[INDEX(k, l, memory_P)];
     betakNew = betak + delta_k;
 
-    if (isZeroSum) {
+    if (u[s] == 0)
+        return 0;
+
+    if (isZeroSum && u[k] != 0) {
         delta_s = -delta_k * u[k] / u[s];
         betas = beta[INDEX(s, l, memory_P)];
         betasNew = betas + delta_s;
@@ -143,7 +146,7 @@ int RegressionDataScheme::lsSaMove(int k,
             currEl = currEl->next;
         }
 
-        if (isZeroSum) {
+        if (isZeroSum && u[k] != 0) {
             currEl = fusionKernel[s];
             while (currEl != NULL) {
                 fusionPartialSumsTmp[currEl->i] += currEl->value * delta_s;
@@ -179,14 +182,11 @@ int RegressionDataScheme::lsSaMove(int k,
 
         beta[INDEX(k, l, memory_P)] = betakNew;
 
-        if (isZeroSum)
+        if (isZeroSum && u[k] != 0)
             beta[INDEX(s, l, memory_P)] = betasNew;
 
         if (useApprox)
             refreshApproximation(l, TRUE);
-
-        if (useOffset)
-            lsSaOffsetMove(l);
 
         return 1;
     } else {

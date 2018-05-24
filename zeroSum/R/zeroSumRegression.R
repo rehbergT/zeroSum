@@ -10,13 +10,7 @@
 #'
 #' @keywords internal
 #'
-zeroSumRegression <- function( data, CV )
+zeroSumRegression <- function( data )
 {
-    if( CV==TRUE )
-    {
-        .Call( "CV", data, PACKAGE="zeroSum")
-    } else
-    {
-        .Call( "CallWrapper", data, PACKAGE="zeroSum")
-    }
+    .Call( "CV", data, PACKAGE="zeroSum")
 }

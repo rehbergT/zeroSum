@@ -3,7 +3,7 @@
 #' @keywords internal
 #'
 #' @export
-costFunction <- function( data )
+costFunction <- function( data, useC=FALSE )
 {
 
     out <- list()
@@ -101,6 +101,8 @@ costFunction <- function( data )
         out$cost <- out$cost + data$gamma * out$fusion
     }
 
-    # out$test <- .Call( "costFunctionWrapper", data, PACKAGE="zeroSum" )
+    ## this call is for the unit test, which verifies that R and C calculate the same
+    if(useC) out$C <- .Call( "costFunctionWrapper", data, PACKAGE="zeroSum" )
+
     return(out)
 }

@@ -4,7 +4,7 @@
 \alias{costFunction}
 \title{Description of costFunction function}
 \usage{
-costFunction(data)
+costFunction(data, useC = FALSE)
 }
 \description{
 Description of costFunction function

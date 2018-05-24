@@ -24,27 +24,20 @@ coef <- function( fit=NULL, s="lambda.min", ... )
 {
     if( any( class(fit)=="ZeroSumCVFit") || any( class(fit)=="ZeroSumFit") )
     {
-        beta <- NULL
-        if( any( class(fit)=="ZeroSumFit"))
+        if( s == "lambda.min")
         {
-            beta <- fit$beta
+            beta <- fit$coef[[ fit$LambdaMinIndex ]]
+        }
+        else if( s == "lambda.1SE" || s == "lambda.1se")
+        {
+            beta <- fit$coef[[ fit$Lambda1SEIndex ]]
         }
         else
         {
-            if( s == "lambda.min")
-            {
-                beta <- fit$coef[[ fit$LambdaMinIndex ]]
-            }
-            else if( s == "lambda.1SE" || s == "lambda.1se")
-            {
-                beta <- fit$coef[[ fit$Lambda1SEIndex ]]
-            }
-            else
-            {
-                beta <- fit$coef[[s]]
-            }
-            rownames(beta) <- fit$varNames
+            beta <- fit$coef[[s]]
         }
+        rownames(beta) <- fit$varNames
+
 
         return(beta)
 

@@ -126,30 +126,6 @@ RegressionData rListToRegressionData(SEXP _dataObjects) {
     return data;
 }
 
-SEXP CallWrapper(SEXP _dataObjects) {
-    PROTECT(_dataObjects = AS_LIST(_dataObjects));
-
-    RegressionData data(rListToRegressionData(_dataObjects));
-
-    GetRNGstate();
-    int seed = (int)(unif_rand() * 1e4);
-    PutRNGstate();
-
-    data.doRegression(seed);
-
-    SEXP _beta = getListElement(_dataObjects, "beta");
-    double* betaR = REAL(_beta);
-    for (int l = 0; l < data.K; ++l) {
-        betaR[INDEX(0, l, data.P + 1)] = data.offset[l];
-        memcpy(&betaR[INDEX(1, l, data.P + 1)],
-               &(data.beta[INDEX(0, l, data.memory_P)]),
-               data.P * sizeof(double));
-    }
-
-    UNPROTECT(1);
-    return R_NilValue;
-}
-
 SEXP CV(SEXP _dataObjects) {
     PROTECT(_dataObjects = AS_LIST(_dataObjects));
 
@@ -370,7 +346,11 @@ SEXP lambdaMax(SEXP _X, SEXP _res, SEXP _u, SEXP _v, SEXP _alpha) {
     double lambda;
     for (int l = 0; l < K; ++l) {
         for (int k = 2; k < P; ++k) {
+            if (u[k] == 0)
+                continue;
             for (int s = 1; s < k; ++s) {
+                if (u[s] == 0)
+                    continue;
                 tmp1 = u[k] / u[s];
                 tmp2 = alpha * (v[k] + v[s] * tmp1);
                 if (fabs(tmp2) < 1000 * DBL_EPSILON)
@@ -398,7 +378,6 @@ SEXP lambdaMax(SEXP _X, SEXP _res, SEXP _u, SEXP _v, SEXP _alpha) {
 extern "C" {
 
 static const R_CallMethodDef callMethods[] = {
-    {"CallWrapper", (DL_FUNC)&CallWrapper, 1},
     {"CV", (DL_FUNC)&CV, 1},
     {"costFunctionWrapper", (DL_FUNC)&costFunctionWrapper, 1},
     {"checkMoves", (DL_FUNC)&checkMoves, 6},

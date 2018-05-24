@@ -38,9 +38,8 @@ colnames(zeroSumTypes) <- c("Type", "Int")
 zeroSumAlgos <- data.frame( c(
                         "CD",
                         "SA",
-                        "LS",
-                        "CD+LS" ),
-                    c(1,2,3,4),
+                        "LS"),
+                    c(1,2,3),
                     stringsAsFactors = FALSE )
 
 colnames(zeroSumAlgos) <- c("Algo", "Int")

@@ -124,16 +124,17 @@ zeroSumCVFit <- function(
     if(hasArg(useApprox))  { useApprox = args$useApprox }   else { useApprox <- TRUE }
     if(hasArg(downScaler)) { downScaler = args$downScaler } else { downScaler <- 1.0 }
     if(hasArg(algorithm))  { algorithm = args$algorithm }   else { algorithm <- "CD" }
+    if(hasArg(zeroSumWeights))  { zeroSumWeights = args$zeroSumWeights }   else { zeroSumWeights <- NULL }
 
     data <- regressionObject(x, y, NULL, lambda, alpha, gamma, type, weights,
-                penalty.factor, fusion, precision, useOffset, useApprox,
-                downScaler, algorithm, diagonalMoves, polish, standardize,
-                lambdaSteps, gammaSteps, nFold, foldid, epsilon, cvStop,
-                verbose, cores)
+                penalty.factor, zeroSumWeights, fusion, precision, useOffset,
+                useApprox, downScaler, algorithm, diagonalMoves, polish,
+                standardize, lambdaSteps, gammaSteps, nFold, foldid, epsilon,
+                cvStop, verbose, cores)
 
     start <- Sys.time()
 
-    data$result <- zeroSumRegression( data, TRUE )
+    data$result <- zeroSumRegression( data )
 
     end <- Sys.time()
     runtime <- as.numeric(end-start, units="secs")

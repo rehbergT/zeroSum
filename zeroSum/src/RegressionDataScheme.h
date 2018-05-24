@@ -11,24 +11,6 @@
 #include "settings.h"
 
 class RegressionDataScheme {
-   protected:
-    void regressionDataSchemeAlloc();
-    void regressionDataSchemeFree();
-    void regressionDataSchemeShallowCopy(const RegressionDataScheme& source);
-    void regressionDataSchemeDeepCopy(const RegressionDataScheme& source);
-    void regressionDataSchemePointerMove(RegressionDataScheme& source);
-
-    RegressionDataScheme();
-    RegressionDataScheme(int _N, int _P, int _K, int _nc, int _type);
-    RegressionDataScheme(const RegressionDataScheme& source);
-    RegressionDataScheme(RegressionDataScheme&& source);
-    ~RegressionDataScheme();
-
-    RegressionDataScheme& operator=(const RegressionDataScheme& source);
-    RegressionDataScheme& operator=(RegressionDataScheme&& source);
-
-    std::vector<int> activeSet;
-
    public:
     double* x;
     double* yOrg;
@@ -98,7 +80,24 @@ class RegressionDataScheme {
     double fusion;
     double cost;
 
-   protected:
+   public:
+    void regressionDataSchemeAlloc();
+    void regressionDataSchemeFree();
+    void regressionDataSchemeShallowCopy(const RegressionDataScheme& source);
+    void regressionDataSchemeDeepCopy(const RegressionDataScheme& source);
+    void regressionDataSchemePointerMove(RegressionDataScheme& source);
+
+    RegressionDataScheme();
+    RegressionDataScheme(int _N, int _P, int _K, int _nc, int _type);
+    RegressionDataScheme(const RegressionDataScheme& source);
+    RegressionDataScheme(RegressionDataScheme&& source);
+    ~RegressionDataScheme();
+
+    RegressionDataScheme& operator=(const RegressionDataScheme& source);
+    RegressionDataScheme& operator=(RegressionDataScheme&& source);
+
+    std::vector<int> activeSet;
+
     // used to update costfunction after offset update
     void updateCost(int l);
 
@@ -112,13 +111,9 @@ class RegressionDataScheme {
     void refreshApproximation(int l, int _updateCost = FALSE);
 
     bool checkActiveSet(int k);
-    void checkWholeActiveSet();
+    bool isInActiveSet(int k);
+    void removeCoefsWithZeroFromActiveSet();
 
-    void coordinateDescent(int seed);
-    void localSearch(int seed);
-    void simulatedAnnealing(int seed);
-
-   public:
     void costFunction(void);
     void calcCoxRegressionD();
     // make predictions and store in xb (used for cv error calculation)

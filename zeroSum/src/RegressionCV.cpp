@@ -12,6 +12,7 @@ RegressionCV::RegressionCV(RegressionData& data) {
     memory_N = data.memory_N;
     memory_P = data.memory_P;
     type = data.type;
+    algorithm = data.algorithm;
 
     gammaSeq = data.gammaSeq;
     lambdaSeq = data.lambdaSeq;
@@ -85,16 +86,26 @@ std::vector<double> RegressionCV::doCVRegression(int seed,
         R_CheckUserInterrupt();
 #endif
 
-#pragma omp parallel for collapse(2) schedule(dynamic)
-        for (int f = 0; f < nFold + 1; f++)
-            for (int i = lengthGamma - 1; i >= 0; i--) {
+        for (int i = lengthGamma - 1; i >= 0; i--) {
+            for (int f = 0; f < nFold + 1; f++) {
                 cv_data[i][f].lambda = lambdaSeq[j];
                 cv_data[i][f].gamma = gammaSeq[i];
+            }
+        }
 
-                int cvSeed =
-                    f + seed + (int)((lambdaSeq[j] + gammaSeq[i]) * 1e3);
-                cv_data[i][f].doRegression(cvSeed);
+        if (algorithm == 1) {
+            // this case does not support fusion -> assumes gamma=0
+            coordinateDescent(seed);
+        } else if (algorithm == 2) {
+            simulatedAnnealing(seed);
+            localSearch(seed);
+        } else if (algorithm == 3) {
+            localSearch(seed);
+        }
 
+#pragma omp parallel for collapse(2) schedule(static)
+        for (int i = lengthGamma - 1; i >= 0; i--) {
+            for (int f = 0; f < nFold + 1; f++) {
                 double* tmp = cv_data[i][f].wOrg;
                 cv_data[i][f].wOrg = cv_data[i][f].wCV;
 
@@ -123,6 +134,7 @@ std::vector<double> RegressionCV::doCVRegression(int seed,
                     }
                 }
             }
+        }
 
         int cvImproving = 0;
         double cvError, cvErrorSD;
@@ -130,18 +142,19 @@ std::vector<double> RegressionCV::doCVRegression(int seed,
             double trainingError = cv_tmp[i][nFold];
 
             cvError = 0.0;
-            for (int ff = 0; ff < nFold; ff++)
-                cvError += cv_tmp[i][ff];
+            for (int f = 0; f < nFold; f++)
+                cvError += cv_tmp[i][f];
 
             if (std::isnan(cvError) || std::isinf(cvError) ||
                 std::isnan(trainingError) || std::isinf(trainingError))
                 break;
 
-            cvError /= nFold;
+            if (nFold != 0)
+                cvError /= nFold;
 
             cvErrorSD = 0.0;
-            for (int ff = 0; ff < nFold; ff++)
-                cvErrorSD += cv_tmp[i][ff] * cv_tmp[i][ff];
+            for (int f = 0; f < nFold; f++)
+                cvErrorSD += cv_tmp[i][f] * cv_tmp[i][f];
 
             cvErrorSD /= (double)nFold;
 

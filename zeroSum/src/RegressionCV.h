@@ -16,9 +16,14 @@ class RegressionCV {
     int nFold;
     int N, memory_N, P, memory_P, K;
     int type;
+    int algorithm;
 
     int cvStop;
     int verbose;
+
+    void coordinateDescent(int seed);
+    void localSearch(int seed);
+    void simulatedAnnealing(int seed);
 
    public:
     std::vector<std::vector<CvRegressionData>> cv_data;

@@ -9,10 +9,10 @@
 #' @export
 regressionObject <- function(x, y, beta , lambda, alpha, gamma=0.0,
         type=zeroSumTypes[1,1], weights=NULL, penalty.factor=NULL,
-        fusion=NULL, precision=1e-8, useOffset=TRUE, useApprox=TRUE,
-        downScaler=1, algorithm="CD", diagonalMoves=TRUE, polish=TRUE,
-        standardize=TRUE, lambdaSteps=1, gammaSteps=1, nFold=1, foldid=NULL,
-        epsilon=NULL, cvStop = 0.1, verbose=FALSE, cores=1 )
+        zeroSumWeights=NULL, fusion=NULL, precision=1e-8, useOffset=TRUE,
+        useApprox=TRUE, downScaler=1, algorithm="CD", diagonalMoves=TRUE,
+        polish=TRUE, standardize=TRUE, lambdaSteps=1, gammaSteps=1, nFold=1,
+        foldid=NULL, epsilon=NULL, cvStop = 0.1, verbose=FALSE, cores=1 )
 {
     dataObject <- list()
 
@@ -64,7 +64,13 @@ regressionObject <- function(x, y, beta , lambda, alpha, gamma=0.0,
         checkNonNegativeWeights(penalty.factor, P, "penalty.factors")
     }
     dataObject$v <- penalty.factor
-    dataObject$u <- rep( 1, P)
+
+    if( is.null(zeroSumWeights)) {
+        zeroSumWeights <- rep( 1, P)
+    } else {
+        checkNonNegativeWeights(zeroSumWeights, P, "zeroSumWeights")
+    }
+    dataObject$u <- zeroSumWeights
 
     dataObject$lambdaSteps <- checkInteger( lambdaSteps, "lambdaSteps" )
     dataObject$lambda      <- checkDouble( lambda, "lambda")
@@ -321,12 +327,6 @@ regressionObject <- function(x, y, beta , lambda, alpha, gamma=0.0,
         cols <- dataObject$K
         if(type %in% zeroSumTypes[13:16,1]) cols <- 1
         beta <- matrix( 0, ncol=cols, nrow=dataObject$P+1 )
-
-        if( type %in% zeroSumTypes[seq(2,16,2),1] )
-        {
-            beta[2,] <- rep( dataObject$cSum / dataObject$u[1], cols )
-        }
-
     } else
     {
         beta <- as.matrix(beta)

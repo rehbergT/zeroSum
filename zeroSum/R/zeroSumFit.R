@@ -49,8 +49,6 @@
 #'               (removes small numeric uncertainties causing very small but non-zero
 #'               coeffiencts and has only minimal effects on the computing time)
 #'
-#' @param verbose verbose = TRUE enables additional output about the regression
-#'
 #' @param beta start coeffiencts of the algorithm
 #'
 #' @param ... can be used for adjusting internal parameters
@@ -79,7 +77,6 @@ zeroSumFit <- function(
                 precision      = 1e-8,
                 diagonalMoves  = FALSE,
                 polish         = TRUE,
-                verbose        = FALSE,
                 beta           = NULL,
                 ... )
 {
@@ -89,32 +86,24 @@ zeroSumFit <- function(
     if(hasArg(useApprox))  { useApprox = args$useApprox }   else { useApprox <- TRUE }
     if(hasArg(downScaler)) { downScaler = args$downScaler } else { downScaler <- 1.0 }
     if(hasArg(algorithm))  { algorithm = args$algorithm }   else { algorithm <- "CD" }
+    if(hasArg(zeroSumWeights))  { zeroSumWeights = args$zeroSumWeights }   else { zeroSumWeights <- NULL }
 
     data <- regressionObject(x, y, beta , lambda, alpha, gamma, type, weights,
-                penalty.factor, fusion, precision, useOffset, useApprox,
-                downScaler, algorithm, diagonalMoves, polish, standardize, nFold=0)
+                penalty.factor, zeroSumWeights, fusion, precision, useOffset,
+                useApprox, downScaler, algorithm, diagonalMoves, polish,
+                standardize, nFold=0)
 
     energy1 <- costFunction( data )
 
-    if(verbose) print( sprintf( "Energy before: %e", energy1$cost))
-
     start <- Sys.time()
-    zeroSumRegression( data, FALSE )
+    data$result <- zeroSumRegression( data )
 
     end <- Sys.time()
     runtime <- as.numeric(end-start, units="secs")
 
-    energy2 <- costFunction( data )
-
-    if(verbose)
-    {
-        print( sprintf( "Energy later %e   Dif %e runtime: %.3fs",
-                energy2$cost, energy2$cost-energy1$cost,
-                runtime ))
-    }
-
-    fitresult <- zeroSumFitObject( data )
+    fitresult <- zeroSumCVFitObject( data )
     fitresult$runtime <- runtime
+
     return(fitresult)
 
 }

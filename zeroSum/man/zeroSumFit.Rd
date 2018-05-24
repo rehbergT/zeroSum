@@ -6,8 +6,8 @@
 \usage{
 zeroSumFit(x, y, lambda, alpha = 1, weights = NULL, penalty.factor = NULL,
   standardize = FALSE, useOffset = TRUE, type = "gaussianZS",
-  precision = 1e-08, diagonalMoves = FALSE, polish = TRUE,
-  verbose = FALSE, beta = NULL, ...)
+  precision = 1e-08, diagonalMoves = FALSE, polish = TRUE, beta = NULL,
+  ...)
 }
 \arguments{
 \item{x}{data as a numeric matrix object (rows=samples).
@@ -55,8 +55,6 @@ increases the computing time)}
 \item{polish}{enables a local search at the end of CD to polish the result
 (removes small numeric uncertainties causing very small but non-zero
 coeffiencts and has only minimal effects on the computing time)}
-
-\item{verbose}{verbose = TRUE enables additional output about the regression}
 
 \item{beta}{start coeffiencts of the algorithm}
 

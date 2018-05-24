@@ -25,7 +25,7 @@ zeroSumCVFitObject <- function( obj )
     for(i in 1:nrow(tmp))
     {
         obj$coef[[i]] <- Matrix( tmp[i,-c(1:5)], ncol=K, sparse=TRUE )
-        numberCoef[i] <- sum( rowSums( abs(obj$coef[[i]][-1,,drop=FALSE]) ) != 0 )
+        numberCoef[i] <- sum( rowSums( as.matrix( abs(obj$coef[[i]][-1,,drop=FALSE]) ) ) != 0 )
         obj$cv_predict[[i]] <- matrix( cv_predict[i,], ncol=obj$K )
     }
 
@@ -46,7 +46,7 @@ zeroSumCVFitObject <- function( obj )
     ## find lambda where the CVerror is as close as possible to minCV + SD
     distances <- abs( obj$cv_stats[1:lambdaMin,4] - maxCV_SD)
     distFrom_minCV_SD <- min( distances )
-    lambda1SE <- which( distances == distFrom_minCV_SD )
+    lambda1SE <- which( distances == distFrom_minCV_SD )[1]
 
     obj$LambdaMinIndex <- lambdaMin
     obj$Lambda1SEIndex <- lambda1SE
@@ -99,14 +99,14 @@ zeroSumCVFitObject <- function( obj )
 
         if(obj$standardize==TRUE)
         {
-            if( obj$useOffset ) beta[1,] <- ( beta[1,] - as.numeric( beta[-1,] %*% ( xM / xSD )) ) * ySD + yM
+            if( obj$useOffset ) beta[1,] <- ( beta[1,] - as.numeric( t(as.matrix(beta[-1,])) %*% ( xM / xSD )) ) * ySD + yM
             beta[-1,] <- beta[-1,] / xSD * ySD
 
             obj$cv_predict[[i]] <- obj$cv_predict[[i]] * ySD + yM
 
         } else if( obj$useOffset )
         {
-            beta[1,] <- beta[1,] - as.numeric( t(beta[-1,]) %*% xM ) + yM
+            beta[1,] <- beta[1,] - as.numeric( t(as.matrix(beta[-1,])) %*% xM ) + yM
             obj$cv_predict[[i]] <- obj$cv_predict[[i]] + yM
         }
 

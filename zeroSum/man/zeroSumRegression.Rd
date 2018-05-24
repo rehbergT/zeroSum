@@ -4,7 +4,7 @@
 \alias{zeroSumRegression}
 \title{Description of zeroSumRegression_C Wrapper function}
 \usage{
-zeroSumRegression(data, CV)
+zeroSumRegression(data)
 }
 \value{
 regression coefficients are returned
