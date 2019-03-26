@@ -153,7 +153,7 @@ Note that the sum of coefficients is zero:
 
 Use the predict() function to make predictions:
 
-    predict(fit, newx=X)
+    predict(fit, newx=x)
     >             [,1]
     > Sample1   -5.502157
     > Sample2   47.787166
