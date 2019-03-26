@@ -1,0 +1,37 @@
+\documentclass[12pt,a4paper]{article}
+    \usepackage[inner=1.0cm,outer=2.5cm,top=0cm,bottom=1cm,includeheadfoot]{geometry}
+    \usepackage[utf8]{inputenc}
+    \usepackage[english]{babel}
+    \usepackage{xcolor}
+    \usepackage[pdftex]{graphicx}
+    \usepackage{mathtools}
+    \usepackage{txfonts}
+\begin{document}
+
+\section{Equation 1}
+\begin{align*}	
+\underset{\beta_0,\,\boldsymbol{\beta}}{\min}
+~-\frac{1}{N}  \sum_{i=1}^N &w_i\, L \big(  y_{i},\,\beta_0
++ \boldsymbol{x}_i^T \boldsymbol{\beta}   \big)
++\lambda   \big(  \frac{1-\alpha}{2}||\beta||^2_2  + \alpha  ||\beta||_1 \big)\\
+&\text{subject to: } \sum_{j=1}^p \beta_j \overset{!}{=} 0
+\end{align*}
+\section{Equation 2}
+\begin{align*}
+y_i &\sim  \beta_0 + \sum_{j=1}^p \beta_j \log(\gamma_i\, x_{ij})\\
+y_i &\sim  \beta_0 + \sum_{j=1}^p \beta_j \log(\gamma_i)+ \sum_{j=1}^p \beta_j \log(x_{ij})\\
+y_i &\sim  \beta_0 +\log(\gamma_i) \textcolor{red}{\sum_{j=1}^p \beta_j} + \sum_{j=1}^p \beta_j \log(x_{ij})
+\end{align*}
+
+
+\section{Equation 3}
+\begin{align*}	
+\sum_{j=1}^p v_j \cdot \Big(  \frac{1-\alpha}{2}\beta_j^2  + \alpha  |\beta_j| \Big)
+\end{align*}
+\section{Equation 4}
+\begin{align*}	
+ \sum_{j=1}^p u_j \cdot\beta_j \overset{!}{=} 0
+\end{align*}
+
+\end{document}
+
