@@ -1,9 +1,75 @@
 
 #include "csv_read_write.h"
 
-void readCsvAsMatrix(char* path, double* matrix, int N, int M, int mN) {
-    int n, m;  // Matrix dimensions
-    int i, j;  // loop variables
+void readCsvAsMatrix(char* path,
+                     double* matrix,
+                     uint32_t N,
+                     uint32_t M,
+                     uint32_t mN) {
+    uint32_t n, m;  // Matrix dimensions
+    uint32_t i, j;  // loop variables
+    FILE* file = fopen(path, "r");
+
+    if (file == NULL) {
+        printf("Error: file pointer is null\n");
+        exit(1);
+    }
+
+    // define a temp char array for storing a line of the csv file
+    char* lineTemp = (char*)malloc(CSV_MAX_LINE_LENGTH * sizeof(char));
+    char* linePointer = NULL;
+
+    // get dimensions of the matrix
+    n = 0;
+    m = 0;
+    while (fgets(lineTemp, CSV_MAX_LINE_LENGTH, file)) {
+        if (n == 1) {
+            linePointer = strtok(lineTemp, SEP);
+
+            while (linePointer != NULL) {
+                linePointer = strtok(NULL, SEP);
+                ++m;
+            }
+        }
+        ++n;
+    }
+    // reduce by one because of header line
+    --n;
+    // reduce by one because of row names
+    --m;
+    // reset file pointer
+    rewind(file);
+    if (n != N || m != M) {
+        printf("Error: wrong dimensions of csv file\n");
+        exit(1);
+    }
+
+    i = 0;
+    j = 0;
+
+    // first line are colnames -> read & drop it
+    linePointer = fgets(lineTemp, CSV_MAX_LINE_LENGTH, file);
+
+    while (fgets(lineTemp, CSV_MAX_LINE_LENGTH, file)) {
+        linePointer = strtok(lineTemp, SEP);
+        for (j = 0; j < m; ++j) {
+            linePointer = strtok(NULL, SEP);
+            matrix[INDEX(i, j, mN)] = strtod(linePointer, NULL);
+        }
+        i++;
+    }
+
+    fclose(file);
+    free(lineTemp);
+}
+
+void readCsvAsIntMatrix(char* path,
+                        uint32_t* matrix,
+                        uint32_t N,
+                        uint32_t M,
+                        uint32_t mN) {
+    uint32_t n, m;  // Matrix dimensions
+    uint32_t i, j;  // loop variables
     FILE* file = fopen(path, "r");
 
     if (file == NULL) {
@@ -59,7 +125,7 @@ void readCsvAsMatrix(char* path, double* matrix, int N, int M, int mN) {
     free(lineTemp);
 }
 
-void readCsvAsFusion(char* path, RegressionData& data) {
+void readCsvAsFusion(char* path, zeroSum& data) {
     FILE* file = fopen(path, "r");
 
     if (file == NULL) {
@@ -71,16 +137,16 @@ void readCsvAsFusion(char* path, RegressionData& data) {
     char* lineTemp = (char*)malloc(CSV_MAX_LINE_LENGTH * sizeof(char));
     char* linePointer = fgets(lineTemp, CSV_MAX_LINE_LENGTH, file);
 
-    int i, j;
+    uint32_t i, j;
     double x;
 
     while (fgets(lineTemp, CSV_MAX_LINE_LENGTH, file)) {
         // two times since first element is the rowname
         linePointer = strtok(lineTemp, SEP);
         linePointer = strtok(NULL, SEP);
-        i = (int)strtol(linePointer, NULL, 10);
+        i = (uint32_t)strtol(linePointer, NULL, 10);
         linePointer = strtok(NULL, SEP);
-        j = (int)strtol(linePointer, NULL, 10);
+        j = (uint32_t)strtol(linePointer, NULL, 10);
         linePointer = strtok(NULL, SEP);
         x = strtod(linePointer, NULL);
         // printf("i=%d j=%d x=%e\n",i,j,x);
@@ -91,9 +157,9 @@ void readCsvAsFusion(char* path, RegressionData& data) {
     free(lineTemp);
 }
 
-double* readCsvSave(char* path, int* N, int* M) {
-    int n, m;  // Matrix dimensions
-    int i, j;  // loop variables
+double* readCsvSave(char* path, uint32_t* N, uint32_t* M) {
+    uint32_t n, m;  // Matrix dimensions
+    uint32_t i, j;  // loop variables
     FILE* file = fopen(path, "r");
 
     // define a temp char array for storing a line of the csv file
@@ -139,15 +205,24 @@ double* readCsvSave(char* path, int* N, int* M) {
     return (matrix);
 }
 
-void readSaves(char* path, char* name, RegressionData& data) {
+uint32_t getMinIndex(double* a, uint32_t N) {
+    uint32_t min = 0;
+    for (uint32_t i = 1; i < N; ++i)
+        if (a[min] > a[i])
+            min = i;
+
+    return min;
+}
+
+void readSaves(char* path, char* name, zeroSum& data) {
     FILE* file;
-    char filePath[MAX_PATH_LENGTH];
-    int fileNumber = 0;
+    char filePath[MAX_LINE_LENGTH];
+    uint32_t fileNumber = 0;
 
     // find the smallest commen lambda in each
     double lambdaCommon = -2.0;
 
-    while (TRUE) {
+    while (true) {
         snprintf(filePath, sizeof(filePath), "%s%s_%d_stats.csv", path, name,
                  fileNumber);
 
@@ -156,14 +231,12 @@ void readSaves(char* path, char* name, RegressionData& data) {
             break;
         fclose(file);
 
-        PRINT("found: %s\n", filePath);
+        printf("found: %s\n", filePath);
 
-        int rows, cols;
+        uint32_t rows, cols;
         double* content = readCsvSave(filePath, &rows, &cols);
 
-        int min = getMinIndex(&content[INDEX(0, 1, rows)], rows);
-        PRINT("rows: %d cols: %d lambdaMin: %f\n", rows, cols,
-              content[INDEX(min, 1, rows)]);
+        uint32_t min = getMinIndex(&content[INDEX_COL(1, rows)], rows);
 
         if (fileNumber == 0)
             lambdaCommon = content[INDEX(min, 1, rows)];
@@ -175,31 +248,35 @@ void readSaves(char* path, char* name, RegressionData& data) {
     }
 
     if (lambdaCommon != -2.0) {
-        printf("lambdaCommon: %e", lambdaCommon);
-        int index = -1;
-        for (int i = 0; i < data.lengthLambda; i++) {
+        printf("last calculated lambda: %f\n", lambdaCommon);
+        size_t index = -1;
+        for (size_t i = 0; i < data.lambdaSeq.size(); i++) {
             if (fabs(data.lambdaSeq[i] - lambdaCommon) < DBL_EPSILON * 100)
                 index = i;
         }
 
-        if (index == data.lengthLambda - 1) {
-            perror("Abborted! Everythings seems to be calculated\n");
+        if (index == data.lambdaSeq.size() - 1) {
+            printf("Stopped! Everythings seems to be calculated\n");
             MPI_Abort(MPI_COMM_WORLD, 1);
+            return;
         }
 
-        data.lengthLambda = data.lengthLambda - index - 1;
-        memmove(data.lambdaSeq, &data.lambdaSeq[index + 1],
-                data.lengthLambda * sizeof(double));
-        PRINT("Found save files starting from lambda: %f\n", lambdaCommon);
+        std::vector<double> lambdaSeqOrg = data.lambdaSeq;
+        data.lambdaSeq.clear();
+
+        for (size_t i = index + 1; i < lambdaSeqOrg.size(); i++)
+            data.lambdaSeq.push_back(lambdaSeqOrg[i]);
+
+        printf("Found save files starting from lambda: %f\n", lambdaCommon);
     }
 }
 
-RegressionData* readRegressionData(int argc, char** argv) {
-    if (argc != 6 && argc != 7) {
-        PRINT("Error: only %d arguments\n", argc);
+zeroSum* readData(uint32_t argc, char** argv) {
+    if (argc != 6 && argc != 7 && argc != 8) {
+        printf("Error: only %d arguments\n", argc);
         exit(1);
     }
-    RegressionData* data;
+    zeroSum* data;
 
     char* lineTemp = (char*)malloc(CSV_MAX_LINE_LENGTH * sizeof(char));
     double* sequence = (double*)malloc(MAX_SEQUENCE * sizeof(double));
@@ -210,17 +287,22 @@ RegressionData* readRegressionData(int argc, char** argv) {
     file = fopen(argv[1], "r");
 
     if (file == NULL) {
-        PRINT("Error: file pointer is null\n");
+        printf("Error: file pointer is null\n");
         exit(1);
     }
 
-    int N = 0, P = 0, K = 0, nc = 0, type = 0;
+    uint32_t N = 0, P = 0, K = 0, nc = 0, type = 0, useZeroSum = 0,
+             useFusion = 0, useIntercept = 0, useApprox = 0, useCentering = 0,
+             useStandardization = 0, usePolish = 0, rotatedUpdates = 0,
+             algorithm = 0, nFold = 0, cvStop = 0, verbose = 0, threads = 0,
+             seed = 0;
+    double precision = 0.0, cSum = 0.0, alpha = 0.0, downScaler = 0.0;
 
     // first line are colnames -> read & drop it
     linePointer = fgets(lineTemp, CSV_MAX_LINE_LENGTH, file);
 
-    for (int i = 0; i < 22; i++) {
-        // PRINT("i=%d\n",i);
+    for (uint32_t line = 0; line < 29; line++) {
+        // printf("line=%d\n",line);
         // get line
         linePointer = fgets(lineTemp, CSV_MAX_LINE_LENGTH, file);
 
@@ -229,46 +311,87 @@ RegressionData* readRegressionData(int argc, char** argv) {
         // now the first element
         linePointer = strtok(NULL, SEP);
 
-        if (i == 0)
-            type = strtod(linePointer, NULL);
-        else if (i == 1)
+        if (line == 0)
             N = strtod(linePointer, NULL);
-        else if (i == 2)
+        else if (line == 1)
             P = strtod(linePointer, NULL);
-        else if (i == 3)
+        else if (line == 2)
             K = strtod(linePointer, NULL);
-        else if (i == 4) {
+        else if (line == 3)
             nc = strtod(linePointer, NULL);
-            // printf("N=%d P=%d K=%d nc=%d type=%d\n",N, P, K, nc, type);
-            data = new RegressionData(N, P, K, nc, type);
+        else if (line == 4)
+            type = strtod(linePointer, NULL);
+        else if (line == 5)
+            useZeroSum = strtod(linePointer, NULL);
+        else if (line == 6)
+            useFusion = strtod(linePointer, NULL);
+        else if (line == 7)
+            useIntercept = strtod(linePointer, NULL);
+        else if (line == 8)
+            useApprox = strtod(linePointer, NULL);
+        else if (line == 9)
+            useCentering = strtod(linePointer, NULL);
+        else if (line == 10)
+            useStandardization = strtod(linePointer, NULL);
+        else if (line == 11)
+            usePolish = strtod(linePointer, NULL);
+        else if (line == 12)
+            rotatedUpdates = strtod(linePointer, NULL);
+        else if (line == 13)
+            precision = strtod(linePointer, NULL);
+        else if (line == 14)
+            algorithm = strtod(linePointer, NULL);
+        else if (line == 15)
+            nFold = strtod(linePointer, NULL);
+        else if (line == 16)
+            cvStop = strtod(linePointer, NULL);
+        else if (line == 17)
+            verbose = strtod(linePointer, NULL);
+        else if (line == 18)
+            cSum = strtod(linePointer, NULL);
+        else if (line == 19)
+            alpha = strtod(linePointer, NULL);
+        else if (line == 20)
+            downScaler = strtod(linePointer, NULL);
+        else if (line == 21)
+            threads = strtod(linePointer, NULL);
+        else if (line == 22) {
+            seed = strtod(linePointer, NULL);
+            if (verbose)
+                printf(
+                    "N=%d P=%d K=%d nc=%d type=%d useZeroSum=%d useFusion=%d "
+                    "nFold=%d\n",
+                    N, P, K, nc, type, useZeroSum, useFusion, nFold);
+            data = new zeroSum(N, P, K, nc, type, useZeroSum, useFusion,
+                               useIntercept, useApprox, useCentering,
+                               useStandardization, usePolish, rotatedUpdates,
+                               precision, algorithm, nFold, cvStop, verbose,
+                               cSum, alpha, downScaler, threads, seed);
             readCsvAsMatrix(argv[2], data->x, data->N, data->P, data->memory_N);
             readCsvAsMatrix(argv[3], data->y, data->N, data->K, data->memory_N);
-            if (data->type >= 5)
-                memcpy(data->yOrg, data->y,
-                       data->memory_N * data->K * sizeof(double));
 
-            if (data->isFusion)
-                readCsvAsFusion(argv[4], *data);
-        } else if (i == 5)
-            data->cSum = strtod(linePointer, NULL);
-        else if (i == 6)
-            data->alpha = strtod(linePointer, NULL);
-        else if (i == 7)
-            data->diagonalMoves = (int)strtol(linePointer, NULL, 10);
-        else if (i == 8)
-            data->useOffset = (int)strtol(linePointer, NULL, 10);
-        else if (i == 9)
-            data->useApprox = (int)strtol(linePointer, NULL, 10);
-        else if (i == 10)
-            data->precision = strtod(linePointer, NULL);
-        else if (i == 11)
-            data->algorithm = (int)strtol(linePointer, NULL, 10);
-        else if (i == 12)
-            data->verbose = (int)strtol(linePointer, NULL, 10);
-        else if (i == 13) {
-            for (int l = 0; l < data->N; l++) {
-                data->w[l] = strtod(linePointer, NULL);
-                if (l != data->N - 1) {
+            if (type == zeroSum::types::cox)
+                readCsvAsIntMatrix(argv[4], data->status, data->N, data->K,
+                                   data->memory_N);
+
+            for (uint32_t f = 1; f < data->nFold1; f++)
+                memcpy(
+                    &data->y[INDEX_TENSOR_COL(0, f, data->memory_N, data->K)],
+                    data->y, data->memory_N * data->K * sizeof(double));
+
+            memcpy(data->yOrg, data->y,
+                   data->memory_N * data->K * sizeof(double));
+
+            if (data->useFusion) {
+                if (type == zeroSum::types::cox)
+                    readCsvAsFusion(argv[5], *data);
+                else
+                    readCsvAsFusion(argv[4], *data);
+            }
+        } else if (line == 23) {
+            for (uint32_t i = 0; i < data->N; i++) {
+                data->w[i] = strtod(linePointer, NULL);
+                if (i != data->N - 1) {
                     linePointer = strtok(NULL, SEP);
                     if (linePointer == NULL) {
                         printf("w in settings not of length N\n");
@@ -276,11 +399,24 @@ RegressionData* readRegressionData(int argc, char** argv) {
                     }
                 }
             }
-            memcpy(data->wOrg, data->w, data->memory_N * sizeof(double));
-        } else if (i == 14) {
-            for (int l = 0; l < data->P; l++) {
-                data->u[l] = strtod(linePointer, NULL);
-                if (l != data->P - 1) {
+
+            for (uint32_t f = 0; f < data->nFold1; f++) {
+                for (uint32_t l = 0; l < data->K; ++l) {
+                    if (f == 0 && l == 0)
+                        continue;
+                    uint32_t iiN =
+                        INDEX_TENSOR_COL(l, f, data->memory_N, data->K);
+                    memcpy(&data->w[iiN], data->w, data->N * sizeof(double));
+                }
+
+                uint32_t iiF = INDEX_COL(f, data->memory_N);
+                memcpy(&data->wOrg[iiF], data->w, data->N * sizeof(double));
+                memcpy(&data->wCV[iiF], data->w, data->N * sizeof(double));
+            }
+        } else if (line == 24) {
+            for (uint32_t i = 0; i < data->P; i++) {
+                data->u[i] = strtod(linePointer, NULL);
+                if (i != data->P - 1) {
                     linePointer = strtok(NULL, SEP);
                     if (linePointer == NULL) {
                         printf("u in settings not of length P\n");
@@ -288,10 +424,10 @@ RegressionData* readRegressionData(int argc, char** argv) {
                     }
                 }
             }
-        } else if (i == 15) {
-            for (int l = 0; l < data->P; l++) {
-                data->v[l] = strtod(linePointer, NULL);
-                if (l != data->P - 1) {
+        } else if (line == 25) {
+            for (uint32_t i = 0; i < data->P; i++) {
+                data->v[i] = strtod(linePointer, NULL);
+                if (i != data->P - 1) {
                     linePointer = strtok(NULL, SEP);
                     if (linePointer == NULL) {
                         printf("v in settings not of length P\n");
@@ -299,57 +435,27 @@ RegressionData* readRegressionData(int argc, char** argv) {
                     }
                 }
             }
-        } else if (i == 16) {
-            data->lengthLambda = 0;
+            for (uint32_t f = 1; f < data->nFold1; f++)
+                memcpy(&data->v[INDEX_COL(f, data->memory_P)], data->v,
+                       data->P * sizeof(double));
+        } else if (line == 26) {
             do {
-                sequence[data->lengthLambda] = strtod(linePointer, NULL);
-                data->lengthLambda++;
+                data->lambdaSeq.push_back(strtod(linePointer, NULL));
+                for (uint32_t f = 0; f < nFold + 1; f++)
+                    data->lambda[f] = data->lambdaSeq[0];
                 linePointer = strtok(NULL, SEP);
             } while (linePointer != NULL && strcmp(linePointer, "") != 0 &&
                      strcmp(linePointer, "\n") != 0);
-
-#ifdef AVX_VERSION
-            data->lambdaSeq = (double*)aligned_alloc(
-                ALIGNMENT, data->lengthLambda * sizeof(double));
-#else
-            data->lambdaSeq =
-                (double*)malloc(data->lengthLambda * sizeof(double));
-#endif
-
-            memcpy(data->lambdaSeq, sequence,
-                   data->lengthLambda * sizeof(double));
-        } else if (i == 17) {
-            data->lengthGamma = 0;
+        } else if (line == 27) {
             do {
-                sequence[data->lengthGamma] = strtod(linePointer, NULL);
-                data->lengthGamma++;
+                data->gammaSeq.push_back(strtod(linePointer, NULL));
                 linePointer = strtok(NULL, SEP);
             } while (linePointer != NULL && strcmp(linePointer, "") != 0 &&
                      strcmp(linePointer, "\n") != 0);
-
-#ifdef AVX_VERSION
-            data->gammaSeq = (double*)aligned_alloc(
-                ALIGNMENT, data->lengthGamma * sizeof(double));
-#else
-            data->gammaSeq =
-                (double*)malloc(data->lengthGamma * sizeof(double));
-#endif
-
-            memcpy(data->gammaSeq, sequence,
-                   data->lengthGamma * sizeof(double));
-        } else if (i == 18)
-            data->nFold = (int)strtol(linePointer, NULL, 10);
-        else if (i == 19) {
-#ifdef AVX_VERSION
-            data->foldid =
-                (int*)aligned_alloc(ALIGNMENT, data->N * sizeof(int));
-#else
-            data->foldid = (int*)malloc(data->N * sizeof(int));
-#endif
-
-            for (int l = 0; l < data->N; l++) {
-                data->foldid[l] = (int)strtol(linePointer, NULL, 10);
-                if (l != data->N - 1) {
+        } else if (line == 28) {
+            for (uint32_t i = 0; i < data->N; i++) {
+                data->foldid.push_back((uint32_t)strtol(linePointer, NULL, 10));
+                if (i != data->N - 1) {
                     linePointer = strtok(NULL, SEP);
                     if (linePointer == NULL) {
                         printf("foldid in settings not of length N\n");
@@ -357,173 +463,12 @@ RegressionData* readRegressionData(int argc, char** argv) {
                     }
                 }
             }
-        } else if (i == 20)
-            data->downScaler = strtod(linePointer, NULL);
-        else if (i == 21)
-            data->cvStop = (int)strtol(linePointer, NULL, 10);
+        }
     }
 
     fclose(file);
     free(sequence);
     free(lineTemp);
-
-    return data;
-}
-
-RegressionData* MPI_Bcast_RegressionData(RegressionData* data, int mpi_rank) {
-    int N = 0, P = 0, K = 0, nc = 0, type = 0;
-
-    if (mpi_rank == MASTER) {
-        N = data->N;
-        P = data->P;
-        K = data->K;
-        nc = data->nc;
-        type = data->type;
-    }
-
-    MPI_Bcast(&N, 1, MPI_INT, MASTER, MPI_COMM_WORLD);
-    MPI_Bcast(&P, 1, MPI_INT, MASTER, MPI_COMM_WORLD);
-    MPI_Bcast(&K, 1, MPI_INT, MASTER, MPI_COMM_WORLD);
-    MPI_Bcast(&nc, 1, MPI_INT, MASTER, MPI_COMM_WORLD);
-    MPI_Bcast(&type, 1, MPI_INT, MASTER, MPI_COMM_WORLD);
-
-    if (mpi_rank != MASTER)
-        data = new RegressionData(N, P, K, nc, type);
-
-    MPI_Bcast(&data->nFold, 1, MPI_INT, MASTER, MPI_COMM_WORLD);
-    MPI_Bcast(&data->diagonalMoves, 1, MPI_INT, MASTER, MPI_COMM_WORLD);
-    MPI_Bcast(&data->useOffset, 1, MPI_INT, MASTER, MPI_COMM_WORLD);
-    MPI_Bcast(&data->useApprox, 1, MPI_INT, MASTER, MPI_COMM_WORLD);
-    MPI_Bcast(&data->algorithm, 1, MPI_INT, MASTER, MPI_COMM_WORLD);
-    MPI_Bcast(&data->verbose, 1, MPI_INT, MASTER, MPI_COMM_WORLD);
-
-    // int lengthGamma;
-    // if( mpi_rank == MASTER) lengthGamma = data->lengthGamma;
-    // MPI_Bcast( &lengthGamma, 1, MPI_INT, MASTER, MPI_COMM_WORLD);
-    // if( mpi_rank != MASTER) data->lengthGamma = 7;
-
-    MPI_Bcast(&data->lengthGamma, 1, MPI_INT, MASTER, MPI_COMM_WORLD);
-    MPI_Bcast(&data->lengthLambda, 1, MPI_INT, MASTER, MPI_COMM_WORLD);
-    MPI_Bcast(&data->cvStop, 1, MPI_INT, MASTER, MPI_COMM_WORLD);
-
-    MPI_Bcast(&data->cSum, 1, MPI_DOUBLE, MASTER, MPI_COMM_WORLD);
-    MPI_Bcast(&data->alpha, 1, MPI_DOUBLE, MASTER, MPI_COMM_WORLD);
-    MPI_Bcast(&data->precision, 1, MPI_DOUBLE, MASTER, MPI_COMM_WORLD);
-    MPI_Bcast(&data->downScaler, 1, MPI_DOUBLE, MASTER, MPI_COMM_WORLD);
-
-    MPI_Bcast(data->x, data->memory_N * data->P, MPI_DOUBLE, MASTER,
-              MPI_COMM_WORLD);
-    MPI_Bcast(data->y, data->memory_N * data->K, MPI_DOUBLE, MASTER,
-              MPI_COMM_WORLD);
-    MPI_Bcast(data->w, data->memory_N, MPI_DOUBLE, MASTER, MPI_COMM_WORLD);
-    MPI_Bcast(data->v, data->memory_P, MPI_DOUBLE, MASTER, MPI_COMM_WORLD);
-    MPI_Bcast(data->u, data->memory_P, MPI_DOUBLE, MASTER, MPI_COMM_WORLD);
-
-    if (mpi_rank != MASTER) {
-#ifdef AVX_VERSION
-        data->lambdaSeq = (double*)aligned_alloc(
-            ALIGNMENT, data->lengthLambda * sizeof(double));
-        data->gammaSeq = (double*)aligned_alloc(
-            ALIGNMENT, data->lengthGamma * sizeof(double));
-        data->foldid = (int*)aligned_alloc(ALIGNMENT, data->N * sizeof(int));
-#else
-        data->lambdaSeq = (double*)malloc(data->lengthLambda * sizeof(double));
-        data->gammaSeq = (double*)malloc(data->lengthGamma * sizeof(double));
-        data->foldid = (int*)malloc(data->N * sizeof(int));
-#endif
-    }
-
-    MPI_Bcast(data->lambdaSeq, data->lengthLambda, MPI_DOUBLE, MASTER,
-              MPI_COMM_WORLD);
-    MPI_Bcast(data->gammaSeq, data->lengthGamma, MPI_DOUBLE, MASTER,
-              MPI_COMM_WORLD);
-    MPI_Bcast(data->foldid, data->N, MPI_INT, MASTER, MPI_COMM_WORLD);
-
-    if (data->isFusion) {
-        int i, numElements;
-        double x;
-
-        for (int j = 0; j < data->P; j++) {
-            numElements = 0;
-            if (mpi_rank == MASTER) {
-                struct fusionKernel* currentEl = data->fusionKernel[j];
-                while (currentEl != NULL) {
-                    numElements++;
-                    currentEl = currentEl->next;
-                }
-            }
-
-            MPI_Bcast(&numElements, 1, MPI_INT, MASTER, MPI_COMM_WORLD);
-            // printf("Numelements %d\n", numElements );
-
-            struct fusionKernel* currentEl;
-            if (mpi_rank == MASTER)
-                currentEl = data->fusionKernel[j];
-
-            for (int ii = 0; ii < numElements; ii++) {
-                if (mpi_rank == MASTER) {
-                    i = currentEl->i;
-                    x = currentEl->value;
-                    currentEl = currentEl->next;
-                }
-
-                MPI_Bcast(&i, 1, MPI_INT, MASTER, MPI_COMM_WORLD);
-                MPI_Bcast(&j, 1, MPI_INT, MASTER, MPI_COMM_WORLD);
-                MPI_Bcast(&x, 1, MPI_DOUBLE, MASTER, MPI_COMM_WORLD);
-
-                if (mpi_rank != MASTER)
-                    data->fusionKernel[j] =
-                        appendElement(data->fusionKernel[j], i, x);
-            }
-        }
-    }
-
-    if (mpi_rank != MASTER) {
-        memcpy(data->wOrg, data->w, data->memory_N * sizeof(double));
-        if (data->type >= 5)
-            memcpy(data->yOrg, data->y,
-                   data->memory_N * data->K * sizeof(double));
-    }
-
-    // printf("mpi_rank:%d N:%d P:%d K:%d type:%d nc:%d nfold:%d memory_N:%d\n",
-    // mpi_rank, data->N,
-    //     data->P, data->K, data->type, data->nc, data->nFold, data->memory_N
-    //     );
-    // printf("mpi_rank:%d cSum=%e alpha=%e diag:%d off:%d app:%d,
-    // precision:%e\n",
-    //     mpi_rank, data->cSum, data->alpha, data->diagonalMoves,
-    //     data->useOffset, data->useApprox, data->precision);
-    //
-    // printf("mpi_rank:%d gammalength: %d lambdaLength: %d\n", mpi_rank,
-    // data->lengthGamma,
-    //     data->lengthLambda);
-
-    // if( mpi_rank == MASTER )
-    // {
-    //     printMatrixColWise( data->x, data->N, data->P);
-    //     printMatrixColWise( data->y, data->N, data->K);
-    //     printMatrixColWise( data->w, data->N, 1);
-    //     printMatrixColWise( data->u, data->P, 1);
-    //     printMatrixColWise( data->v, data->P, 1);
-    //     printMatrixColWise( data->lambdaSeq, data->lengthLambda, 1);
-    //     printMatrixColWise( data->gammaSeq, data->lengthGamma, 1);
-    //     if( data->isFusion) printSparseFusion( data->fusionKernel, data->nc,
-    //     data->P);
-    // }
-    // MPI_Barrier(MPI_COMM_WORLD);
-    //
-    // if( mpi_rank == MASTER+1 )
-    // {
-    //     printMatrixColWise( data->x, data->N, data->P);
-    //     printMatrixColWise( data->y, data->N, data->K);
-    //     printMatrixColWise( data->w, data->N, 1);
-    //     printMatrixColWise( data->u, data->P, 1);
-    //     printMatrixColWise( data->v, data->P, 1);
-    //     printMatrixColWise( data->lambdaSeq, data->lengthLambda, 1);
-    //     printMatrixColWise( data->gammaSeq, data->lengthGamma, 1);
-    //     if( data->isFusion) printSparseFusion( data->fusionKernel, data->nc,
-    //     data->P);
-    // }
 
     return data;
 }

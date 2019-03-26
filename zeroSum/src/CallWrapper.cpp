@@ -1,180 +1,174 @@
+#include "zeroSum.h"
+
 #include <R.h>
 #include <Rdefines.h>
 
-#include "RegressionCV.h"
-#include "RegressionData.h"
-#include "mathHelpers.h"
-
-SEXP getListElement(SEXP list, const char* str) {
-    SEXP elmt = R_NilValue, names = getAttrib(list, R_NamesSymbol);
-    for (int i = 0; i < length(list); i++) {
-        if (strcmp(CHAR(STRING_ELT(names, i)), str) == 0) {
-            elmt = VECTOR_ELT(list, i);
+SEXP getElementFromRList(SEXP RList, const char* name) {
+    SEXP element = R_NilValue;
+    SEXP names = getAttrib(RList, R_NamesSymbol);
+    for (uint32_t i = 0; i < (uint32_t)length(RList); i++) {
+        if (strcmp(CHAR(STRING_ELT(names, i)), name) == 0) {
+            element = VECTOR_ELT(RList, i);
             break;
         }
     }
-    return elmt;
+    return element;
 }
 
-RegressionData rListToRegressionData(SEXP _dataObjects) {
-    SEXP _x = getListElement(_dataObjects, "x");
-    SEXP _y = getListElement(_dataObjects, "y");
-    SEXP _beta = getListElement(_dataObjects, "beta");
-    SEXP _w = getListElement(_dataObjects, "w");
-    SEXP _v = getListElement(_dataObjects, "v");
-    SEXP _u = getListElement(_dataObjects, "u");
-    SEXP _cSum = getListElement(_dataObjects, "cSum");
-    SEXP _alpha = getListElement(_dataObjects, "alpha");
-    SEXP _lambdaSeq = getListElement(_dataObjects, "lambda");
-    SEXP _gammaSeq = getListElement(_dataObjects, "gamma");
-    SEXP _nc = getListElement(_dataObjects, "nc");
-    SEXP _fusion = getListElement(_dataObjects, "fusionC");
-    SEXP _precision = getListElement(_dataObjects, "precision");
-    SEXP _useOffset = getListElement(_dataObjects, "useOffset");
-    SEXP _useApprox = getListElement(_dataObjects, "useApprox");
-    SEXP _downScaler = getListElement(_dataObjects, "downScaler");
-    SEXP _type = getListElement(_dataObjects, "type");
-    SEXP _algorithm = getListElement(_dataObjects, "algorithm");
-    SEXP _diagonalMoves = getListElement(_dataObjects, "diagonalMoves");
-    SEXP _polish = getListElement(_dataObjects, "polish");
-    SEXP _foldid = getListElement(_dataObjects, "foldid");
-    SEXP _nFold = getListElement(_dataObjects, "nFold");
-    SEXP _cores = getListElement(_dataObjects, "cores");
-    SEXP _verbose = getListElement(_dataObjects, "verbose");
-    SEXP _cvStop = getListElement(_dataObjects, "cvStop");
+zeroSum rListToRegressionData(SEXP _dataObjects) {
+    SEXP _x = getElementFromRList(_dataObjects, "x");
+    SEXP _y = getElementFromRList(_dataObjects, "y");
+    SEXP _beta = getElementFromRList(_dataObjects, "beta");
+    SEXP _w = getElementFromRList(_dataObjects, "w");
+    SEXP _v = getElementFromRList(_dataObjects, "v");
+    SEXP _u = getElementFromRList(_dataObjects, "u");
+    SEXP _cSum = getElementFromRList(_dataObjects, "cSum");
+    SEXP _alpha = getElementFromRList(_dataObjects, "alpha");
+    SEXP _lambdaSeq = getElementFromRList(_dataObjects, "lambda");
+    SEXP _gammaSeq = getElementFromRList(_dataObjects, "gamma");
+    SEXP _nc = getElementFromRList(_dataObjects, "nc");
+    SEXP _fusion = getElementFromRList(_dataObjects, "fusionC");
+    SEXP _precision = getElementFromRList(_dataObjects, "precision");
+    SEXP _useIntercept = getElementFromRList(_dataObjects, "useIntercept");
+    SEXP _useCentering = getElementFromRList(_dataObjects, "center");
+    SEXP _standardize = getElementFromRList(_dataObjects, "standardize");
+    SEXP _useApprox = getElementFromRList(_dataObjects, "useApprox");
+    SEXP _downScaler = getElementFromRList(_dataObjects, "downScaler");
+    SEXP _type = getElementFromRList(_dataObjects, "type");
+    SEXP _algorithm = getElementFromRList(_dataObjects, "algorithm");
+    SEXP _rotatedUpdates = getElementFromRList(_dataObjects, "rotatedUpdates");
+    SEXP _usePolish = getElementFromRList(_dataObjects, "usePolish");
+    SEXP _foldid = getElementFromRList(_dataObjects, "foldid");
+    SEXP _nFold = getElementFromRList(_dataObjects, "nFold");
+    SEXP _threads = getElementFromRList(_dataObjects, "threads");
+    SEXP _seed = getElementFromRList(_dataObjects, "seed");
+    SEXP _verbose = getElementFromRList(_dataObjects, "verbose");
+    SEXP _cvStop = getElementFromRList(_dataObjects, "cvStop");
+    SEXP _useFusion = getElementFromRList(_dataObjects, "useFusion");
+    SEXP _isZerosum = getElementFromRList(_dataObjects, "useZeroSum");
 
-    int type = INTEGER(_type)[0];
-    int N = INTEGER(GET_DIM(_x))[0];
-    int P = INTEGER(GET_DIM(_x))[1];
-    int K = INTEGER(GET_DIM(_y))[1];
-    int nc = INTEGER(_nc)[0];
+    uint32_t N = (uint32_t)INTEGER(GET_DIM(_x))[0];
+    uint32_t P = (uint32_t)INTEGER(GET_DIM(_x))[1];
+    uint32_t K = (uint32_t)INTEGER(GET_DIM(_y))[1];
+    uint32_t nc = (uint32_t)INTEGER(_nc)[0];
+    uint32_t type = (uint32_t)INTEGER(_type)[0];
+    bool useZeroSum = (uint32_t)INTEGER(_isZerosum)[0];
+    bool useFusion = (uint32_t)INTEGER(_useFusion)[0];
+    bool useIntercept = (uint32_t)INTEGER(_useIntercept)[0];
+    bool useApprox = (uint32_t)INTEGER(_useApprox)[0];
+    bool useCentering = (uint32_t)INTEGER(_useCentering)[0];
+    bool useStandardization = (uint32_t)INTEGER(_standardize)[0];
+    uint32_t algorithm = (uint32_t)INTEGER(_algorithm)[0];
+    bool usePolish = (uint32_t)INTEGER(_usePolish)[0];
+    bool rotatedUpdates = (uint32_t)INTEGER(_rotatedUpdates)[0];
+    double precision = REAL(_precision)[0];
+    uint32_t nFold = (uint32_t)INTEGER(_nFold)[0];
+    uint32_t cvStop = (uint32_t)INTEGER(_cvStop)[0];
+    uint32_t verbose = (uint32_t)INTEGER(_verbose)[0];
+    double cSum = REAL(_cSum)[0];
+    double alpha = REAL(_alpha)[0];
+    double downScaler = REAL(_downScaler)[0];
 
-    RegressionData data(N, P, K, nc, type);
+    uint32_t threads = (uint32_t)INTEGER(_threads)[0];
+    uint32_t seed = (uint32_t)INTEGER(_seed)[0];
 
-    data.cores = INTEGER(_cores)[0];
-    data.verbose = INTEGER(_verbose)[0];
-    data.alpha = REAL(_alpha)[0];
+    zeroSum data(N, P, K, nc, type, useZeroSum, useFusion, useIntercept,
+                 useApprox, useCentering, useStandardization, usePolish,
+                 rotatedUpdates, precision, algorithm, nFold, cvStop, verbose,
+                 cSum, alpha, downScaler, threads, seed);
 
-    data.lambdaSeq = REAL(_lambdaSeq);
-    data.lengthLambda = length(_lambdaSeq);
-    data.lambda = data.lambdaSeq[0];
+    double* lambdaSeq = REAL(_lambdaSeq);
 
-    data.gammaSeq = REAL(_gammaSeq);
-    data.lengthGamma = length(_gammaSeq);
-    data.gamma = data.gammaSeq[0];
+    for (uint32_t j = 0; j < (uint32_t)length(_lambdaSeq); j++) {
+        data.lambdaSeq.push_back(lambdaSeq[j]);
+    }
+    for (uint32_t f = 0; f < nFold + 1; f++)
+        data.lambda[f] = data.lambdaSeq[0];
 
-    data.cSum = REAL(_cSum)[0];
-    data.useOffset = INTEGER(_useOffset)[0];
-    data.useApprox = INTEGER(_useApprox)[0];
-    data.downScaler = REAL(_downScaler)[0];
-    data.algorithm = INTEGER(_algorithm)[0];
-    data.diagonalMoves = INTEGER(_diagonalMoves)[0];
-    data.polish = INTEGER(_polish)[0];
-    data.precision = REAL(_precision)[0];
-    data.foldid = INTEGER(_foldid);
-    data.nFold = INTEGER(_nFold)[0];
-    data.cvStop = INTEGER(_cvStop)[0];
-
-    double* xR = REAL(_x);
-    for (int j = 0; j < data.P; ++j)
-        memcpy(&(data.x[INDEX(0, j, data.memory_N)]), &xR[INDEX(0, j, data.N)],
-               data.N * sizeof(double));
-
-    double* yR = REAL(_y);
-    for (int j = 0; j < data.K; ++j)
-        memcpy(&(data.y[INDEX(0, j, data.memory_N)]), &yR[INDEX(0, j, data.N)],
-               data.N * sizeof(double));
-
-    double* betaR = REAL(_beta);
-    for (int l = 0; l < data.K; ++l) {
-        data.offset[l] = betaR[INDEX(0, l, data.P + 1)];
-        memcpy(&(data.beta[INDEX(0, l, data.memory_P)]),
-               &betaR[INDEX(1, l, data.P + 1)], data.P * sizeof(double));
+    double* gammaSeq = REAL(_gammaSeq);
+    for (uint32_t j = 0; j < (uint32_t)length(_gammaSeq); j++) {
+        data.gammaSeq.push_back(gammaSeq[j]);
     }
 
-    if (data.isFusion) {
-        double* fusionListR = REAL(_fusion);
-        int rows = INTEGER(GET_DIM(_fusion))[0];
+    // initialize gamma with the first value of the lambda sequence
+    data.gamma = data.gammaSeq[0];
 
-        int i, j;
+    uint32_t* foldid = (uint32_t*)INTEGER(_foldid);
+    // foldid must have N elements otherwise the following fails, but checked in
+    // R!
+    for (uint32_t i = 0; i < N; i++)
+        data.foldid.push_back(foldid[i]);
+
+    double* xR = REAL(_x);
+    for (uint32_t j = 0; j < data.P; ++j)
+        memcpy(&(data.x[INDEX_COL(j, data.memory_N)]),
+               &xR[INDEX_COL(j, data.N)], data.N * sizeof(double));
+
+    if (data.useFusion) {
+        double* fusionListR = REAL(_fusion);
+        uint32_t rows = (uint32_t)INTEGER(GET_DIM(_fusion))[0];
+
+        uint32_t i, j;
         double x;
 
-        for (int row = 0; row < rows; row++) {
-            i = (int)fusionListR[INDEX(row, 0, rows)];
-            j = (int)fusionListR[INDEX(row, 1, rows)];
+        for (uint32_t row = 0; row < rows; row++) {
+            i = (uint32_t)fusionListR[INDEX(row, 0, rows)];
+            j = (uint32_t)fusionListR[INDEX(row, 1, rows)];
             x = fusionListR[INDEX(row, 2, rows)];
 
             data.fusionKernel[j] = appendElement(data.fusionKernel[j], i, x);
         }
     }
 
-    memcpy(data.w, REAL(_w), data.N * sizeof(double));
-    memcpy(data.wOrg, data.w, data.memory_N * sizeof(double));
-    memcpy(data.v, REAL(_v), data.P * sizeof(double));
-    memcpy(data.u, REAL(_u), data.P * sizeof(double));
+    double* yR = REAL(_y);
+    double* betaR = REAL(_beta);
+    double* wR = REAL(_w);
 
-    if (type > 4)
-        memcpy(data.yOrg, data.y, data.memory_N * data.K * sizeof(double));
-
-    if (type >= COX) {
-        SEXP _status = getListElement(_dataObjects, "status");
-        int* status = INTEGER(_status);
-        memcpy(data.status, status, data.N * sizeof(int));
-        data.calcCoxRegressionD();
+    if (type == zeroSum::types::cox) {
+        SEXP _status = getElementFromRList(_dataObjects, "status");
+        memcpy(data.status, (uint32_t*)INTEGER(_status),
+               data.N * sizeof(uint32_t));
     }
+
+    for (uint32_t f = 0; f < data.nFold1; f++) {
+        for (uint32_t l = 0; l < data.K; ++l) {
+            uint32_t iiN = INDEX_TENSOR_COL(l, f, data.memory_N, data.K);
+            uint32_t iiP = INDEX_TENSOR_COL(l, f, data.memory_P, data.K);
+            // copy y from R to C memory
+            memcpy(&data.y[iiN], &yR[INDEX_COL(l, data.N)],
+                   data.N * sizeof(double));
+
+            // copy beta from R to C memory
+            double* betaRF = &betaR[INDEX_TENSOR_COL(l, f, data.P + 1, data.K)];
+            data.intercept[INDEX(l, f, K)] = betaRF[0];
+            memcpy(&(data.beta[iiP]), &betaRF[1], data.P * sizeof(double));
+
+            // copy the weights from R to C memory
+            memcpy(&data.w[iiN], wR, data.N * sizeof(double));
+        }
+
+        uint32_t iiF = INDEX_COL(f, data.memory_N);
+        memcpy(&data.wOrg[iiF], wR, data.N * sizeof(double));
+        memcpy(&data.wCV[iiF], wR, data.N * sizeof(double));
+
+        memcpy(&data.v[INDEX_COL(f, data.memory_P)], REAL(_v),
+               data.P * sizeof(double));
+    }
+
+    memcpy(data.u, REAL(_u), data.P * sizeof(double));
+    memcpy(data.yOrg, data.y, data.memory_N * data.K * sizeof(double));
+
+    if (type == zeroSum::types::cox)
+        data.calcCoxRegressionD();
 
     return data;
 }
 
 SEXP CV(SEXP _dataObjects) {
     PROTECT(_dataObjects = AS_LIST(_dataObjects));
+    zeroSum data = rListToRegressionData(_dataObjects);
 
-    RegressionData data(rListToRegressionData(_dataObjects));
-
-    // #ifdef AVX_VERSION_256
-    //     PRINT("Compiled with AVX\n");
-    // #endif
-    //
-    // #ifdef FMA
-    //     PRINT("Compiled with FMA\n");
-    // #endif
-    // #ifdef AVX_VERSION_512
-    //     PRINT("Compiled with AVX512\n");
-    // #endif
-
-#ifdef _OPENMP
-    if (data.cores != -1)
-        omp_set_num_threads(data.cores);
-    else
-        omp_set_num_threads(omp_get_max_threads());
-#else
-    if (data.cores != 0) {
-        PRINT("Warning: compiled without openMP support. ");
-        PRINT("Argument cores thus has no effect!\n");
-        PRINT("Use a compiler which supports openMP for installation ");
-        PRINT("of zeroSum if you need parallel execution.\n");
-    }
-#endif
-
-    if (data.verbose) {
-        int core_get = 1;
-
-#ifdef _OPENMP
-#pragma omp parallel
-        {
-#pragma omp single
-            core_get = omp_get_num_threads();
-        }
-#endif
-        PRINT("verbose=%d cores wanted=%d cores get: %d\n", data.verbose,
-              data.cores, core_get);
-    }
-
-    GetRNGstate();
-    int seed = (int)(unif_rand() * 1e4);
-    PutRNGstate();
-    RegressionCV cvRegression(data);
-    std::vector<double> cv_stats = cvRegression.doCVRegression(seed);
+    std::vector<double> cv_stats = data.doCVRegression();
     SEXP measures;
     PROTECT(measures = allocVector(REALSXP, cv_stats.size()));
     double* m = REAL(measures);
@@ -194,56 +188,45 @@ SEXP checkMoves(SEXP _dataObjects,
                 SEXP _l) {
     PROTECT(_dataObjects = AS_LIST(_dataObjects));
     PROTECT(_number = AS_INTEGER(_number));
-    int num = INTEGER(_number)[0];
+    uint32_t num = (uint32_t)INTEGER(_number)[0];
 
     PROTECT(_k = AS_INTEGER(_k));
-    int k = INTEGER(_k)[0];
+    uint32_t k = (uint32_t)INTEGER(_k)[0];
 
     PROTECT(_s = AS_INTEGER(_s));
-    int s = INTEGER(_s)[0];
+    uint32_t s = (uint32_t)INTEGER(_s)[0];
 
     PROTECT(_t = AS_INTEGER(_t));
-    int t = INTEGER(_t)[0];
+    uint32_t t = (uint32_t)INTEGER(_t)[0];
 
     PROTECT(_l = AS_INTEGER(_l));
-    int l = INTEGER(_l)[0];
+    uint32_t l = (uint32_t)INTEGER(_l)[0];
 
-    RegressionData data = rListToRegressionData(_dataObjects);
-    data.costFunction();
-    data.approxFailed = FALSE;
-    if (data.type > 4) {
-        memcpy(data.w, data.wOrg, data.memory_N * sizeof(double));
-        memcpy(data.y, data.yOrg, data.memory_N * data.K * sizeof(double));
+    zeroSum data = rListToRegressionData(_dataObjects);
 
-        for (int i = 0; i < data.N; i++) {
-            data.xTimesBeta[i] = data.y[i] - data.offset[0];
-
-            for (int j = 0; j < data.P; j++)
-                data.xTimesBeta[i] -=
-                    data.beta[j] * data.x[INDEX(i, j, data.memory_N)];
-        }
-    }
+    data.costFunction(0);
+    data.approxFailed[0] = FALSE;
 
     SEXP result = R_NilValue;
 
     if (num == 0) {
-        data.cdMove(k, l);
+        data.cdMove(0, k, l);
 
         PROTECT(result = allocVector(REALSXP, 1));
         REAL(result)[0] = data.beta[INDEX(k, l, data.memory_P)];
     } else if (num == 1) {
-        data.offsetMove(l);
+        data.interceptMove(0, l);
 
         PROTECT(result = allocVector(REALSXP, 1));
-        REAL(result)[0] = data.offset[l];
+        REAL(result)[0] = data.intercept[l];
     } else if (num == 2) {
-        data.cdMoveZS(k, s, l);
+        data.cdMoveZS(0, k, s, l);
 
         PROTECT(result = allocVector(REALSXP, 2));
         REAL(result)[0] = data.beta[INDEX(k, l, data.memory_P)];
         REAL(result)[1] = data.beta[INDEX(s, l, data.memory_P)];
     } else if (num == 3) {
-        data.cdMoveZSRotated(k, s, t, l, 37.32);
+        data.cdMoveZSRotated(0, k, s, t, l, 37.32);
 
         PROTECT(result = allocVector(REALSXP, 3));
         REAL(result)[0] = data.beta[INDEX(k, l, data.memory_P)];
@@ -257,15 +240,16 @@ SEXP checkMoves(SEXP _dataObjects,
 
 SEXP costFunctionWrapper(SEXP _dataObjects) {
     PROTECT(_dataObjects = AS_LIST(_dataObjects));
-    RegressionData data = rListToRegressionData(_dataObjects);
+    zeroSum data = rListToRegressionData(_dataObjects);
 
     // printf("N: %d K: %d P: %d\n", data.N, data.K, data.P);
     // printf("x: \n");
     // printMatrix(data.x, data.N, data.P);
     // printf("y: \n");
     // printMatrix(data.y, data.N, data.K);
+    // printf("data is zeroSum: %d\n", data.useZeroSum);
 
-    data.costFunction();
+    data.costFunction(0);
     SEXP returnList, names;
     PROTECT(returnList = allocVector(VECSXP, 5));
     PROTECT(names = allocVector(STRSXP, 5));
@@ -284,11 +268,11 @@ SEXP costFunctionWrapper(SEXP _dataObjects) {
     PROTECT(ridge = allocVector(REALSXP, 1));
     PROTECT(fusion = allocVector(REALSXP, 1));
     PROTECT(cost = allocVector(REALSXP, 1));
-    REAL(loglikelihood)[0] = data.loglikelihood;
-    REAL(lasso)[0] = data.lasso;
-    REAL(ridge)[0] = data.ridge;
-    REAL(fusion)[0] = data.fusion;
-    REAL(cost)[0] = data.cost;
+    REAL(loglikelihood)[0] = data.loglikelihood[0];
+    REAL(lasso)[0] = data.lasso[0];
+    REAL(ridge)[0] = data.ridge[0];
+    REAL(fusion)[0] = data.fusion[0];
+    REAL(cost)[0] = data.cost[0];
 
     SET_VECTOR_ELT(returnList, 0, loglikelihood);
     SET_VECTOR_ELT(returnList, 1, lasso);
@@ -304,32 +288,16 @@ SEXP lambdaMax(SEXP _X, SEXP _res, SEXP _u, SEXP _v, SEXP _alpha) {
     PROTECT(_X = AS_NUMERIC(_X));
     double* x = REAL(_X);
 
-    int* dimX = INTEGER(GET_DIM(_X));
-    int N = dimX[0];
-    int P = dimX[1];
+    uint32_t* dimX = (uint32_t*)INTEGER(GET_DIM(_X));
+    uint32_t N = dimX[0];
+    uint32_t P = dimX[1];
 
     PROTECT(_res = AS_NUMERIC(_res));
 
-    int* dimRes = INTEGER(GET_DIM(_res));
-    int K = dimRes[1];
-    int memory_N = N;
-
-#ifdef AVX_VERSION
-
-    if (memory_N % ALIGNED_DOUBLES != 0)
-        memory_N += ALIGNED_DOUBLES - memory_N % ALIGNED_DOUBLES;
-
-    double* res =
-        (double*)aligned_alloc(ALIGNMENT, memory_N * K * sizeof(double));
-
-    double* resR = REAL(_res);
-    for (int l = 0; l < K; ++l) {
-        memcpy(&res[INDEX(0, l, memory_N)], &resR[INDEX(0, l, N)],
-               N * sizeof(double));
-    }
-#else
+    uint32_t* dimRes = (uint32_t*)INTEGER(GET_DIM(_res));
+    uint32_t K = dimRes[1];
+    uint32_t memory_N = N;
     double* res = REAL(_res);
-#endif
 
     PROTECT(_u = AS_NUMERIC(_u));
     double* u = REAL(_u);
@@ -344,11 +312,11 @@ SEXP lambdaMax(SEXP _X, SEXP _res, SEXP _u, SEXP _v, SEXP _alpha) {
 
     double lambdaMax = DBL_MIN;
     double lambda;
-    for (int l = 0; l < K; ++l) {
-        for (int k = 2; k < P; ++k) {
+    for (uint32_t l = 0; l < K; ++l) {
+        for (uint32_t k = 2; k < P; ++k) {
             if (u[k] == 0)
                 continue;
-            for (int s = 1; s < k; ++s) {
+            for (uint32_t s = 1; s < k; ++s) {
                 if (u[s] == 0)
                     continue;
                 tmp1 = u[k] / u[s];
@@ -356,9 +324,11 @@ SEXP lambdaMax(SEXP _X, SEXP _res, SEXP _u, SEXP _v, SEXP _alpha) {
                 if (fabs(tmp2) < 1000 * DBL_EPSILON)
                     continue;
 
-                lambda = sum_a_sub_b_mul_d_times_c(
-                    &x[INDEX(0, s, N)], &x[INDEX(0, k, N)],
-                    &res[INDEX(0, l, memory_N)], tmp1, N);
+                lambda = 0.0;
+                for (uint32_t i = 0; i < N; ++i)
+                    lambda += (x[INDEX(i, s, N)] * tmp1 - x[INDEX(i, k, N)]) *
+                              res[INDEX(i, l, memory_N)];
+
                 lambda = fabs(lambda);
                 lambda /= tmp2;
 
@@ -368,9 +338,6 @@ SEXP lambdaMax(SEXP _X, SEXP _res, SEXP _u, SEXP _v, SEXP _alpha) {
         }
     }
 
-#ifdef AVX_VERSION
-    free(res);
-#endif
     UNPROTECT(5);
     return ScalarReal(lambdaMax);
 }
@@ -386,5 +353,6 @@ static const R_CallMethodDef callMethods[] = {
 
 void R_init_zeroSum(DllInfo* info) {
     R_registerRoutines(info, NULL, callMethods, NULL, NULL);
+    R_useDynamicSymbols(info, TRUE);
 }
 }

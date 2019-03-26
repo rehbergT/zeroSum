@@ -1,113 +1,97 @@
-#include <omp.h>
 #include <mpi.h>
-#include <ctime>
+#include <omp.h>
 #include <cstdio>
+#include <ctime>
 
-#include "../zeroSum/src/RegressionCV.h"
+#include "../zeroSum/src/zeroSum.h"
 #include "csv_read_write.h"
 
+#ifdef G_PROF
+#include <gperftools/profiler.h>
+#endif
 
-void printMatrixColWise( double* matrix, int N, int P )
-{
-    for( int n=0; n<N; ++n )
-    {
-        for( int p=0; p<P; ++p )
-           PRINT("%d  %+.3e\t", INDEX(n,p,N) , matrix[INDEX(n,p,N)]);
-        PRINT("\n");
-    }
-}
+int main(int32_t argc, char** argv) {
+    int32_t mpi_processes, mpi_rank;
+    MPI_Init(&argc, &argv);
+    MPI_Comm_size(MPI_COMM_WORLD, &mpi_processes);
+    MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
 
-int main( int argc, char **argv )
-{
-    int mpi_processes, mpi_rank;
-    MPI_Init( &argc, &argv );
-    MPI_Comm_size( MPI_COMM_WORLD, &mpi_processes );
-    MPI_Comm_rank( MPI_COMM_WORLD, &mpi_rank );
-
-    printf( "MPI rank %d of %d MPI process\n",
-       mpi_rank, mpi_processes );
+#ifdef DEBUG
+    printf("MPI rank %d of %d MPI process\n", mpi_rank, mpi_processes);
+#endif
 
     struct timespec ts0, ts1;
-    RegressionData* data = nullptr;
+    zeroSum* data = nullptr;
 
-    if( mpi_rank == MASTER )
-    {
-        data = readRegressionData( argc, argv );
-        readSaves( argv[argc-2], argv[argc-1], *data );
-        clock_gettime(CLOCK_REALTIME , &ts0);
+    if (mpi_rank == MASTER) {
+        clock_gettime(CLOCK_REALTIME, &ts0);
     }
 
-    data = MPI_Bcast_RegressionData( data, mpi_rank);
+    data = readData(argc, argv);
+    readSaves(argv[argc - 2], argv[argc - 1], *data);
 
-    printf("mpi_rank:%d N:%d P:%d K:%d type:%d nc:%d nfold:%d memory_N:%d\n", mpi_rank, data->N,
-         data->P, data->K, data->type, data->nc, data->nFold, data->memory_N );
-    printf("mpi_rank:%d cSum=%e alpha=%e diag:%d off:%d app:%d, precision:%e verbose %d downscaler %e cvstop: %d\n",
-     mpi_rank, data->cSum, data->alpha, data->diagonalMoves, data->useOffset,
-     data->useApprox, data->precision, data->verbose, data->downScaler, data->cvStop);
-
-    printf("mpi_rank:%d gammalength: %d lambdaLength: %d\n", mpi_rank, data->lengthGamma,
-     data->lengthLambda);
+#ifdef DEBUG
+    printf("mpi_rank:%d N:%d P:%d K:%d type:%d nc:%d nfold:%d memory_N:%d\n",
+           mpi_rank, data->N, data->P, data->K, data->type, data->nc,
+           data->nFold, data->memory_N);
+    printf(
+        "mpi_rank:%d cSum=%e alpha=%e diag:%d off:%d app:%d, precision:%e \n"
+        "verbose %d downscaler %e cvstop: %d threads: %d\n",
+        mpi_rank, data->cSum, data->alpha, data->rotatedUpdates,
+        data->useIntercept, data->useApprox, data->precision, data->verbose,
+        data->downScaler, data->cvStop, data->threads);
+    if (data->verbose)
+        printf("mpi_rank:%d gammalength: %lu lambdaLength: %lu\n", mpi_rank,
+               data->gammaSeq.size(), data->lambdaSeq.size());
     MPI_Barrier(MPI_COMM_WORLD);
+#endif
 
-  //     if( mpi_rank == MASTER )
-  //     {
-  //         printMatrixColWise( data->x, data->N, data->P);
-  //         printMatrixColWise( data->y, data->N, data->K);
-  //         printMatrixColWise( data->w, data->N, 1);
-  //         printMatrixColWise( data->u, data->P, 1);
-  //         printMatrixColWise( data->v, data->P, 1);
-  //         printMatrixColWise( data->lambdaSeq, data->lengthLambda, 1);
-  //         printMatrixColWise( data->gammaSeq, data->lengthGamma, 1);
-  // //         if( data->isFusion) printSparseFusion( data->fusionKernel, data->nc, data->P);
-  //     }
-  //     MPI_Barrier(MPI_COMM_WORLD);
-  //
-  //     if( mpi_rank == MASTER+1 )
-  //     {
-  // //         printMatrixColWise( data->x, data->N, data->P);
-  // //         printMatrixColWise( data->y, data->N, data->K);
-  // //         printMatrixColWise( data->w, data->N, 1);
-  // //         printMatrixColWise( data->u, data->P, 1);
-  // //         printMatrixColWise( data->v, data->P, 1);
-  //         printMatrixColWise( data->lambdaSeq, data->lengthLambda, 1);
-  //         printMatrixColWise( data->gammaSeq, data->lengthGamma, 1);
-  // //         if( data->isFusion) printSparseFusion( data->fusionKernel, data->nc, data->P);
-  //     }
-
-    int rest = data->lengthGamma % mpi_processes;
-    int toDoEveryone = ( data->lengthGamma - rest ) / mpi_processes;
-    int toDoProcess = toDoEveryone;
-    if( mpi_rank < rest )
+    int32_t rest = data->gammaSeq.size() % mpi_processes;
+    int32_t toDoEveryone = (data->gammaSeq.size() - rest) / mpi_processes;
+    int32_t toDoProcess = toDoEveryone;
+    if (mpi_rank < rest)
         toDoProcess++;
 
-    int start = 0, end = 0;
-    for( int i=0; i<mpi_processes; i++ )
-    {
+    uint32_t start = 0, end = 0;
+    for (int32_t i = 0; i < mpi_processes; i++) {
         end = start + toDoEveryone;
-        if( i < rest ) end++;
-        if( i == mpi_rank ) break;
+        if (i < rest)
+            end++;
+        if (i == mpi_rank)
+            break;
         start = end;
     }
 
-    double seed = 0.0;
+    std::vector<double> gammaSeqOrg = data->gammaSeq;
+    data->gammaSeq.clear();
 
-    double* gammaSeqOrg = data->gammaSeq;
-    data->gammaSeq = &data->gammaSeq[start];
-    data->lengthGamma = end-start;
+#ifdef DEBUG
+    printf("start: %d ende: %d\n", start, end);
+#endif
+    for (uint32_t i = start; i < end; i++)
+        data->gammaSeq.push_back(gammaSeqOrg[i]);
+#ifdef DEBUG
+    data->printMatrix(data->gammaSeq.data(), data->gammaSeq.size(), 1);
+#endif
 
-    RegressionCV cvRegression( *data );
-    cvRegression.doCVRegression( seed, argv[argc-2], argv[argc-1], mpi_rank );
-    if( mpi_rank == 0 )
-    {
-        clock_gettime(CLOCK_REALTIME , &ts1);
-        double timet = (ts1.tv_sec - ts0.tv_sec) + (ts1.tv_nsec - ts0.tv_nsec) * 1e-9;
-        printf("DONE\t runtime: %f min\n", timet/60.0);
+#ifdef G_PROF
+    printf("Startings GPROG\n");
+    ProfilerStart("profile.log");
+#endif
+    data->doCVRegression(argv[argc - 2], argv[argc - 1], mpi_rank);
+#ifdef G_PROF
+    ProfilerStop();
+#endif
+
+    if (mpi_rank == 0) {
+        clock_gettime(CLOCK_REALTIME, &ts1);
+        double timet =
+            (ts1.tv_sec - ts0.tv_sec) + (ts1.tv_nsec - ts0.tv_nsec) * 1e-9;
+        if (data->verbose)
+            printf("DONE\t runtime: %f s\n", timet);
     }
 
-    free(data->lambdaSeq);
-    free(gammaSeqOrg);
-    free(data->foldid);
-    delete(data);
+    delete (data);
 
     MPI_Finalize();
     return 0;

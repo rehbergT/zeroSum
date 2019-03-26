@@ -2,15 +2,16 @@
 #define FUSIONKERNEL_H
 
 #include <stdlib.h>
+#include <cstdint>
 
 struct fusionKernel {
-    int i;
+    uint32_t i;
     double value;
     struct fusionKernel* next;
 };
 
 struct fusionKernel* appendElement(struct fusionKernel* preElement,
-                                   int i,
+                                   uint32_t i,
                                    double value);
 
 #endif /* REGRESSIONDATA_H */

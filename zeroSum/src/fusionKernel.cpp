@@ -1,7 +1,7 @@
 #include "fusionKernel.h"
 
 struct fusionKernel* appendElement(struct fusionKernel* preElement,
-                                   int i,
+                                   uint32_t i,
                                    double value) {
     struct fusionKernel* element =
         (struct fusionKernel*)malloc(sizeof(struct fusionKernel));

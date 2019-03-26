@@ -1,0 +1,11 @@
+CXX_STD = CXX11
+PKG_CXXFLAGS = -DR_PACKAGE
+PKG_LIBS = $(BLAS_LIBS) $(FLIBS)
+
+all: $(SHLIB)
+
+vectorizableKernelsAVX2.o: vectorizableKernelsAVX2.cpp
+	$(CXX) $(ALL_CPPFLAGS) $(ALL_CXXFLAGS) -mavx2 -mfma -c $< -o $@
+
+vectorizableKernelsAVX512.o: vectorizableKernelsAVX512.cpp
+	$(CXX) $(ALL_CPPFLAGS) $(ALL_CXXFLAGS) -mavx512f -c $< -o $@

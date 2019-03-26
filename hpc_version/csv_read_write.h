@@ -5,19 +5,23 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include "../zeroSum/src/RegressionCV.h"
+#include "../zeroSum/src/zeroSum.h"
 
 #define CSV_MAX_LINE_LENGTH 1e8
 #define MAX_SEQUENCE 1e5
 #define SEP ","
 #define MASTER 0
 
-void readCsvAsMatrix(char* path, double* matrix, int N, int M, int mN);
-void readCsvAsFusion(char* path, RegressionData& data);
-double* readCsvSave(char* path, int* N, int* M);
-void readSaves(char* path, char* name, RegressionData& data);
+void readCsvAsMatrix(char* path,
+                     double* matrix,
+                     uint32_t N,
+                     uint32_t M,
+                     uint32_t mN);
+void readCsvAsFusion(char* path, zeroSum& data);
+double* readCsvSave(char* path, uint32_t* N, uint32_t* M);
+void readSaves(char* path, char* name, zeroSum& data);
 
-RegressionData* readRegressionData(int argc, char** argv);
-RegressionData* MPI_Bcast_RegressionData(RegressionData* data, int mpi_rank);
+zeroSum* readData(uint32_t argc, char** argv);
+zeroSum* MPI_Bcast_Data(zeroSum* data, uint32_t mpi_rank);
 
 #endif
