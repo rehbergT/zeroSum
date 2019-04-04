@@ -198,11 +198,17 @@ zeroSum <- function(
         rotatedUpdates <- FALSE
     }
 
+    if (methods::hasArg("cSum")) {
+        cSum <- args$cSum
+    } else {
+        cSum <- 0.0
+    }
+
     data <- regressionObject(x, y, beta, alpha, lambda, gamma, family, weights,
                 penalty.factor, zeroSum.weights, fusion, precision, intercept,
                 useApprox, downScaler, algorithm, rotatedUpdates, usePolish,
                 standardize, lambdaSteps, gammaSteps, nFold, foldid, epsilon,
-                cvStop, verbose, threads, center, zeroSum)
+                cvStop, verbose, threads, center, zeroSum, cSum)
 
     start <- Sys.time()
 

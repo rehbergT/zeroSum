@@ -1,5 +1,4 @@
-/*! \mainpage Mathematical Summary
- *
+/*!
  * Note that this software follows the approach proposed by J. Friedman et al.
  * in "Regularization paths for generalized linear models via coordinate
  * descent" and N. Simon et al. in "Regularization paths for cox’s proportional
@@ -28,7 +27,7 @@
 #include <random>
 #include <unordered_set>
 #include <vector>
-#include "ThreadPool.h"
+#include "Parallel.h"
 #include "fusionKernel.h"
 #include "vectorizableKernels.h"
 
@@ -49,9 +48,14 @@
 #ifdef R_PACKAGE
 #include <R.h>
 #include <R_ext/Rdynload.h>
+#include <Rinternals.h>
 #define PRINT Rprintf
 #else
 #define PRINT printf
+#endif
+
+#ifdef _OPENMP
+#include <omp.h>
 #endif
 
 // declare used BLAS functions -> no header file required -> can be directly
@@ -332,8 +336,8 @@ class zeroSum {
     /** vector of length N specifing the fold of each samples */
     std::vector<uint32_t> foldid;
 
-    /** threadpool */
-    ThreadPool threadPool;
+    /** parallel execution funtions */
+    Parallel parallel;
 
     /** The feature matrix with rows=samples, cols=features. The memory of the
      * columns has to be 32-byte (AVX/AVX2) or 64-byte (AVX512) aligned. Thus,

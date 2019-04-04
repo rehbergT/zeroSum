@@ -11,7 +11,7 @@ regressionObject(x, y, beta, alpha, lambda, gamma = 0,
   algorithm = "CD", rotatedUpdates = TRUE, usePolish = TRUE,
   standardize = TRUE, lambdaSteps = 1, gammaSteps = 1, nFold = 1,
   foldid = NULL, epsilon = NULL, cvStop = 0.1, verbose = FALSE,
-  threads = 1, center = TRUE, useZeroSum)
+  threads = 1, center = TRUE, useZeroSum, cSum = 0)
 }
 \description{
 Description of regresion object

@@ -209,7 +209,7 @@ uint32_t zeroSum::cdMoveZS(uint32_t fold, uint32_t k, uint32_t s, uint32_t l) {
 
 void zeroSum::cdMove_parallel(uint32_t* improving, uint32_t steps) {
     std::mutex mutex;
-    threadPool.doParallelChunked(P, [&](size_t s) {
+    parallel.doParallelChunked(P, [&](size_t s) {
         for (uint64_t fold = 0; fold < (uint64_t)nFold1; fold++) {
             // cycle over all multinomial classes (if type !=
             // multinomial K=1)
@@ -292,7 +292,7 @@ void zeroSum::cdMoveZS_parallel(uint32_t* improving, uint32_t steps) {
 
     std::mutex mutex;
 
-    threadPool.doParallelChunked(comb, [&](size_t c) {
+    parallel.doParallelChunked(comb, [&](size_t c) {
         uint32_t k = P - 2 - (uint32_t)(sqrt(2 * (comb - c) - 1.75) - 0.5);
         uint32_t s = (uint32_t)(c + k + 1 - comb + (P - k) * ((P - k) - 1) / 2);
 

@@ -13,6 +13,10 @@ zeroSumObject <- function(obj) {
     N <- obj$N
 
     tmp <- matrix(obj$result, ncol = (5 + K * (P + 1) + N * K), byrow = TRUE)
+    if (nrow(tmp) == 0){
+        stop("Detected empty result! Returning NULL")
+        return(NULL)
+    }
 
     cv_predict <- tmp[, -c(1:(5 + K * (P + 1))), drop = FALSE]
 

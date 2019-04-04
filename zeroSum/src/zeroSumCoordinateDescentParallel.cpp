@@ -44,7 +44,7 @@ void zeroSum::doFitUsingCoordinateDescentParallel(uint32_t seed) {
         PRINT("Step: %d\nFind active set\n", steps);
 #endif
 
-        threadPool.doParallelChunked(nFold1, [&](size_t f) {
+        parallel.doParallelChunked(nFold1, [&](size_t f) {
             // if the activeset search of the previous search has not
             // changed the active set then thle optimus is reached and
             // improving is still zero and we can skip this fold
@@ -85,7 +85,7 @@ void zeroSum::doFitUsingCoordinateDescentParallel(uint32_t seed) {
             cdMove_parallel(improving, steps);
         }
 
-        threadPool.doParallelChunked(nFold1, [&](size_t f) {
+        parallel.doParallelChunked(nFold1, [&](size_t f) {
             // if the activeset search has not changed the active set then
             // improving is still zero and we can skip this fold
             if (improving[f] == 0) {
@@ -264,11 +264,11 @@ void zeroSum::doFitUsingCoordinateDescentParallel(uint32_t seed) {
     }
 
     if (type == multinomial) {
-        threadPool.doParallelChunked(
+        parallel.doParallelChunked(
             nFold1, [&](size_t f) { optimizeParameterAmbiguity(f, 200); });
     }
 
-    threadPool.doParallelChunked(memory_P * K * nFold1, [&](size_t j) {
+    parallel.doParallelChunked(memory_P * K * nFold1, [&](size_t j) {
         if (fabs(beta[j]) < 100 * DBL_EPSILON)
             beta[j] = 0.0;
     });

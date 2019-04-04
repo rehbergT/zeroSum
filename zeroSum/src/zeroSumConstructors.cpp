@@ -193,7 +193,7 @@ zeroSum::zeroSum(uint32_t N,
       alpha(alpha),
       downScaler(downScaler),
       threads(threads),
-      threadPool(threads),
+      parallel(threads),
       seed(seed) {
     nFold1 = nFold + 1;
     memory_N = N;
@@ -213,6 +213,10 @@ zeroSum::zeroSum(uint32_t N,
         avxType = avx512;
         alignedDoubles = 8;
     }
+#endif
+
+#if defined _OPENMP
+    omp_set_num_threads(parallel.maxThreads);
 #endif
 
     if (avxType != fallback) {
@@ -482,14 +486,14 @@ void zeroSum::pointerMove(zeroSum& source) {
 }
 
 // copy constructor
-zeroSum::zeroSum(const zeroSum& source) : threadPool(source.threads) {
+zeroSum::zeroSum(const zeroSum& source) : parallel(source.threads) {
     shallowCopy(source);
     allocData();
     deepCopy(source);
 }
 
 // move constructor
-zeroSum::zeroSum(zeroSum&& source) : threadPool(source.threads) {
+zeroSum::zeroSum(zeroSum&& source) : parallel(source.threads) {
     shallowCopy(source);
     pointerMove(source);
 }

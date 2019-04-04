@@ -11,7 +11,7 @@ regressionObject <- function(x, y, beta, alpha, lambda, gamma=0.0,
         useApprox=TRUE, downScaler=1, algorithm="CD", rotatedUpdates=TRUE,
         usePolish=TRUE, standardize=TRUE, lambdaSteps=1, gammaSteps=1, nFold=1,
         foldid=NULL, epsilon=NULL, cvStop = 0.1, verbose=FALSE, threads=1,
-        center=TRUE, useZeroSum) {
+        center=TRUE, useZeroSum, cSum = 0.0) {
     data <- list()
     checkType(type)
     id <- which(zeroSumTypes[, 1] == type)
@@ -30,7 +30,7 @@ regressionObject <- function(x, y, beta, alpha, lambda, gamma=0.0,
     data$P <- P
     data$N <- N
 
-    data$cSum  <- 0.0
+    data$cSum  <- checkDouble(cSum, "cSum")
     data$downScaler <- checkDouble(downScaler,  "downScaler")
     data$alpha <- checkDouble(alpha, "alpha")
 
@@ -260,6 +260,9 @@ regressionObject <- function(x, y, beta, alpha, lambda, gamma=0.0,
         cols <- cols * (data$nFold + 1)
 
         beta <- matrix(0, ncol = cols, nrow = data$P + 1)
+        if(cSum != 0.0){
+            beta[2, ] <- rep(cSum, cols)
+        }
     }else{
         beta <- as.matrix(beta)
         if (nrow(beta) != ncol(x) + 1) {

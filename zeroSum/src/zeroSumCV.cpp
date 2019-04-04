@@ -1,5 +1,19 @@
 #include "zeroSum.h"
 
+#ifdef R_PACKAGE
+inline void checkInterrupt(void* dummy) {
+    (void)dummy;
+    R_CheckUserInterrupt();
+}
+
+bool checkInterrupt() {
+    if (R_ToplevelExec(checkInterrupt, NULL) == false)
+        return true;
+    else
+        return false;
+}
+#endif
+
 std::vector<double> zeroSum::doCVRegression(char* path,
                                             char* name,
                                             uint32_t mpi_rank) {
@@ -65,7 +79,9 @@ std::vector<double> zeroSum::doCVRegression(char* path,
 
         for (auto j = 0u; j < lambdaSeq.size(); j++) {
 #ifdef R_PACKAGE
-            R_CheckUserInterrupt();
+            if (checkInterrupt()) {
+                return cv_stats;
+            }
 #endif
             for (uint32_t f = 0; f < nFold1; f++) {
                 lambda[f] = lambdaSeq[j];

@@ -20,7 +20,12 @@ void zeroSum::doFitUsingCoordinateDescent(uint32_t seed) {
         mt.push_back(std::mt19937_64(fold_seed));
     }
 
-    threadPool.doParallelChunked(nFold1, [&](size_t f) {
+#ifdef _OPENMP
+#pragma omp parallel for
+    for (size_t f = 0; f < nFold1; f++) {
+#else
+    parallel.doParallelChunked(nFold1, [&](size_t f) {
+#endif
         double* betaf = &beta[INDEX_TENSOR_COL(0, f, memory_P, K)];
         double* last_betaf = &last_beta[INDEX_TENSOR_COL(0, f, memory_P, K)];
         double* interceptf = &intercept[INDEX_COL(f, K)];
@@ -310,17 +315,37 @@ void zeroSum::doFitUsingCoordinateDescent(uint32_t seed) {
                     break;
             }
         }
-    });
 
+#ifdef _OPENMP
+    }
+#else
+    });
+#endif
+
+#ifdef _OPENMP
     if (type == multinomial) {
-        threadPool.doParallelChunked(
+#pragma omp parallel for
+        for (size_t f = 0; f < nFold1; f++)
+            optimizeParameterAmbiguity(f, 200);
+    }
+
+#pragma omp parallel for
+    for (size_t j = 0; j < memory_P * K * nFold1; j++) {
+        if (fabs(beta[j]) < 100 * DBL_EPSILON)
+            beta[j] = 0.0;
+    }
+#else
+    if (type == multinomial) {
+        parallel.doParallelChunked(
             nFold1, [&](size_t f) { optimizeParameterAmbiguity(f, 200); });
     }
 
-    threadPool.doParallelChunked(memory_P * K * nFold1, [&](size_t j) {
+    parallel.doParallelChunked(memory_P * K * nFold1, [&](size_t j) {
         if (fabs(beta[j]) < 100 * DBL_EPSILON)
             beta[j] = 0.0;
     });
+#endif
+
 #ifdef DEBUG
     costFunctionAllFolds();
 

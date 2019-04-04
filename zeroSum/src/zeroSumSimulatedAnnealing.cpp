@@ -40,7 +40,7 @@ void zeroSum::doFitUsingSimulatedAnnealing(uint32_t seed) {
         mt.push_back(std::mt19937_64(fold_seed));
     }
 
-    threadPool.doParallelChunked(nFold1, [&](size_t f) {
+    parallel.doParallelChunked(nFold1, [&](size_t f) {
         costFunction(f);
         double* betaf = &beta[INDEX_TENSOR_COL(0, f, memory_P, K)];
         double* interceptf = &intercept[INDEX_COL(f, K)];

@@ -4,7 +4,7 @@ Description: Regressions functions for creating linear models with the
     elastic-net regularization and the zero-sum constraint (sum of
     coefficients = 0). The usage of this package is very similar to
     that of the "glmnet" package.
-Version: 2.0.1
+Version: 2.0.2
 Date: 2019-02-06
 Author: Thorsten Rehberg, Michael Altenbuchinger
 Maintainer: Thorsten Rehberg <thorsten.rehberg@ur.de>
