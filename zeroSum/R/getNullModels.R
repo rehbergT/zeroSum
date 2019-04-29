@@ -19,14 +19,14 @@ getLogisticNullModel <- function(y, worg) {
 
 getMultinomialNullModel <- function(y, worg, iterations) {
     out <- list()
-    N   <- nrow(y)
-    K   <- ncol(y)
+    N <- nrow(y)
+    K <- ncol(y)
 
     out$beta0 <- rep(0, K)
-    for (ii in 1 : iterations) {
-        for (k in 1: K) {
+    for (ii in 1:iterations) {
+        for (k in 1:K) {
             out$beta0[k] <- -log((sum(worg) / as.numeric(worg %*% y[, k]) - 1) /
-                            (sum(exp(out$beta0)[-k])))
+                (sum(exp(out$beta0)[-k])))
         }
     }
     out$beta0 <- as.numeric(scale(out$beta0, center = TRUE, scale = FALSE))
@@ -38,7 +38,7 @@ getMultinomialNullModel <- function(y, worg, iterations) {
 
     out$z <- matrix(0.0, nrow = N, ncol = K)
     out$w <- matrix(0.0, nrow = N, ncol = K)
-    for (k in 1: K) {
+    for (k in 1:K) {
         out$z[, k] <- out$beta0[k] + (y[, k] - out$p[k]) / w[k]
         out$w[, k] <- worg * w[k]
     }
@@ -47,7 +47,7 @@ getMultinomialNullModel <- function(y, worg, iterations) {
 }
 
 getCoxNullModel <- function(y, status, worg) {
-    N  <- nrow(y)
+    N <- nrow(y)
 
     ## find ties with events
     y <- cbind(y, status)
@@ -67,8 +67,9 @@ getCoxNullModel <- function(y, status, worg) {
         k <- j + 1
         ## search for duplicates (ties) and add the weights
         while (k <= N && y[k, 3] == 1) {
-            if (y[k, 2] == 1)
+            if (y[k, 2] == 1) {
                 d[j] <- d[j] + worg[k]
+            }
             k <- k + 1
         }
         j <- k

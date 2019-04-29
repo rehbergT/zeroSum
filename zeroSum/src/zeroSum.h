@@ -21,8 +21,6 @@
 #include <cstdint>
 #include <cstdio>
 #include <cstring>
-#include <functional>
-#include <future>
 #include <mutex>
 #include <random>
 #include <unordered_set>

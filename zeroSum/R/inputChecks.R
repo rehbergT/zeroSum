@@ -12,19 +12,21 @@
 
 
 zeroSumTypes <- data.frame(c("gaussian", "binomial", "multinomial", "cox"),
-                    1:4, stringsAsFactors = FALSE)
+    1:4,
+    stringsAsFactors = FALSE
+)
 
 colnames(zeroSumTypes) <- c("Type", "Int")
 
 
 zeroSumAlgos <- data.frame(c("CD", "SA", "LS", "CDP"), c(1, 2, 3, 4),
-                    stringsAsFactors = FALSE)
+    stringsAsFactors = FALSE
+)
 
 colnames(zeroSumAlgos) <- c("Algo", "Int")
 
 
 checkNumericMatrix <- function(x, varName) {
-
     if (any(class(x) == "tbl") & typeof(x) == "list") {
         x <- as.matrix(x)
     }
@@ -59,14 +61,15 @@ checkNumericMatrix <- function(x, varName) {
 checkSparseMatrix <- function(x, varName) {
     x <- methods::as(x, "sparseMatrix")
     if (class(x) != "dgCMatrix" | typeof(x) != "S4") {
-        message <- sprintf(paste0("Type of %s is not a sparse matrix or cannot",
-                    "be casted to a sparse matrix\n"), varName)
+        message <- sprintf(paste0(
+            "Type of %s is not a sparse matrix or cannot",
+            "be casted to a sparse matrix\n"
+        ), varName)
         stop(message)
     }
 }
 
 checkNumericVector <- function(x, varName) {
-
     if (any(class(x) == "tbl") & typeof(x) == "list") {
         x <- as.matrix(x)
     }
@@ -133,8 +136,9 @@ checkSurvialDataVector <- function(x, varName) {
 
 checkData <- function(x, y, w, type) {
     x <- checkNumericMatrix(x, "x")
-    if (is.null(colnames(x)))
-        colnames(x) <- as.character(seq(1, ncol(x)))
+    if (is.null(colnames(x))) {
+          colnames(x) <- as.character(seq(1, ncol(x)))
+      }
 
     N <- nrow(x)
     if (is.null(w)) {
@@ -145,15 +149,13 @@ checkData <- function(x, y, w, type) {
     }
 
     status <- NULL
-    ord    <- NULL
+    ord <- NULL
 
     if (type == zeroSumTypes[1, 1]) {
         y <- checkNumericVector(y, "y")
-
     } else if (type == zeroSumTypes[2, 1]) {
         checkBinominalVector(y, "y")
         y <- as.matrix(as.numeric(y))
-
     } else if (type == zeroSumTypes[3, 1]) {
         checkMultinominalVector(y, "y")
         N <- length(y)
@@ -163,7 +165,6 @@ checkData <- function(x, y, w, type) {
             ymatrix[i, y[i]] <- 1.0
         }
         y <- ymatrix
-
     } else if (type == zeroSumTypes[4, 1]) {
         checkSurvialDataVector(y, "y")
         y <- as.matrix(y)
@@ -182,8 +183,9 @@ checkData <- function(x, y, w, type) {
         w <- w[ord]
     }
 
-    if (nrow(x) != NROW(y))
-        stop("nrow(x) != nrow(y) !")
+    if (nrow(x) != NROW(y)) {
+          stop("nrow(x) != nrow(y) !")
+      }
 
     return(list(x = x, y = y, w = w, status = status, ord = ord))
 }
@@ -191,15 +193,17 @@ checkData <- function(x, y, w, type) {
 checkType <- function(type) {
     if (class(type) != "character" & typeof(type) != "character" |
         !(type %in% zeroSumTypes[, 1])) {
-        message <- paste0("Selected type is not valid. Use gaussian, binomial",
-                              ", multinomial or cox!")
+        message <- paste0(
+            "Selected type is not valid. Use gaussian, binomial",
+            ", multinomial or cox!"
+        )
         stop(message)
     }
 }
 
 checkAlgo <- function(algo, name) {
-    if (class(algo) != "character" &  typeof(algo) != "character"
-        | !(algo %in% zeroSumAlgos[, 1])) {
+    if (class(algo) != "character" & typeof(algo) != "character"
+    | !(algo %in% zeroSumAlgos[, 1])) {
         message <- sprintf("Selected %s is not valid")
         stop(message)
     }

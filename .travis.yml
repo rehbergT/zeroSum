@@ -1,0 +1,24 @@
+dist: xenial
+matrix:
+  include:
+    - language: r
+      r: 
+        - release
+      install:
+        - mkdir ~/.R
+        - R -e 'install.packages(c("kntir", "rmarkdown", "testthat"), repos = "http://cran.rstudio.com")'
+        - echo "CXX11=g++-7" > ~/.R/Makevars
+        - R CMD build dgemmR
+        - R CMD INSTALL *tar.gz
+      script: 
+        - R CMD check *tar.gz
+
+addons:
+  apt:
+    sources:
+      - ubuntu-toolchain-r-test
+    packages:
+      - libopenblas-base libopenblas-dev gcc-7 g++-7 gfortran-7
+
+notifications:
+  email: false

@@ -1,6 +1,6 @@
 context("Testing multinomial cost function")
 
-test_that("multinomial cost function is correct", {
+test_that("multinomial cost function is correct", {    
     set.seed(10)
     x <- log2(exampleData$x)
     y <- exampleData$yMultinomial
@@ -19,12 +19,14 @@ test_that("multinomial cost function is correct", {
     gamma <- 0.30
 
     beta <- matrix(rnorm((P + 1) * 3), ncol = 3)
-    cost <- extCostFunction(x, y, beta, alpha, lambda, family = "multinomial",
-                                    gamma = gamma, fusion = fusion, useC = TRUE)
+    cost <- extCostFunction(x, y, beta, alpha, lambda,
+        family = "multinomial",
+        gamma = gamma, fusion = fusion, useC = TRUE
+    )
 
     expect_equal(cost$loglikelihood, cost$C$loglikelihood, tolerance = 1e-15)
-    expect_equal(cost$ridge,         cost$C$ridge,         tolerance = 1e-15)
-    expect_equal(cost$lasso,         cost$C$lasso,         tolerance = 1e-15)
-    expect_equal(cost$fusion,        cost$C$fusion,        tolerance = 1e-15)
-    expect_equal(cost$cost,          cost$C$cost,          tolerance = 1e-15)
+    expect_equal(cost$ridge, cost$C$ridge, tolerance = 1e-15)
+    expect_equal(cost$lasso, cost$C$lasso, tolerance = 1e-15)
+    expect_equal(cost$fusion, cost$C$fusion, tolerance = 1e-15)
+    expect_equal(cost$cost, cost$C$cost, tolerance = 1e-15)
 })

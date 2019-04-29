@@ -19,11 +19,12 @@ test_that("linear cost function is correct", {
     gamma <- 0.30
 
     cost <- extCostFunction(x, y, rnorm(P + 1), alpha, lambda,
-               family = "gaussian", gamma = gamma, fusion = fusion, useC = TRUE)
+        family = "gaussian", gamma = gamma, fusion = fusion, useC = TRUE
+    )
 
     expect_equal(cost$loglikelihood, cost$C$loglikelihood, tolerance = 1e-13)
-    expect_equal(cost$ridge,         cost$C$ridge,         tolerance = 1e-13)
-    expect_equal(cost$lasso,         cost$C$lasso,         tolerance = 1e-13)
-    expect_equal(cost$fusion,        cost$C$fusion,        tolerance = 1e-13)
-    expect_equal(cost$cost,             cost$C$cost,       tolerance = 1e-13)
+    expect_equal(cost$ridge, cost$C$ridge, tolerance = 1e-13)
+    expect_equal(cost$lasso, cost$C$lasso, tolerance = 1e-13)
+    expect_equal(cost$fusion, cost$C$fusion, tolerance = 1e-13)
+    expect_equal(cost$cost, cost$C$cost, tolerance = 1e-13)
 })

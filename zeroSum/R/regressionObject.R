@@ -5,13 +5,95 @@
 #' @useDynLib zeroSum, .registration = TRUE
 #'
 #' @keywords internal
-regressionObject <- function(x, y, beta, alpha, lambda, gamma=0.0,
-        type=zeroSumTypes[1, 1], weights=NULL, penalty.factor=NULL,
-        zeroSumWeights=NULL, fusion=NULL, precision=1e-8, useIntercept=TRUE,
-        useApprox=TRUE, downScaler=1, algorithm="CD", rotatedUpdates=TRUE,
-        usePolish=TRUE, standardize=TRUE, lambdaSteps=1, gammaSteps=1, nFold=1,
-        foldid=NULL, epsilon=NULL, cvStop = 0.1, verbose=FALSE, threads=1,
-        center=TRUE, useZeroSum, cSum = 0.0) {
+regressionObject <- function(x, y, type, alpha, lambda, lambdaSteps, weights,
+                             penalty.factor, zeroSum.weights, nFold, foldid,
+                             epsilon, standardize, intercept, useZeroSum, threads,
+                             cvStop, ...) {
+    args <- list(...)
+    if (methods::hasArg("beta")) {
+        beta <- args$beta
+    } else {
+        beta <- NULL
+    }
+
+    if (methods::hasArg("center")) {
+        center <- args$center
+    } else {
+        center <- TRUE
+    }
+
+    if (methods::hasArg("fusion")) {
+        fusion <- args$fusion
+    } else {
+        fusion <- NULL
+    }
+
+    if (methods::hasArg("gamma")) {
+        gamma <- args$gamma
+    } else {
+        gamma <- 0.0
+    }
+
+    if (methods::hasArg("gammaSteps")) {
+        gammaSteps <- args$gammaSteps
+    } else {
+        gammaSteps <- 1
+    }
+
+    if (methods::hasArg("useApprox")) {
+        useApprox <- args$useApprox
+    } else {
+        useApprox <- TRUE
+    }
+
+    if (methods::hasArg("downScaler")) {
+        downScaler <- args$downScaler
+    } else {
+        downScaler <- 1.0
+    }
+
+    if (methods::hasArg("algorithm")) {
+        algorithm <- args$algorithm
+    } else {
+        algorithm <- "CD"
+    }
+
+    if (methods::hasArg("verbose")) {
+        verbose <- args$verbose
+    } else {
+        verbose <- FALSE
+    }
+
+    if (methods::hasArg("polish")) {
+        usePolish <- args$polish
+    } else {
+        usePolish <- TRUE
+    }
+
+    if (methods::hasArg("precision")) {
+        precision <- args$precision
+    } else {
+        precision <- 1e-8
+    }
+
+    if (methods::hasArg("rotatedUpdates")) {
+        rotatedUpdates <- args$rotatedUpdates
+    } else {
+        rotatedUpdates <- FALSE
+    }
+
+    if (methods::hasArg("cSum")) {
+        cSum <- args$cSum
+    } else {
+        cSum <- 0.0
+    }
+
+    if (methods::hasArg("seed")) {
+        seed <- as.integer(args$seed)
+    } else {
+        seed <- sample(.Machine$integer.max, size = 1)
+    }
+
     data <- list()
     checkType(type)
     id <- which(zeroSumTypes[, 1] == type)
@@ -30,8 +112,8 @@ regressionObject <- function(x, y, beta, alpha, lambda, gamma=0.0,
     data$P <- P
     data$N <- N
 
-    data$cSum  <- checkDouble(cSum, "cSum")
-    data$downScaler <- checkDouble(downScaler,  "downScaler")
+    data$cSum <- checkDouble(cSum, "cSum")
+    data$downScaler <- checkDouble(downScaler, "downScaler")
     data$alpha <- checkDouble(alpha, "alpha")
 
     if (threads == "auto") {
@@ -42,7 +124,7 @@ regressionObject <- function(x, y, beta, alpha, lambda, gamma=0.0,
 
     if (data$type == zeroSumTypes[4, 2]) {
         data$K <- 1
-        useIntercept <- as.integer(FALSE)
+        intercept <- as.integer(FALSE)
         data$status <- tmp$status
     }
 
@@ -53,14 +135,14 @@ regressionObject <- function(x, y, beta, alpha, lambda, gamma=0.0,
     }
     data$v <- penalty.factor
 
-    if (is.null(zeroSumWeights)) {
-        zeroSumWeights <- rep(1, P)
+    if (is.null(zeroSum.weights)) {
+        zeroSum.weights <- rep(1, P)
     } else {
-        checkNonNegativeWeights(zeroSumWeights, P, "zeroSumWeights")
+        checkNonNegativeWeights(zeroSum.weights, P, "zeroSum.weights")
     }
-    data$u <- zeroSumWeights
-    data$gammaSteps  <- checkInteger(gammaSteps, "gammaSteps")
-    data$gamma       <- checkDouble(gamma, "gamma")
+    data$u <- zeroSum.weights
+    data$gammaSteps <- checkInteger(gammaSteps, "gammaSteps")
+    data$gamma <- checkDouble(gamma, "gamma")
 
     if (length(gamma) == 1 && gamma == 0.0) {
         data$useFusion <- as.integer(FALSE)
@@ -92,8 +174,10 @@ regressionObject <- function(x, y, beta, alpha, lambda, gamma=0.0,
 
     ## check if more cv folds than samples are selected
     if (data$nFold > N) {
-        print(paste0("more CV folds (default nFold=10) than sample size! ",
-                     "Setting nFold to ", N))
+        print(paste0(
+            "more CV folds (default nFold=10) than sample size! ",
+            "Setting nFold to ", N
+        ))
         data$nFold <- N
     }
 
@@ -102,51 +186,58 @@ regressionObject <- function(x, y, beta, alpha, lambda, gamma=0.0,
             nonCensored <- sum(data$status == 1)
 
             if (nonCensored < data$nFold) {
-                print(paste0("more CV folds (default nFold=10) than ",
-                            "non-censored ! Setting nFold to ", nonCensored))
+                print(paste0(
+                    "more CV folds (default nFold=10) than ",
+                    "non-censored ! Setting nFold to ", nonCensored
+                ))
                 data$nFold <- nonCensored
             }
 
             data$foldid <- rep(0, N)
             data$foldid[data$status == 1] <- sample(rep(rep(1:data$nFold),
-                                            length.out = nonCensored))
+                length.out = nonCensored
+            ))
             data$foldid[data$status == 0] <- sample(rep(rep(1:data$nFold),
-                                            length.out = data$N - nonCensored))
-        }else{
+                length.out = data$N - nonCensored
+            ))
+        } else {
             data$foldid <- sample(rep(1:data$nFold, length.out = N))
         }
-    }else{
-        if (!is.null(tmp$ord))
+    } else {
+        if (!is.null(tmp$ord)) {
             foldid <- foldid[tmp$ord]
+        }
 
-        if (length(foldid) != N)
+        if (length(foldid) != N) {
             stop("invalid fold numbering (( length(foldid) != N ))\n")
+        }
 
         data$nFold <- max(foldid)
         data$foldid <- foldid
     }
 
     data$foldid <- as.integer(data$foldid)
-    data$nFold  <- as.integer(data$nFold)
+    data$nFold <- as.integer(data$nFold)
 
-    if (data$nFold != 0)
+    if (data$nFold != 0) {
         checkFolds(data$status, data$foldid, data$nFold, data$type)
+    }
 
     if (is.null(fusion)) {
         data$fusion <- NULL
-        data$nc     <- as.integer(0)
-    }else{
+        data$nc <- as.integer(0)
+    } else {
         checkSparseMatrix(fusion, "fusion")
         data$fusion <- fusion
-        data$nc     <- as.integer(nrow(fusion))
+        data$nc <- as.integer(nrow(fusion))
     }
 
-    data$useIntercept <- checkInteger(useIntercept)
+    data$useIntercept <- checkInteger(intercept)
     data$center <- as.integer(center)
 
     if (standardize == TRUE) {
         data$standardize <- as.integer(TRUE)
-    } else{
+    } else {
         data$standardize <- as.integer(FALSE)
     }
 
@@ -166,24 +257,21 @@ regressionObject <- function(x, y, beta, alpha, lambda, gamma=0.0,
             ridge <- TRUE
         }
         lambdaMax <- NULL
-        nM  <- NULL
+        nM <- NULL
         res <- NULL
 
         if (data$type == zeroSumTypes[1, 2]) {
-            nM  <- sum(data$y * data$w)
+            nM <- sum(data$y * data$w)
             res <- as.matrix(data$y - nM, ncol = 1) * data$w
-
-        }else if (data$type == zeroSumTypes[2, 2]) {
-            nM  <- getLogisticNullModel(data$y, data$w)
+        } else if (data$type == zeroSumTypes[2, 2]) {
+            nM <- getLogisticNullModel(data$y, data$w)
             res <- as.matrix((nM$z - nM$beta0) * nM$w, ncol = 1)
-
         } else if (data$type == zeroSumTypes[3, 2]) {
             nM <- getMultinomialNullModel(data$y, data$w, 10)
             res <- matrix(0, ncol = ncol(nM$z), nrow = nrow(nM$z))
             for (i in 1:nrow(res))
                 res[i, ] <- (nM$z[i, ] - nM$beta0) * nM$w[i, ]
-
-        }  else if (data$type == zeroSumTypes[4, 2]) {
+        } else if (data$type == zeroSumTypes[4, 2]) {
             res <- getCoxNullModel(data$y, data$status, data$w)
         }
 
@@ -194,15 +282,17 @@ regressionObject <- function(x, y, beta, alpha, lambda, gamma=0.0,
             wm <- (data$w %*% data$x) * sw
             for (i in 1:P)
                 vtmp[i] <- data$v[i] * sqrt(((data$x[, i] - wm[i])^2 %*%
-                                                                data$w) * sw)
+                    data$w) * sw)
         }
 
         if (data$useZeroSum) {
             lambdaMax <- .Call("lambdaMax", data$x, res, data$u, vtmp,
-                                data$alpha, PACKAGE = "zeroSum")
-        }else{
+                data$alpha,
+                PACKAGE = "zeroSum"
+            )
+        } else {
             lambdaMax <- max((abs(t(data$x) %*% res)
-                                        / (vtmp * data$alpha))[vtmp != 0])
+            / (vtmp * data$alpha))[vtmp != 0])
         }
 
         if (!is.null(epsilon)) {
@@ -213,7 +303,6 @@ regressionObject <- function(x, y, beta, alpha, lambda, gamma=0.0,
             } else {
                 epsilon <- 0.0001
             }
-
         }
 
         # lambdaMin is calculated with the epsilon paramter
@@ -222,7 +311,8 @@ regressionObject <- function(x, y, beta, alpha, lambda, gamma=0.0,
         # the lambda sequence is constructed by equally distributing lambdaSteps
         # value on the lineare log scale between lambdaMin and lambdaMax
         data$lambda <- exp(seq(log(lambdaMax), log(lambdaMin),
-                            length.out = data$lambdaSteps))
+            length.out = data$lambdaSteps
+        ))
 
         # revert alpha to zero in the ridge case
         if (ridge == TRUE) {
@@ -232,23 +322,23 @@ regressionObject <- function(x, y, beta, alpha, lambda, gamma=0.0,
 
     if (length(data$gamma) == 1 && data$gammaSteps > 1) {
         print("approx gamma todo")
-
-    }else if (length(data$gamma) > 1) {
+    } else if (length(data$gamma) > 1) {
         data$gammaSteps <- length(data$gamma)
     }
 
-
-    if (cvStop == FALSE)
-        cvStop <- 1.0;
+    if (cvStop == FALSE) {
+        cvStop <- 1.0
+    }
 
     data$cvStop <- checkDouble(cvStop, "CV-Stop")
-    if (data$cvStop < 0 || data$cvStop > 1)
+    if (data$cvStop < 0 || data$cvStop > 1) {
         stop("cvStop is not within [0,1]\n")
+    }
     data$cvStop <- as.integer(round(data$lambdaSteps * data$cvStop))
 
     if (is.null(data$fusion)) {
         data$fusionC <- NULL
-    }else{
+    } else {
         data$fusionC <- as.matrix(Matrix::summary(data$fusion))
         data$fusionC <- data$fusionC[order(data$fusionC[, 2]), ]
         data$fusionC[, 1:2] <- data$fusionC[, 1:2] - 1 ## C starts with 0
@@ -260,24 +350,25 @@ regressionObject <- function(x, y, beta, alpha, lambda, gamma=0.0,
         cols <- cols * (data$nFold + 1)
 
         beta <- matrix(0, ncol = cols, nrow = data$P + 1)
-        if(cSum != 0.0){
+        if (cSum != 0.0) {
             beta[2, ] <- rep(cSum, cols)
         }
-    }else{
+    } else {
         beta <- as.matrix(beta)
         if (nrow(beta) != ncol(x) + 1) {
             stop("Length of betas doesn't match ncol(x)!")
         }
         if (ncol(beta) != (data$nFold + 1) * data$K) {
-            stop("Ncol of beta must be equal to the number of CV folds +1 ",
-                 "(for creating the final model using all samples)!")
+            stop(
+                "Ncol of beta must be equal to the number of CV folds +1 ",
+                "(for creating the final model using all samples)!"
+            )
         }
         if (data$useZeroSum) {
-            if (!any(as.numeric(beta[-1, ] %*% data$u) != data$cSum)) {
+            if (!any(as.numeric(t(beta[-1, ]) %*% data$u) != data$cSum)) {
                 stop("Sum of betas doesn't match cSum!")
             }
         }
-
     }
 
     data$beta <- beta
@@ -291,20 +382,20 @@ regressionObject <- function(x, y, beta, alpha, lambda, gamma=0.0,
 
 
     if (data$useFusion) {
-        data$algorithm   <- as.integer(3)
+        data$algorithm <- as.integer(3)
     }
 
     data$useApprox <- checkInteger(useApprox)
 
     if (data$type == zeroSumTypes[1, 2]) {
         data$useApprox <- as.integer(FALSE)
-    }else if (data$algorithm == 1) {
+    } else if (data$algorithm == 1) {
         data$useApprox <- as.integer(TRUE)
     }
 
     data$rotatedUpdates <- checkInteger(rotatedUpdates)
-    data$usePolish      <- checkInteger(usePolish)
-    data$seed           <- sample(.Machine$integer.max, size = 1)
+    data$usePolish <- checkInteger(usePolish)
+    data$seed <- sample(.Machine$integer.max, size = 1)
 
     return(data)
 }

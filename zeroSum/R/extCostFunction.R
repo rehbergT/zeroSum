@@ -5,14 +5,31 @@
 #' @keywords internal
 #'
 #' @export
-extCostFunction <- function(x, y, beta, alpha = 1, lambda = 0, gamma = 0,
-                            family = zeroSumTypes[1, 1], weights = NULL,
-                            penalty.factor = NULL, fusion = NULL,
-                            useC = FALSE) {
-    data <- regressionObject(x, y, beta, alpha, lambda, gamma,
-        type = family, weights = weights, penalty.factor = penalty.factor,
-        fusion = fusion, standardize = FALSE, useIntercept = FALSE, nFold = 0,
-        useZeroSum = FALSE, center = FALSE
+extCostFunction <- function(x,
+                            y,
+                            beta,
+                            alpha = 1.0,
+                            lambda = NULL,
+                            family = "gaussian",
+                            lambdaSteps = 100,
+                            weights = NULL,
+                            penalty.factor = NULL,
+                            zeroSum.weights = NULL,
+                            nFold = NULL,
+                            foldid = NULL,
+                            epsilon = NULL,
+                            standardize = FALSE,
+                            intercept = TRUE,
+                            zeroSum = TRUE,
+                            threads = "auto",
+                            cvStop = 0.1,
+                            useC = FALSE,
+                            ...) {
+    data <- regressionObject(
+        x, y, family, alpha, lambda, lambdaSteps, weights,
+        penalty.factor, zeroSum.weights, nFold, foldid, epsilon,
+        standardize, intercept, zeroSum, threads, cvStop,
+        beta = beta, ...
     )
 
     return(costFunction(data, useC))

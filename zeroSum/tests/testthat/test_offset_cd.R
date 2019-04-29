@@ -1,8 +1,11 @@
 context("Testing intercept")
 
 test_that("intercept update seems to work", {
-    data <- regressionObject(log2(exampleData$x + 1), exampleData$y, NULL, 
-        0.578, 1, standardize = FALSE, useZeroSum = FALSE, nFold = 0)
+    data <- regressionObject(
+        log2(exampleData$x + 1), exampleData$y, "gaussian",
+        0.578, 1, 1, NULL, NULL, NULL, NULL, NULL, NULL, FALSE, TRUE, FALSE,
+        1, 0.1
+    )
 
     updateOffset <- function(data) {
         a <- (data$w %*% (data$y - data$x %*% data$beta[-1])) / sum(data$w)

@@ -95,120 +95,36 @@
 #'
 #' @examples
 #' set.seed(1)
-#' x <- log2(exampleData$x+1)
+#' x <- log2(exampleData$x + 1)
 #' y <- exampleData$y
-#' fit <- zeroSum( x, y, alpha=1)
-#' plot( fit, "test")
-#' coef(fit, s="lambda.min")
-#'
-#'
+#' fit <- zeroSum(x, y, alpha = 1)
+#' plot(fit, "test")
+#' coef(fit, s = "lambda.min")
 #' @useDynLib zeroSum, .registration = TRUE
 #' @export
-zeroSum <- function(
-            x,
-            y,
-            family              = "gaussian",
-            alpha               = 1.0,
-            lambda              = NULL,
-            lambdaSteps         = 100,
-            weights             = NULL,
-            penalty.factor      = NULL,
-            zeroSum.weights     = NULL,
-            nFold               = NULL,
-            foldid              = NULL,
-            epsilon             = NULL,
-            standardize         = FALSE,
-            intercept           = TRUE,
-            zeroSum             = TRUE,
-            threads             = "auto",
-            cvStop              = 0.1,
-            ...) {
-
-    args <- list(...)
-
-    if (methods::hasArg("beta")) {
-         beta <- args$beta
-    } else {
-         beta <- NULL
-    }
-
-    if (methods::hasArg("center")) {
-        center <- args$center
-    } else {
-        center <- TRUE
-    }
-
-    if (methods::hasArg("fusion")) {
-         fusion <- args$fusion
-    } else {
-        fusion <- NULL
-    }
-
-    if (methods::hasArg("gamma")) {
-        gamma <- args$gamma
-    } else {
-        gamma <- 0.0
-    }
-
-    if (methods::hasArg("gammaSteps")) {
-        gammaSteps <- args$gammaSteps
-    } else {
-        gammaSteps <- 1
-    }
-
-    if (methods::hasArg("useApprox")) {
-        useApprox <- args$useApprox
-    } else {
-        useApprox <- TRUE
-    }
-
-    if (methods::hasArg("downScaler")) {
-        downScaler <- args$downScaler
-    } else {
-        downScaler <- 1.0
-    }
-
-    if (methods::hasArg("algorithm")) {
-        algorithm <- args$algorithm
-    } else {
-        algorithm <- "CD"
-    }
-
-    if (methods::hasArg("verbose")) {
-        verbose <- args$verbose
-    } else {
-        verbose <- FALSE
-    }
-
-    if (methods::hasArg("polish")) {
-        usePolish <- args$polish
-    } else {
-        usePolish <- TRUE
-    }
-
-    if (methods::hasArg("precision")) {
-        precision <- args$precision
-    } else {
-        precision <- 1e-8
-    }
-
-    if (methods::hasArg("rotatedUpdates")) {
-        rotatedUpdates <- args$rotatedUpdates
-    } else {
-        rotatedUpdates <- FALSE
-    }
-
-    if (methods::hasArg("cSum")) {
-        cSum <- args$cSum
-    } else {
-        cSum <- 0.0
-    }
-
-    data <- regressionObject(x, y, beta, alpha, lambda, gamma, family, weights,
-                penalty.factor, zeroSum.weights, fusion, precision, intercept,
-                useApprox, downScaler, algorithm, rotatedUpdates, usePolish,
-                standardize, lambdaSteps, gammaSteps, nFold, foldid, epsilon,
-                cvStop, verbose, threads, center, zeroSum, cSum)
+zeroSum <- function(x,
+                    y,
+                    family = "gaussian",
+                    alpha = 1.0,
+                    lambda = NULL,
+                    lambdaSteps = 100,
+                    weights = NULL,
+                    penalty.factor = NULL,
+                    zeroSum.weights = NULL,
+                    nFold = NULL,
+                    foldid = NULL,
+                    epsilon = NULL,
+                    standardize = FALSE,
+                    intercept = TRUE,
+                    zeroSum = TRUE,
+                    threads = "auto",
+                    cvStop = 0.1,
+                    ...) {
+    data <- regressionObject(
+        x, y, family, alpha, lambda, lambdaSteps, weights,
+        penalty.factor, zeroSum.weights, nFold, foldid, epsilon,
+        standardize, intercept, zeroSum, threads, cvStop, ...
+    )
 
     start <- Sys.time()
 
@@ -217,7 +133,7 @@ zeroSum <- function(
     end <- Sys.time()
     runtime <- as.numeric(end - start, units = "secs")
 
-    if (verbose) {
+    if (data$verbose) {
         print(sprintf("runtime: %.3fs", runtime))
     }
 

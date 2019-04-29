@@ -4,14 +4,9 @@
 \alias{regressionObject}
 \title{Description of regresion object}
 \usage{
-regressionObject(x, y, beta, alpha, lambda, gamma = 0,
-  type = zeroSumTypes[1, 1], weights = NULL, penalty.factor = NULL,
-  zeroSumWeights = NULL, fusion = NULL, precision = 1e-08,
-  useIntercept = TRUE, useApprox = TRUE, downScaler = 1,
-  algorithm = "CD", rotatedUpdates = TRUE, usePolish = TRUE,
-  standardize = TRUE, lambdaSteps = 1, gammaSteps = 1, nFold = 1,
-  foldid = NULL, epsilon = NULL, cvStop = 0.1, verbose = FALSE,
-  threads = 1, center = TRUE, useZeroSum, cSum = 0)
+regressionObject(x, y, type, alpha, lambda, lambdaSteps, weights,
+  penalty.factor, zeroSum.weights, nFold, foldid, epsilon, standardize,
+  intercept, useZeroSum, threads, cvStop, ...)
 }
 \description{
 Description of regresion object

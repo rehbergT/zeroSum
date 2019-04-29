@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.com/rehbergT/zeroSum.svg?branch=master)](https://travis-ci.com/rehbergT/zeroSum)
+
 ## News: Version 2.0
 * Improved support for multinomial logistic and Cox proportional hazards regression.
 * Improved performance (runtime avx detection and multithreading support now also available for macOS).
@@ -84,13 +86,13 @@ with or without the zero-sum constraint can be easily compared.
 A binary package (*.zip) is available, which can be installed in R
 using:
 
-    install.packages("https://github.com/rehbergT/zeroSum/raw/master/zeroSum_2.0.2.zip", repos = NULL)
+    install.packages("https://github.com/rehbergT/zeroSum/raw/master/zeroSum_2.0.3.zip", repos = NULL)
 
 
 ## Linux and macOS
 The source package (*.tar.gz) can be installed in R using:
 
-    install.packages("https://github.com/rehbergT/zeroSum/raw/master/zeroSum_2.0.2.tar.gz", repos = NULL)
+    install.packages("https://github.com/rehbergT/zeroSum/raw/master/zeroSum_2.0.3.tar.gz", repos = NULL)
 
 
 ## Devtools
@@ -103,7 +105,7 @@ Git clone or download this repository and open a terminal within the zeroSum fol
 The source package can be build and installed with:
 
     R CMD build zeroSum
-    R CMD INSTALL zeroSum_2.0.2.tar.gz
+    R CMD INSTALL zeroSum_2.0.3.tar.gz
 
 
 # Quick start

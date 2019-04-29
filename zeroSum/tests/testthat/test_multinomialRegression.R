@@ -41,7 +41,7 @@ test_that("multinomial regression equals glmnet", {
 
     expect_equal(eA$cost, eCompA$cost, tolerance = 1e-3)
     expect_equal(cor(as.numeric(coef(A)[-1, ]),
-                 as.numeric(ref$test_multi$A[-1, ])), 1.0, tolerance = 1e-2)
+                 as.numeric(ref$test_multi$A[-1, ])), 1.0, tolerance = 0.05)
 
 
     # ## multinomial Regression zerosum
@@ -65,9 +65,9 @@ test_that("multinomial regression equals glmnet", {
     expect_lte(eB_LS2$cost, 0.337)
 
     expect_equal(cor(as.numeric(coef(B)), as.numeric(coef(B_LS))), 0.99,
-                 tolerance = 1e-2)
+                 tolerance = 0.05)
     expect_equal(cor(as.numeric(coef(B_LS)), as.numeric(coef(B_LS2))), 1.0,
-                 tolerance = 1e-2)
+                 tolerance = 0.05)
 
     expect_equal(sum(coef(B)[-1, 1]), sum(coef(B)[-1, 2]), tolerance = 1e-12)
     expect_equal(sum(coef(B)[-1, 1]), sum(coef(B)[-1, 3]), tolerance = 1e-12)

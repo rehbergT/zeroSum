@@ -1,11 +1,11 @@
 #' Description of costFunction function
 #'
 #' @keywords internal
-costFunction <- function(data, useC=FALSE) {
+costFunction <- function(data, useC = FALSE) {
     out <- list()
-    x   <- data$x
-    N   <- nrow(x)
-    y   <- data$y
+    x <- data$x
+    N <- nrow(x)
+    y <- data$y
     beta <- data$beta
     weights <- data$w
     penalty.factor <- data$v
@@ -15,28 +15,26 @@ costFunction <- function(data, useC=FALSE) {
         xtb <- x %*% beta[-1, ] + beta[1, ]
 
         ## calculation of the residual sum of squares
-        res <-  y - xtb
-        out$loglikelihood <- -as.numeric(weights %*% (res ^ 2)) / 2
-
+        res <- y - xtb
+        out$loglikelihood <- -as.numeric(weights %*% (res^2)) / 2
     } else if (data$type == zeroSumTypes[2, 2]) {
         xtb <- x %*% beta[-1, ] + beta[1, ]
 
         ## calculation of the loglikelihood
         expXB <- log1p(exp(xtb))
         out$loglikelihood <- as.numeric(weights %*% (y * xtb - expXB))
-
     } else if (data$type == zeroSumTypes[3, 2]) {
         xb <- x %*% beta[-1, ]
         for (i in 1:ncol(beta)) {
-           xb[, i] <- xb[, i] + rep(beta[1, i], N)
+            xb[, i] <- xb[, i] + rep(beta[1, i], N)
         }
 
         xby <- rowSums(xb * y)
         a <- max(xb)
         xb <- xb - a
         out$loglikelihood <- as.numeric(weights %*%
-                                              (xby - log(rowSums(exp(xb))) - a))
-    }  else if (data$type == zeroSumTypes[4, 2]) {
+            (xby - log(rowSums(exp(xb))) - a))
+    } else if (data$type == zeroSumTypes[4, 2]) {
         y <- cbind(data$y, data$status)
         y <- cbind(y, duplicated(y[, 1] + y[, 2]))
         d <- rep(0, N)
@@ -52,8 +50,9 @@ costFunction <- function(data, useC=FALSE) {
             k <- j + 1
             ## search for duplicates (ties) and add the weights
             while (k <= N && y[k, 3] == 1) {
-                if (y[k, 2] == 1)
+                if (y[k, 2] == 1) {
                     d[j] <- d[j] + weights[k]
+                }
                 k <- k + 1
             }
             j <- k
@@ -74,22 +73,22 @@ costFunction <- function(data, useC=FALSE) {
 
     ## calculation of the ridge penalty (the intercept is not penalized
     ## therefore the first beta is excluded)
-    out$ridge <- sum(t((beta[-1, , drop = FALSE]) ^ 2)  %*% penalty.factor)
+    out$ridge <- sum(t((beta[-1, , drop = FALSE])^2) %*% penalty.factor)
 
     ## calculation of the lasso penalty (the intercept is not penalized
     ## therefore the first beta is excluded)
-    out$lasso <- sum(t(abs(beta[-1, , drop = FALSE]))  %*% penalty.factor)
+    out$lasso <- sum(t(abs(beta[-1, , drop = FALSE])) %*% penalty.factor)
 
     ## calculation of the cost function
     out$cost <- -out$loglikelihood + data$lambda *
-                    ((1 - data$alpha) * out$ridge / 2 + data$alpha * out$lasso)
+        ((1 - data$alpha) * out$ridge / 2 + data$alpha * out$lasso)
 
     out$fusion <- 0
     if (data$useFusion) {
         out$fusion <- 0.0
         for (i in 1:ncol(data$beta)) {
             out$fusion <- out$fusion + sum(abs(as.numeric(data$fusion %*%
-                                                             data$beta[-1, i])))
+                data$beta[-1, i])))
         }
         out$cost <- out$cost + data$gamma * out$fusion
     }

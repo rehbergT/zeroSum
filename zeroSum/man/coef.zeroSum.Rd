@@ -23,9 +23,8 @@ This function returns the coefficients of a zeroSum object object.
 }
 \examples{
 set.seed(1)
-x <- log2(exampleData$x+1)
+x <- log2(exampleData$x + 1)
 y <- exampleData$y
-fit <- zeroSum( x, y, alpha=1)
-coef(fit, s="lambda.min")
-
+fit <- zeroSum(x, y, alpha = 1)
+coef(fit, s = "lambda.min")
 }

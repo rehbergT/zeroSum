@@ -105,11 +105,9 @@ elastic-net the optimal regularization is determined by cross validation.
 }
 \examples{
 set.seed(1)
-x <- log2(exampleData$x+1)
+x <- log2(exampleData$x + 1)
 y <- exampleData$y
-fit <- zeroSum( x, y, alpha=1)
-plot( fit, "test")
-coef(fit, s="lambda.min")
-
-
+fit <- zeroSum(x, y, alpha = 1)
+plot(fit, "test")
+coef(fit, s = "lambda.min")
 }

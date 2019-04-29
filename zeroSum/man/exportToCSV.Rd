@@ -9,7 +9,7 @@ exportToCSV(x, y, family = "gaussian", alpha = 1, lambda = NULL,
   lambdaSteps = 100, weights = NULL, penalty.factor = NULL,
   zeroSum.weights = NULL, nFold = NULL, foldid = NULL,
   epsilon = NULL, standardize = FALSE, intercept = TRUE,
-  zeroSum = TRUE, threads = 1, cvStop = 0.1, path = "",
+  zeroSum = TRUE, threads = "auto", cvStop = 0.1, path = "",
   name = "", ...)
 }
 \description{

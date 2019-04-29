@@ -1,7 +1,8 @@
-#ifndef THREAD_POOL_H
-#define THREAD_POOL_H
+#ifndef PARALLEL_H
+#define PARALLEL_H
 
 #include <cmath>
+#include <functional>
 #include <future>
 #include <vector>
 
