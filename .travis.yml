@@ -8,7 +8,7 @@ matrix:
         - mkdir ~/.R
         - R -e 'install.packages(c("kntir", "rmarkdown", "testthat"), repos = "http://cran.rstudio.com")'
         - echo "CXX11=g++-7" > ~/.R/Makevars
-        - R CMD build dgemmR
+        - R CMD build zeroSum
         - R CMD INSTALL *tar.gz
       script: 
         - R CMD check *tar.gz
