@@ -26,20 +26,19 @@
 #'
 #' @examples
 #' set.seed(1)
-#' x <- log2(exampleData$x+1)
+#' x <- log2(exampleData$x + 1)
 #' y <- exampleData$y
-#' fit <- zeroSum( x, y, alpha=1)
-#' predict(fit, x, s="lambda.min")
-#'
+#' fit <- zeroSum(x, y, alpha = 1)
+#' predict(fit, x, s = "lambda.min")
 #' @export
-predict.zeroSum <- function(object=NULL, newx=NULL, s="lambda.min",
-                            type=NULL, ...) {
-    if (class(newx) != "matrix" | typeof(newx) != "double")  {
+predict.zeroSum <- function(object = NULL, newx = NULL, s = "lambda.min",
+                            type = NULL, ...) {
+    if (!any(class(newx) == "matrix") | typeof(newx) != "double") {
         stop("type of passed x is not a numeric matrix\n")
     }
 
     if (is.null(type)) {
-        if (object$type == zeroSumTypes[4, 2]){
+        if (object$type == zeroSumTypes[4, 2]) {
             type <- "link"
         } else {
             type <- "response"
@@ -49,10 +48,14 @@ predict.zeroSum <- function(object=NULL, newx=NULL, s="lambda.min",
     beta <- as.matrix(coef(object, s = s))
 
     if (ncol(newx) != nrow(beta) - 1) {
-        message1 <- sprintf(paste0("newx has wrong dimensions: nrow=%d ",
-                    "(samples) ncol=%d (features). "), nrow(newx), ncol(newx))
-        message2 <- sprintf(paste0("However, this zeroSum object is trained ",
-                "for %d features!"), length(beta[-1]))
+        message1 <- sprintf(paste0(
+            "newx has wrong dimensions: nrow=%d ",
+            "(samples) ncol=%d (features). "
+        ), nrow(newx), ncol(newx))
+        message2 <- sprintf(paste0(
+            "However, this zeroSum object is trained ",
+            "for %d features!"
+        ), length(beta[-1]))
         stop(paste0(message1, message2))
     }
 
@@ -62,7 +65,6 @@ predict.zeroSum <- function(object=NULL, newx=NULL, s="lambda.min",
         }
         predict <- newx %*% beta[-1, ] + beta[1, ]
         return(predict)
-
     } else if (object$type == zeroSumTypes[2, 2]) {
         if (!(type %in% c("link", "response", "class"))) {
             stop(paste0("type not supported for type ", zeroSumTypes[2, 1]))
@@ -85,19 +87,18 @@ predict.zeroSum <- function(object=NULL, newx=NULL, s="lambda.min",
         }
 
         y[y >= 0.5] <- 1
-        y[y < 0.5]  <- 0
+        y[y < 0.5] <- 0
         return(as.matrix(y))
-
     } else if (object$type == zeroSumTypes[3, 2]) {
-
         if (!(type %in% c("link", "response", "class"))) {
             stop(paste0("type not supported for type ", zeroSumTypes[3, 1]))
         }
 
         N <- nrow(newx)
         xb <- newx %*% beta[-1, ]
-        for (i in 1:ncol(xb))
-            xb[, i] <- xb[, i] + beta[1, i]
+        for (i in 1:ncol(xb)) {
+              xb[, i] <- xb[, i] + beta[1, i]
+          }
 
         if (type == "link") {
             return(as.matrix(xb))
@@ -112,8 +113,9 @@ predict.zeroSum <- function(object=NULL, newx=NULL, s="lambda.min",
         }
 
         y <- rep(0, N)
-        for (i in 1:N)
-            y[i] <- which.max(prob[i, ])
+        for (i in 1:N) {
+              y[i] <- which.max(prob[i, ])
+          }
 
         return(as.matrix(y))
     } else {

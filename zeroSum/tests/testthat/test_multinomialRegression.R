@@ -11,151 +11,209 @@ test_that("multinomial regression equals glmnet", {
     set.seed(1)
 
     ## multinomial Regression
-    A <- zeroSum(x, y, alpha, lambda, standardize = FALSE,
-                 family = "multinomial", zeroSum = FALSE)
+    A <- zeroSum(x, y, alpha, lambda,
+        standardize = FALSE,
+        family = "multinomial", zeroSum = FALSE
+    )
     eA <- extCostFunction(x, y, coef(A), alpha, lambda, family = "multinomial")
 
-    A_LS <- zeroSum(x, y, alpha, lambda, algorithm = "LS", standardize = FALSE,
-                    useApprox = TRUE, family = "multinomial",
-                    zeroSum = FALSE)
+    A_LS <- zeroSum(x, y, alpha, lambda,
+        algorithm = "LS", standardize = FALSE,
+        useApprox = TRUE, family = "multinomial",
+        zeroSum = FALSE
+    )
     eA_LS <- extCostFunction(x, y, coef(A_LS), alpha, lambda,
-                             family = "multinomial")
+        family = "multinomial"
+    )
 
-    A_LS2 <- zeroSum(x, y, alpha, lambda, algorithm = "LS", standardize = FALSE,
-                     useApprox = FALSE, family = "multinomial",
-                     zeroSum = FALSE)
+    A_LS2 <- zeroSum(x, y, alpha, lambda,
+        algorithm = "LS", standardize = FALSE,
+        useApprox = FALSE, family = "multinomial",
+        zeroSum = FALSE
+    )
     eA_LS2 <- extCostFunction(x, y, coef(A_LS2), alpha, lambda,
-                              family = "multinomial")
+        family = "multinomial"
+    )
 
     eCompA <- extCostFunction(x, y, ref$test_multi$A, alpha, lambda,
-                              family = "multinomial")
+        family = "multinomial"
+    )
 
 
     expect_equal(eA$cost, eA_LS$cost, tolerance = 1e-3)
     expect_equal(cor(as.numeric(coef(A)), as.numeric(coef(A_LS))), 1.0,
-                 tolerance = 1e-3)
+        tolerance = 1e-3
+    )
 
     expect_equal(eA$cost, eA_LS2$cost, tolerance = 1e-3)
     expect_equal(cor(as.numeric(coef(A)), as.numeric(coef(A_LS2))), 1.0,
-                 tolerance = 1e-3)
+        tolerance = 1e-3
+    )
 
     expect_equal(eA$cost, eCompA$cost, tolerance = 1e-3)
-    expect_equal(cor(as.numeric(coef(A)[-1, ]),
-                 as.numeric(ref$test_multi$A[-1, ])), 1.0, tolerance = 0.05)
+    expect_equal(cor(
+        as.numeric(coef(A)[-1, ]),
+        as.numeric(ref$test_multi$A[-1, ])
+    ), 1.0, tolerance = 0.05)
 
 
     # ## multinomial Regression zerosum
-    B <- zeroSum(x, y, alpha, lambda, standardize = FALSE,
-                 family = "multinomial", precision = 1e-10)
+    B <- zeroSum(x, y, alpha, lambda,
+        standardize = FALSE,
+        family = "multinomial", precision = 1e-10
+    )
     eB <- extCostFunction(x, y, coef(B), alpha, lambda, family = "multinomial")
 
-    B_LS <- zeroSum(x, y, alpha, lambda, algorithm = "LS", standardize = FALSE,
-                    family = "multinomial", precision = 1e-10)
+    B_LS <- zeroSum(x, y, alpha, lambda,
+        algorithm = "LS", standardize = FALSE,
+        family = "multinomial", precision = 1e-10
+    )
     eB_LS <- extCostFunction(x, y, coef(B_LS), alpha, lambda,
-                             family = "multinomial")
+        family = "multinomial"
+    )
 
-    B_LS2 <- zeroSum(x, y, alpha, lambda, algorithm = "LS", standardize = FALSE,
-                     useApprox = FALSE, family = "multinomial",
-                     precision = 1e-10)
+    B_LS2 <- zeroSum(x, y, alpha, lambda,
+        algorithm = "LS", standardize = FALSE,
+        useApprox = FALSE, family = "multinomial",
+        precision = 1e-10
+    )
     eB_LS2 <- extCostFunction(x, y, coef(B_LS2), alpha, lambda,
-                              family = "multinomial")
+        family = "multinomial"
+    )
 
-    expect_lte(eB$cost,     0.334)
-    expect_lte(eB_LS$cost,  0.336)
-    expect_lte(eB_LS2$cost, 0.337)
+    expect_lte(eB$cost, 0.157)
+    expect_lte(eB_LS$cost, 0.157)
+    expect_lte(eB_LS2$cost, 0.157)
 
-    expect_equal(cor(as.numeric(coef(B)), as.numeric(coef(B_LS))), 0.99,
-                 tolerance = 0.05)
+    expect_equal(cor(as.numeric(coef(B)), as.numeric(coef(B_LS))), 1.0,
+        tolerance = 0.1
+    )
     expect_equal(cor(as.numeric(coef(B_LS)), as.numeric(coef(B_LS2))), 1.0,
-                 tolerance = 0.05)
+        tolerance = 0.1
+    )
 
     expect_equal(sum(coef(B)[-1, 1]), sum(coef(B)[-1, 2]), tolerance = 1e-12)
     expect_equal(sum(coef(B)[-1, 1]), sum(coef(B)[-1, 3]), tolerance = 1e-12)
 
     expect_equal(sum(coef(B_LS)[-1, 1]), sum(coef(B_LS)[-1, 2]),
-                 tolerance = 1e-12)
+        tolerance = 1e-12
+    )
     expect_equal(sum(coef(B_LS)[-1, 1]), sum(coef(B_LS)[-1, 3]),
-                 tolerance = 1e-12)
+        tolerance = 1e-12
+    )
 
     expect_equal(sum(coef(B_LS2)[-1, 1]), sum(coef(B_LS2)[-1, 2]),
-                 tolerance = 1e-12)
+        tolerance = 1e-12
+    )
     expect_equal(sum(coef(B_LS2)[-1, 1]), sum(coef(B_LS2)[-1, 3]),
-                 tolerance = 1e-12)
+        tolerance = 1e-12
+    )
 
     ## multinomial Regression standardized
-    C <- zeroSum(x, y, alpha, lambda, standardize = TRUE,
-                 family = "multinomial", zeroSum = FALSE)
+    C <- zeroSum(x, y, alpha, lambda,
+        standardize = TRUE,
+        family = "multinomial", zeroSum = FALSE
+    )
     eC <- extCostFunction(x, y, coef(C), alpha, lambda, family = "multinomial")
 
-    C_LS <- zeroSum(x, y, alpha, lambda, algorithm = "LS", standardize = TRUE,
-                    family = "multinomial", zeroSum = FALSE)
+    C_LS <- zeroSum(x, y, alpha, lambda,
+        algorithm = "LS", standardize = TRUE,
+        family = "multinomial", zeroSum = FALSE
+    )
     eC_LS <- extCostFunction(x, y, coef(C_LS), alpha, lambda,
-                             family = "multinomial")
+        family = "multinomial"
+    )
 
-    C_LS2 <- zeroSum(x, y, alpha, lambda, algorithm = "LS", standardize = TRUE,
-                     useApprox = FALSE, family = "multinomial", zeroSum = FALSE)
+    C_LS2 <- zeroSum(x, y, alpha, lambda,
+        algorithm = "LS", standardize = TRUE,
+        useApprox = FALSE, family = "multinomial", zeroSum = FALSE
+    )
     eC_LS2 <- extCostFunction(x, y, coef(C_LS2), alpha, lambda,
-                              family = "multinomial")
+        family = "multinomial"
+    )
 
 
     eCompC <- extCostFunction(x, y, ref$test_multi$C, alpha, lambda,
-                              family = "multinomial")
+        family = "multinomial"
+    )
 
     ## glmnet packages gives here slightly wore results -> higher tolerance
     expect_equal(eC$cost, eCompC$cost, tolerance = 1e-3)
-    expect_equal(cor(as.numeric(coef(C)[-1, ]),
-                 as.numeric(ref$test_multi$C[-1, ])), 1.0, tolerance = 1e-2)
+    expect_equal(cor(
+        as.numeric(coef(C)[-1, ]),
+        as.numeric(ref$test_multi$C[-1, ])
+    ), 1.0, tolerance = 1e-2)
 
     ## ls seems to perform a little bit better -> higher tolerance
     expect_equal(eC$cost, eC_LS$cost, tolerance = 1e-3)
     expect_equal(cor(as.numeric(coef(C)[-1, ]), as.numeric(coef(C_LS)[-1, ])),
-                 1.0, tolerance = 1e-2)
+        1.0,
+        tolerance = 1e-2
+    )
 
     expect_equal(eC$cost, eC_LS2$cost, tolerance = 1e-3)
     expect_equal(cor(as.numeric(coef(C)[-1, ]), as.numeric(coef(C_LS2)[-1, ])),
-                 1.0, tolerance = 1e-2)
+        1.0,
+        tolerance = 1e-2
+    )
 
     ## multinomial Regression zerosum standardized
-    D <- zeroSum(x, y, alpha, lambda, standardize = TRUE,
-                 family = "multinomial")
+    D <- zeroSum(x, y, alpha, lambda,
+        standardize = TRUE,
+        family = "multinomial"
+    )
     eD <- extCostFunction(x, y, coef(D), alpha, lambda, family = "multinomial")
 
-    D_LS <- zeroSum(x, y, alpha, lambda, algorithm = "LS", standardize = TRUE,
-                    family = "multinomial")
+    D_LS <- zeroSum(x, y, alpha, lambda,
+        algorithm = "LS", standardize = TRUE,
+        family = "multinomial"
+    )
     eD_LS <- extCostFunction(x, y, coef(D_LS), alpha, lambda,
-                             family = "multinomial")
+        family = "multinomial"
+    )
 
-    D_LS2 <- zeroSum(x, y, alpha, lambda, algorithm = "LS", standardize = TRUE,
-                     useApprox = FALSE, family= "multinomial")
+    D_LS2 <- zeroSum(x, y, alpha, lambda,
+        algorithm = "LS", standardize = TRUE,
+        useApprox = FALSE, family = "multinomial"
+    )
     eD_LS2 <- extCostFunction(x, y, coef(D_LS2), alpha, lambda,
-                              family = "multinomial")
+        family = "multinomial"
+    )
 
 
     expect_equal(eD$cost / eD_LS$cost, 1.0, tolerance = 5e-2)
     expect_equal(cor(as.numeric(coef(D)[-1, ]), as.numeric(coef(D_LS)[-1, ])),
-                 1.0, tolerance = 5e-2)
+        1.0,
+        tolerance = 5e-2
+    )
 
     expect_equal(eD$cost / eD_LS2$cost, 1.0, tolerance = 5e-2)
     expect_equal(cor(as.numeric(coef(D)[-1, ]), as.numeric(coef(D_LS2)[-1, ])),
-                 1.0, tolerance = 5e-2)
+        1.0,
+        tolerance = 5e-2
+    )
 
     expect_equal(sum(coef(D)[-1, 1]), sum(coef(D)[-1, 2]), tolerance = 1e-12)
     expect_equal(sum(coef(D)[-1, 1]), sum(coef(D)[-1, 3]), tolerance = 1e-12)
 
     expect_equal(sum(coef(D_LS)[-1, 1]), sum(coef(D_LS)[-1, 2]),
-                 tolerance = 1e-12)
+        tolerance = 1e-12
+    )
     expect_equal(sum(coef(D_LS)[-1, 1]), sum(coef(D_LS)[-1, 3]),
-                 tolerance = 1e-12)
+        tolerance = 1e-12
+    )
 
     expect_equal(sum(coef(D_LS2)[-1, 1]), sum(coef(D_LS2)[-1, 2]),
-                 tolerance = 1e-12)
+        tolerance = 1e-12
+    )
     expect_equal(sum(coef(D_LS2)[-1, 1]), sum(coef(D_LS2)[-1, 3]),
-                 tolerance = 1e-12)
+        tolerance = 1e-12
+    )
 
 
     ## fusion kernel test
     fusion <- Matrix(0, nrow = P - 1, ncol = P, sparse = TRUE)
-    for (i in 1:(P - 1)) fusion[i, i] <-  1
+    for (i in 1:(P - 1)) fusion[i, i] <- 1
     for (i in 1:(P - 1)) fusion[i, (i + 1)] <- -1
     gamma <- 0.03
     lambda <- 0.001
@@ -193,5 +251,4 @@ test_that("multinomial regression equals glmnet", {
     # calculate fusion terms and expect that most are adjacent features are equal
     fused <- abs(as.numeric(fusion %*% cbind(coef(FA1), coef(FA2), coef(FA3), coef(FA4), coef(FA5), coef(FA6), coef(FA7), coef(FA8))[-1, ]))
     expect_gte(sum(fused < 1e-5) / length(fused), 0.5)
-
 })

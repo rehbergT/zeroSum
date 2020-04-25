@@ -1,9 +1,10 @@
 #include "zeroSum.h"
 
+// R header must be included after zeroSum.h!
 #include <R.h>
 #include <Rdefines.h>
 
-SEXP getElementFromRList(SEXP RList, const char* name) {
+SEXP getElementFromRList(SEXP& RList, const char* name) {
     SEXP element = R_NilValue;
     SEXP names = getAttrib(RList, R_NamesSymbol);
     for (uint32_t i = 0; i < (uint32_t)length(RList); i++) {
@@ -15,7 +16,7 @@ SEXP getElementFromRList(SEXP RList, const char* name) {
     return element;
 }
 
-zeroSum rListToRegressionData(SEXP _dataObjects) {
+zeroSum rListToRegressionData(SEXP& _dataObjects) {
     SEXP _x = getElementFromRList(_dataObjects, "x");
     SEXP _y = getElementFromRList(_dataObjects, "y");
     SEXP _beta = getElementFromRList(_dataObjects, "beta");
@@ -345,14 +346,14 @@ SEXP lambdaMax(SEXP _X, SEXP _res, SEXP _u, SEXP _v, SEXP _alpha) {
 extern "C" {
 
 static const R_CallMethodDef callMethods[] = {
-    {"CV", (DL_FUNC)&CV, 1},
-    {"costFunctionWrapper", (DL_FUNC)&costFunctionWrapper, 1},
-    {"checkMoves", (DL_FUNC)&checkMoves, 6},
-    {"lambdaMax", (DL_FUNC)&lambdaMax, 5},
+    {"CV", (DL_FUNC)(void*)&CV, 1},
+    {"costFunctionWrapper", (DL_FUNC)(void*)&costFunctionWrapper, 1},
+    {"checkMoves", (DL_FUNC)(void*)&checkMoves, 6},
+    {"lambdaMax", (DL_FUNC)(void*)&lambdaMax, 5},
     {NULL, NULL, 0}};
 
 void R_init_zeroSum(DllInfo* info) {
     R_registerRoutines(info, NULL, callMethods, NULL, NULL);
-    R_useDynamicSymbols(info, TRUE);
+    R_useDynamicSymbols(info, FALSE);
 }
 }

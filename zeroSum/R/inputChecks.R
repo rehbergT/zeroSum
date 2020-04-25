@@ -31,11 +31,11 @@ checkNumericMatrix <- function(x, varName) {
         x <- as.matrix(x)
     }
 
-    if (class(x) == "data.frame" & typeof(x) == "list") {
+    if (any(class(x) == "data.frame") & typeof(x) == "list") {
         x <- as.matrix(x)
     }
 
-    if (class(x) != "matrix" | typeof(x) != "double") {
+    if (!any(class(x) == "matrix") | typeof(x) != "double") {
         message <- sprintf("%s is not a matrix", varName)
         stop(message)
     }
@@ -74,11 +74,11 @@ checkNumericVector <- function(x, varName) {
         x <- as.matrix(x)
     }
 
-    if (class(x) == "data.frame" & typeof(x) == "list") {
+    if (any(class(x) == "data.frame") & typeof(x) == "list") {
         x <- as.matrix(x)
     }
 
-    if (class(x) == "numeric" & typeof(x) == "double") {
+    if (any(class(x) == "numeric") & typeof(x) == "double") {
         x <- as.matrix(x)
     }
 
@@ -86,7 +86,7 @@ checkNumericVector <- function(x, varName) {
         x <- as.matrix(as.numeric(x))
     }
 
-    if (class(x) != "matrix" | typeof(x) != "double" | ncol(x) > 1) {
+    if (!any(class(x) == "matrix") | typeof(x) != "double" | ncol(x) > 1) {
         message <- sprintf("%s is not a vector", varName)
         stop(message)
     }
@@ -137,8 +137,8 @@ checkSurvialDataVector <- function(x, varName) {
 checkData <- function(x, y, w, type) {
     x <- checkNumericMatrix(x, "x")
     if (is.null(colnames(x))) {
-          colnames(x) <- as.character(seq(1, ncol(x)))
-      }
+        colnames(x) <- as.character(seq(1, ncol(x)))
+    }
 
     N <- nrow(x)
     if (is.null(w)) {
@@ -184,8 +184,8 @@ checkData <- function(x, y, w, type) {
     }
 
     if (nrow(x) != NROW(y)) {
-          stop("nrow(x) != nrow(y) !")
-      }
+        stop("nrow(x) != nrow(y) !")
+    }
 
     return(list(x = x, y = y, w = w, status = status, ord = ord))
 }

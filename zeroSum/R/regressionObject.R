@@ -155,6 +155,7 @@ regressionObject <- function(x, y, type, alpha, lambda, lambdaSteps, weights,
     data$lambdaSteps <- checkInteger(lambdaSteps, "lambdaSteps")
     if (!is.null(lambda)) {
         data$lambda <- checkDouble(lambda, "lambda")
+        data$lambda <- sort(data$lambda, decreasing = TRUE)
         data$lambdaSteps <- length(data$lambda)
     } else {
         ## set to nan mean it is approximated below
@@ -269,8 +270,9 @@ regressionObject <- function(x, y, type, alpha, lambda, lambdaSteps, weights,
         } else if (data$type == zeroSumTypes[3, 2]) {
             nM <- getMultinomialNullModel(data$y, data$w, 10)
             res <- matrix(0, ncol = ncol(nM$z), nrow = nrow(nM$z))
-            for (i in 1:nrow(res))
+            for (i in 1:nrow(res)) {
                 res[i, ] <- (nM$z[i, ] - nM$beta0) * nM$w[i, ]
+            }
         } else if (data$type == zeroSumTypes[4, 2]) {
             res <- getCoxNullModel(data$y, data$status, data$w)
         }
@@ -280,9 +282,10 @@ regressionObject <- function(x, y, type, alpha, lambda, lambdaSteps, weights,
         if (data$standardize) {
             sw <- 1.0 / sum(data$w)
             wm <- (data$w %*% data$x) * sw
-            for (i in 1:P)
+            for (i in 1:P) {
                 vtmp[i] <- data$v[i] * sqrt(((data$x[, i] - wm[i])^2 %*%
                     data$w) * sw)
+            }
         }
 
         if (data$useZeroSum) {
@@ -365,7 +368,8 @@ regressionObject <- function(x, y, type, alpha, lambda, lambdaSteps, weights,
             )
         }
         if (data$useZeroSum) {
-            if (!any(as.numeric(t(beta[-1, ]) %*% data$u) != data$cSum)) {
+            abs_diff <- abs(as.numeric(t(beta[-1, ]) %*% data$u) - data$cSum)
+            if (any(abs_diff > .Machine$double.eps * 100)) {
                 stop("Sum of betas doesn't match cSum!")
             }
         }
