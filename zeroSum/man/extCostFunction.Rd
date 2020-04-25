@@ -6,12 +6,28 @@
 wraps input into a regression object and
 calls the costFunction and returns the result}
 \usage{
-extCostFunction(x, y, beta, alpha = 1, lambda = NULL,
-  family = "gaussian", lambdaSteps = 100, weights = NULL,
-  penalty.factor = NULL, zeroSum.weights = NULL, nFold = NULL,
-  foldid = NULL, epsilon = NULL, standardize = FALSE,
-  intercept = TRUE, zeroSum = TRUE, threads = "auto", cvStop = 0.1,
-  useC = FALSE, ...)
+extCostFunction(
+  x,
+  y,
+  beta,
+  alpha = 1,
+  lambda = NULL,
+  family = "gaussian",
+  lambdaSteps = 100,
+  weights = NULL,
+  penalty.factor = NULL,
+  zeroSum.weights = NULL,
+  nFold = NULL,
+  foldid = NULL,
+  epsilon = NULL,
+  standardize = FALSE,
+  intercept = TRUE,
+  zeroSum = FALSE,
+  threads = "auto",
+  cvStop = 0.1,
+  useC = FALSE,
+  ...
+)
 }
 \description{
 Description of costFunction function

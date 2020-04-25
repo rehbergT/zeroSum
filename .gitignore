@@ -7,8 +7,6 @@
 *.log
 *.gch
 *.Rnw.backup
-*.tar.gz
-*.zip
 *.aux
 *.log
 .RData

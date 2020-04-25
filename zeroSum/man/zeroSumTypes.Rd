@@ -4,7 +4,9 @@
 \name{zeroSumTypes}
 \alias{zeroSumTypes}
 \title{Description of inputChecks function}
-\format{An object of class \code{data.frame} with 4 rows and 2 columns.}
+\format{
+An object of class \code{data.frame} with 4 rows and 2 columns.
+}
 \usage{
 zeroSumTypes
 }

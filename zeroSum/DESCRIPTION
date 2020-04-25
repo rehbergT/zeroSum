@@ -4,8 +4,8 @@ Description: Regressions functions for creating linear models with the
     elastic-net regularization and the zero-sum constraint (sum of
     coefficients = 0). The usage of this package is very similar to
     that of the "glmnet" package.
-Version: 2.0.3
-Date: 2019-04-29
+Version: 2.0.4
+Date: 2020-04-25
 Author: Thorsten Rehberg, Michael Altenbuchinger
 Maintainer: Thorsten Rehberg <thorsten.rehberg@ur.de>
 Imports:
@@ -21,4 +21,5 @@ VignetteBuilder: knitr
 License: MIT + file LICENSE
 NeedsCompilation: yes
 LazyData: yes
-RoxygenNote: 6.1.1
+RoxygenNote: 7.1.0
+Encoding: UTF-8

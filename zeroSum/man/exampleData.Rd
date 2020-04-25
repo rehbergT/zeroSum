@@ -4,7 +4,9 @@
 \name{exampleData}
 \alias{exampleData}
 \title{example  data}
-\format{a \code{RangedData} instance, rows=samples.}
+\format{
+a \code{RangedData} instance, rows=samples.
+}
 \source{
 simulated
 }

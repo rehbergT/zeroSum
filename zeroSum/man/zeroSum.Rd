@@ -4,11 +4,26 @@
 \alias{zeroSum}
 \title{Description of zeroSum function}
 \usage{
-zeroSum(x, y, family = "gaussian", alpha = 1, lambda = NULL,
-  lambdaSteps = 100, weights = NULL, penalty.factor = NULL,
-  zeroSum.weights = NULL, nFold = NULL, foldid = NULL,
-  epsilon = NULL, standardize = FALSE, intercept = TRUE,
-  zeroSum = TRUE, threads = "auto", cvStop = 0.1, ...)
+zeroSum(
+  x,
+  y,
+  family = "gaussian",
+  alpha = 1,
+  lambda = NULL,
+  lambdaSteps = 100,
+  weights = NULL,
+  penalty.factor = NULL,
+  zeroSum.weights = NULL,
+  nFold = NULL,
+  foldid = NULL,
+  epsilon = NULL,
+  standardize = FALSE,
+  intercept = TRUE,
+  zeroSum = TRUE,
+  threads = "auto",
+  cvStop = 0.1,
+  ...
+)
 }
 \arguments{
 \item{x}{data as a numeric matrix object (rows=samples). The zero-sum

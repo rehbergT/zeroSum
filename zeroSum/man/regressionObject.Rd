@@ -4,9 +4,26 @@
 \alias{regressionObject}
 \title{Description of regresion object}
 \usage{
-regressionObject(x, y, type, alpha, lambda, lambdaSteps, weights,
-  penalty.factor, zeroSum.weights, nFold, foldid, epsilon, standardize,
-  intercept, useZeroSum, threads, cvStop, ...)
+regressionObject(
+  x,
+  y,
+  type,
+  alpha,
+  lambda,
+  lambdaSteps,
+  weights,
+  penalty.factor,
+  zeroSum.weights,
+  nFold,
+  foldid,
+  epsilon,
+  standardize,
+  intercept,
+  useZeroSum,
+  threads,
+  cvStop,
+  ...
+)
 }
 \description{
 Description of regresion object

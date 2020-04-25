@@ -5,12 +5,28 @@
 \title{Description of exportToCSV function
 exports all zeroSum settings for using the c version of zeroSum}
 \usage{
-exportToCSV(x, y, family = "gaussian", alpha = 1, lambda = NULL,
-  lambdaSteps = 100, weights = NULL, penalty.factor = NULL,
-  zeroSum.weights = NULL, nFold = NULL, foldid = NULL,
-  epsilon = NULL, standardize = FALSE, intercept = TRUE,
-  zeroSum = TRUE, threads = "auto", cvStop = 0.1, path = "",
-  name = "", ...)
+exportToCSV(
+  x,
+  y,
+  family = "gaussian",
+  alpha = 1,
+  lambda = NULL,
+  lambdaSteps = 100,
+  weights = NULL,
+  penalty.factor = NULL,
+  zeroSum.weights = NULL,
+  nFold = NULL,
+  foldid = NULL,
+  epsilon = NULL,
+  standardize = FALSE,
+  intercept = TRUE,
+  zeroSum = TRUE,
+  threads = "auto",
+  cvStop = 0.1,
+  path = "",
+  name = "",
+  ...
+)
 }
 \description{
 Description of exportToCSV function
