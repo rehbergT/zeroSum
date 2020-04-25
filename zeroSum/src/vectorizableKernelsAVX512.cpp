@@ -9,12 +9,12 @@ void interceptMoveKernelAVX512(double* y,
     __m512d _res = _mm512_setzero_pd();
 
     for (uint32_t i = 0; i < N; i += 8) {
-        _y = _mm512_load_pd(&y[i]);
-        _xb = _mm512_load_pd(&xb[i]);
+        _y = _mm512_loadu_pd(&y[i]);
+        _xb = _mm512_loadu_pd(&xb[i]);
 
         _y = _mm512_sub_pd(_y, _xb);
 
-        _w = _mm512_load_pd(&w[i]);
+        _w = _mm512_loadu_pd(&w[i]);
         _res = _mm512_fmadd_pd(_y, _w, _res);
     }
 
@@ -38,16 +38,16 @@ void cvMoveKernelAVX512(double* y,
     __m512d _w, _xk, _xb, _y;
 
     for (uint32_t i = 0; i < N; i += 8) {
-        _w = _mm512_load_pd(&w[i]);
-        _xk = _mm512_load_pd(&xk[i]);
+        _w = _mm512_loadu_pd(&w[i]);
+        _xk = _mm512_loadu_pd(&xk[i]);
 
         _w = _mm512_mul_pd(_w, _xk);
         _ak = _mm512_fmadd_pd(_w, _xk, _ak);
 
-        _xb = _mm512_load_pd(&xb[i]);
+        _xb = _mm512_loadu_pd(&xb[i]);
         _xb = _mm512_fnmadd_pd(_betak, _xk, _xb);
 
-        _y = _mm512_load_pd(&y[i]);
+        _y = _mm512_loadu_pd(&y[i]);
         _xb = _mm512_sub_pd(_y, _xb);
 
         _bk = _mm512_fmadd_pd(_w, _xb, _bk);
@@ -79,18 +79,18 @@ void cvMoveZSKernelAVX512(double* y,
     __m512d _y, _w, _xk, _xs, _xb;
 
     for (uint32_t i = 0; i < N; i += 8) {
-        _xk = _mm512_load_pd(&xk[i]);
-        _xs = _mm512_load_pd(&xs[i]);
+        _xk = _mm512_loadu_pd(&xk[i]);
+        _xs = _mm512_loadu_pd(&xs[i]);
         _xk = _mm512_fmsub_pd(_xs, _ukus, _xk);
 
-        _w = _mm512_load_pd(&w[i]);
+        _w = _mm512_loadu_pd(&w[i]);
         _w = _mm512_mul_pd(_w, _xk);
         _ak = _mm512_fmadd_pd(_w, _xk, _ak);
 
-        _xb = _mm512_load_pd(&xb[i]);
+        _xb = _mm512_loadu_pd(&xb[i]);
         _xb = _mm512_fmadd_pd(_betak, _xk, _xb);
 
-        _y = _mm512_load_pd(&y[i]);
+        _y = _mm512_loadu_pd(&y[i]);
         _xb = _mm512_sub_pd(_y, _xb);
 
         _bk = _mm512_fmadd_pd(_w, _xb, _bk);
@@ -116,12 +116,12 @@ void cvMoveZSKernel2AVX512(double* xb,
                                    *diffs, *diffs, *diffs);
 
     for (uint32_t i = 0; i < N; i += 8) {
-        _xb = _mm512_load_pd(&xb[i]);
-        _xk = _mm512_load_pd(&xk[i]);
+        _xb = _mm512_loadu_pd(&xb[i]);
+        _xk = _mm512_loadu_pd(&xk[i]);
         _xb = _mm512_fnmadd_pd(_xk, _diffk, _xb);
-        _xs = _mm512_load_pd(&xs[i]);
+        _xs = _mm512_loadu_pd(&xs[i]);
         _xb = _mm512_fnmadd_pd(_xs, _diffs, _xb);
-        _mm512_store_pd(&xb[i], _xb);
+        _mm512_storeu_pd(&xb[i], _xb);
     }
 }
 
@@ -143,15 +143,15 @@ void cvMoveZSParallelKernelAVX512(double* xb,
     __m512d _w, _xk, _xs, _xb;
 
     for (uint32_t i = 0; i < N; i += 8) {
-        _xk = _mm512_load_pd(&xk[i]);
-        _xs = _mm512_load_pd(&xs[i]);
+        _xk = _mm512_loadu_pd(&xk[i]);
+        _xs = _mm512_loadu_pd(&xs[i]);
         _xk = _mm512_fmsub_pd(_xs, _ukus, _xk);
 
-        _w = _mm512_load_pd(&w[i]);
+        _w = _mm512_loadu_pd(&w[i]);
         _w = _mm512_mul_pd(_w, _xk);
         _ak = _mm512_fmadd_pd(_w, _xk, _ak);
 
-        _xb = _mm512_load_pd(&xb[i]);
+        _xb = _mm512_loadu_pd(&xb[i]);
         _xb = _mm512_fmadd_pd(_betak, _xk, _xb);
 
         _bk = _mm512_fmadd_pd(_w, _xb, _bk);
@@ -181,16 +181,16 @@ void cdMoveZSRotatedKernelAVX512(double* xm,
                                    *unum2, *unum2, *unum2);
 
     for (uint32_t i = 0; i < N; i += 8) {
-        _xm = _mm512_load_pd(&xm[i]);
+        _xm = _mm512_loadu_pd(&xm[i]);
         _xm = _mm512_mul_pd(_xm, _sinT);
 
-        _xn = _mm512_load_pd(&xn[i]);
+        _xn = _mm512_loadu_pd(&xn[i]);
         _xn = _mm512_fmadd_pd(_xn, _MinusCosT, _xm);
 
-        _xs = _mm512_load_pd(&xs[i]);
+        _xs = _mm512_loadu_pd(&xs[i]);
         _xs = _mm512_fmadd_pd(_xs, _unum2, _xn);
 
-        _mm512_store_pd(&res[i], _xs);
+        _mm512_storeu_pd(&res[i], _xs);
     }
 }
 
@@ -203,14 +203,14 @@ void cdMoveZSRotatedKernel2AVX512(double* y,
     __m512d _y, _ww, _xb, _tmp;
     __m512d _res = _mm512_setzero_pd();
     for (uint32_t i = 0; i < N; i += 8) {
-        _xb = _mm512_load_pd(&xb[i]);
-        _y = _mm512_load_pd(&y[i]);
+        _xb = _mm512_loadu_pd(&xb[i]);
+        _y = _mm512_loadu_pd(&y[i]);
         _xb = _mm512_sub_pd(_y, _xb);
 
-        _ww = _mm512_load_pd(&w[i]);
+        _ww = _mm512_loadu_pd(&w[i]);
         _xb = _mm512_mul_pd(_ww, _xb);
 
-        _tmp = _mm512_load_pd(&tmp[i]);
+        _tmp = _mm512_loadu_pd(&tmp[i]);
         _res = _mm512_fmadd_pd(_xb, _tmp, _res);
     }
     double* res = (double*)&_res;
@@ -234,18 +234,18 @@ void cvMoveZSRotatedKernel3AVX512(double* xb,
                                    *diffs, *diffs, *diffs);
 
     for (uint32_t i = 0; i < N; i += 8) {
-        _xb = _mm512_load_pd(&xb[i]);
+        _xb = _mm512_loadu_pd(&xb[i]);
 
-        _x = _mm512_load_pd(&xn[i]);
+        _x = _mm512_loadu_pd(&xn[i]);
         _xb = _mm512_fnmadd_pd(_x, _diffn, _xb);
 
-        _x = _mm512_load_pd(&xm[i]);
+        _x = _mm512_loadu_pd(&xm[i]);
         _xb = _mm512_fnmadd_pd(_x, _diffm, _xb);
 
-        _x = _mm512_load_pd(&xs[i]);
+        _x = _mm512_loadu_pd(&xs[i]);
         _xb = _mm512_fnmadd_pd(_x, _diffs, _xb);
 
-        _mm512_store_pd(&xb[i], _xb);
+        _mm512_storeu_pd(&xb[i], _xb);
     }
 }
 
@@ -254,7 +254,7 @@ void arraySumKernelAVX512(double* a, uint32_t N, double* res) {
     __m512d _res = _mm512_setzero_pd();
     uint32_t i = 0;
     for (; i < N; i += 8) {
-        _a = _mm512_load_pd(&a[i]);
+        _a = _mm512_loadu_pd(&a[i]);
         _res = _mm512_add_pd(_a, _res);
     }
 
@@ -263,14 +263,17 @@ void arraySumKernelAVX512(double* a, uint32_t N, double* res) {
         ptr[0] + ptr[1] + ptr[2] + ptr[3] + ptr[4] + ptr[5] + ptr[6] + ptr[7];
 }
 
-void weightedSquareSumKernelAVX512(double* a, double* b, uint32_t N, double* res) {
+void weightedSquareSumKernelAVX512(double* a,
+                                   double* b,
+                                   uint32_t N,
+                                   double* res) {
     __m512d _a, _b;
     __m512d _res = _mm512_setzero_pd();
 
     for (uint32_t i = 0; i < N; i += 8) {
-        _a = _mm512_load_pd(&a[i]);
+        _a = _mm512_loadu_pd(&a[i]);
         _a = _mm512_mul_pd(_a, _a);
-        _b = _mm512_load_pd(&b[i]);
+        _b = _mm512_loadu_pd(&b[i]);
         _res = _mm512_fmadd_pd(_a, _b, _res);
     }
 
@@ -288,12 +291,12 @@ void weightedResidualSquareSumKernelAVX512(double* a,
     __m512d _res = _mm512_setzero_pd();
 
     for (uint32_t i = 0; i < N; i += 8) {
-        _b = _mm512_load_pd(&b[i]);
-        _c = _mm512_load_pd(&c[i]);
+        _b = _mm512_loadu_pd(&b[i]);
+        _c = _mm512_loadu_pd(&c[i]);
         _b = _mm512_sub_pd(_b, _c);
         _b = _mm512_mul_pd(_b, _b);
 
-        _a = _mm512_load_pd(&a[i]);
+        _a = _mm512_loadu_pd(&a[i]);
         _res = _mm512_fmadd_pd(_a, _b, _res);
     }
 
@@ -302,13 +305,16 @@ void weightedResidualSquareSumKernelAVX512(double* a,
         ptr[0] + ptr[1] + ptr[2] + ptr[3] + ptr[4] + ptr[5] + ptr[6] + ptr[7];
 }
 
-void squareWeightedSumKernelAVX512(double* a, double* b, uint32_t N, double* res) {
+void squareWeightedSumKernelAVX512(double* a,
+                                   double* b,
+                                   uint32_t N,
+                                   double* res) {
     __m512d _a, _b;
     __m512d _res = _mm512_setzero_pd();
 
     for (uint32_t i = 0; i < N; i += 8) {
-        _a = _mm512_load_pd(&a[i]);
-        _b = _mm512_load_pd(&b[i]);
+        _a = _mm512_loadu_pd(&a[i]);
+        _b = _mm512_loadu_pd(&b[i]);
         _a = _mm512_mul_pd(_a, _b);
         _res = _mm512_fmadd_pd(_a, _a, _res);
     }
@@ -321,11 +327,11 @@ void squareWeightedSumKernelAVX512(double* a, double* b, uint32_t N, double* res
 void a_sub_bKernelAVX512(double* a, double* b, double* c, uint32_t N) {
     __m512d _a, _b;
     for (uint32_t i = 0; i < N; i += 8) {
-        _a = _mm512_load_pd(&a[i]);
-        _b = _mm512_load_pd(&b[i]);
+        _a = _mm512_loadu_pd(&a[i]);
+        _b = _mm512_loadu_pd(&b[i]);
         _a = _mm512_sub_pd(_a, _b);
 
-        _mm512_store_pd(&c[i], _a);
+        _mm512_storeu_pd(&c[i], _a);
     }
 }
 
@@ -334,8 +340,8 @@ void a_add_scalar_bKernelAVX512(double* a, double* b, uint32_t N) {
     __m512d _b = _mm512_set_pd(*b, *b, *b, *b, *b, *b, *b, *b);
 
     for (uint32_t i = 0; i < N; i += 8) {
-        _a = _mm512_load_pd(&a[i]);
+        _a = _mm512_loadu_pd(&a[i]);
         _a = _mm512_add_pd(_a, _b);
-        _mm512_store_pd(&a[i], _a);
+        _mm512_storeu_pd(&a[i], _a);
     }
 }

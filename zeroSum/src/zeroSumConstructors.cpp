@@ -1,78 +1,28 @@
 #include "zeroSum.h"
 
-// need to support mingw or old compilers which dont yet support aligned_alloc
-#define ALIGNED_ALLOC(alignment, size) _mm_malloc((size), (alignment))
-#define ALIGNED_FREE(ptr) _mm_free((ptr))
-
 void zeroSum::allocData() {
-    /** Int to store the memory alignment (important for AVX2 (32bit) and AVX512
-     * (64bit)) used for storing the */
-    uint32_t alignment = 32;
-    if (avxType == avx2)
-        alignment = 32;
-    else if (avxType == avx512)
-        alignment = 64;
+    lambda = (double*)malloc(nFold1 * sizeof(double));
+    loglikelihood = (double*)malloc(nFold1 * sizeof(double));
+    lasso = (double*)malloc(nFold1 * sizeof(double));
+    ridge = (double*)malloc(nFold1 * sizeof(double));
+    fusion = (double*)malloc(nFold1 * sizeof(double));
+    cost = (double*)malloc(nFold1 * sizeof(double));
+    featureMean = (double*)malloc(memory_P * sizeof(double));
+    ySD = (double*)malloc(nFold1 * sizeof(double));
 
-    if (avxType != fallback) {
-        lambda = (double*)ALIGNED_ALLOC(alignment, nFold1 * sizeof(double));
-        loglikelihood =
-            (double*)ALIGNED_ALLOC(alignment, nFold1 * sizeof(double));
-        lasso = (double*)ALIGNED_ALLOC(alignment, nFold1 * sizeof(double));
-        ridge = (double*)ALIGNED_ALLOC(alignment, nFold1 * sizeof(double));
-        fusion = (double*)ALIGNED_ALLOC(alignment, nFold1 * sizeof(double));
-        cost = (double*)ALIGNED_ALLOC(alignment, nFold1 * sizeof(double));
-        featureMean =
-            (double*)ALIGNED_ALLOC(alignment, memory_P * sizeof(double));
-        ySD = (double*)ALIGNED_ALLOC(alignment, nFold1 * sizeof(double));
-
-        x = (double*)ALIGNED_ALLOC(alignment,
-                                   memory_N * memory_P * sizeof(double));
-        y = (double*)ALIGNED_ALLOC(alignment,
-                                   memory_N * K * nFold1 * sizeof(double));
-        yOrg = (double*)ALIGNED_ALLOC(alignment, memory_N * K * sizeof(double));
-        w = (double*)ALIGNED_ALLOC(alignment,
-                                   memory_N * K * nFold1 * sizeof(double));
-        wCV = (double*)ALIGNED_ALLOC(alignment,
-                                     memory_N * nFold1 * sizeof(double));
-        wOrg = (double*)ALIGNED_ALLOC(alignment,
-                                      memory_N * nFold1 * sizeof(double));
-        tmp_array1 = (double*)ALIGNED_ALLOC(alignment,
-                                            memory_N * nFold1 * sizeof(double));
-        tmp_array2 = (double*)ALIGNED_ALLOC(
-            alignment, memory_N * K * nFold1 * sizeof(double));
-        xTimesBeta = (double*)ALIGNED_ALLOC(
-            alignment, memory_N * K * nFold1 * sizeof(double));
-        beta = (double*)ALIGNED_ALLOC(alignment,
-                                      memory_P * K * nFold1 * sizeof(double));
-        intercept =
-            (double*)ALIGNED_ALLOC(alignment, K * nFold1 * sizeof(double));
-        v = (double*)ALIGNED_ALLOC(alignment,
-                                   memory_P * nFold1 * sizeof(double));
-        u = (double*)ALIGNED_ALLOC(alignment, memory_P * sizeof(double));
-    } else {
-        lambda = (double*)malloc(nFold1 * sizeof(double));
-        loglikelihood = (double*)malloc(nFold1 * sizeof(double));
-        lasso = (double*)malloc(nFold1 * sizeof(double));
-        ridge = (double*)malloc(nFold1 * sizeof(double));
-        fusion = (double*)malloc(nFold1 * sizeof(double));
-        cost = (double*)malloc(nFold1 * sizeof(double));
-        featureMean = (double*)malloc(memory_P * sizeof(double));
-        ySD = (double*)malloc(nFold1 * sizeof(double));
-
-        x = (double*)malloc(memory_N * memory_P * sizeof(double));
-        y = (double*)malloc(memory_N * K * nFold1 * sizeof(double));
-        yOrg = (double*)malloc(memory_N * K * sizeof(double));
-        w = (double*)malloc(memory_N * K * nFold1 * sizeof(double));
-        wCV = (double*)malloc(memory_N * nFold1 * sizeof(double));
-        wOrg = (double*)malloc(memory_N * nFold1 * sizeof(double));
-        tmp_array1 = (double*)malloc(memory_N * nFold1 * sizeof(double));
-        tmp_array2 = (double*)malloc(memory_N * nFold1 * K * sizeof(double));
-        xTimesBeta = (double*)malloc(memory_N * K * nFold1 * sizeof(double));
-        beta = (double*)malloc(memory_P * K * nFold1 * sizeof(double));
-        intercept = (double*)malloc(K * nFold1 * sizeof(double));
-        v = (double*)malloc(memory_P * nFold1 * sizeof(double));
-        u = (double*)malloc(memory_P * sizeof(double));
-    }
+    x = (double*)malloc(memory_N * memory_P * sizeof(double));
+    y = (double*)malloc(memory_N * K * nFold1 * sizeof(double));
+    yOrg = (double*)malloc(memory_N * K * sizeof(double));
+    w = (double*)malloc(memory_N * K * nFold1 * sizeof(double));
+    wCV = (double*)malloc(memory_N * nFold1 * sizeof(double));
+    wOrg = (double*)malloc(memory_N * nFold1 * sizeof(double));
+    tmp_array1 = (double*)malloc(memory_N * nFold1 * sizeof(double));
+    tmp_array2 = (double*)malloc(memory_N * nFold1 * K * sizeof(double));
+    xTimesBeta = (double*)malloc(memory_N * K * nFold1 * sizeof(double));
+    beta = (double*)malloc(memory_P * K * nFold1 * sizeof(double));
+    intercept = (double*)malloc(K * nFold1 * sizeof(double));
+    v = (double*)malloc(memory_P * nFold1 * sizeof(double));
+    u = (double*)malloc(memory_P * sizeof(double));
 
     memset(lambda, 0.0, nFold1 * sizeof(double));
     memset(loglikelihood, 0.0, nFold1 * sizeof(double));
@@ -99,35 +49,20 @@ void zeroSum::allocData() {
     memset(u, 0.0, memory_P * sizeof(double));
 
     if (type == cox) {
-        if (avxType != fallback) {
-            status = (uint32_t*)ALIGNED_ALLOC(alignment,
-                                              memory_N * sizeof(uint32_t));
-            d = (double*)ALIGNED_ALLOC(alignment,
-                                       memory_N * nFold1 * sizeof(double));
+        status = (uint32_t*)malloc(memory_N * sizeof(uint32_t));
+        d = (double*)malloc(memory_N * nFold1 * sizeof(double));
 
-        } else {
-            status = (uint32_t*)malloc(memory_N * sizeof(uint32_t));
-            d = (double*)malloc(memory_N * nFold1 * sizeof(double));
-        }
         memset(status, 0, memory_N * sizeof(uint32_t));
         memset(d, 0.0, memory_N * nFold1 * sizeof(double));
     }
 
     if (useFusion) {
-        if (avxType != fallback) {
-            fusionPartialSums = (double*)ALIGNED_ALLOC(
-                alignment, memory_nc * K * nFold1 * sizeof(double));
-            fusionPartialSumsTmp = (double*)ALIGNED_ALLOC(
-                alignment, memory_nc * nFold1 * sizeof(double));
-            fusionSums =
-                (double*)ALIGNED_ALLOC(alignment, K * nFold1 * sizeof(double));
-        } else {
-            fusionPartialSums =
-                (double*)malloc(memory_nc * K * nFold1 * sizeof(double));
-            fusionPartialSumsTmp =
-                (double*)malloc(memory_nc * nFold1 * sizeof(double));
-            fusionSums = (double*)malloc(K * nFold1 * sizeof(double));
-        }
+        fusionPartialSums =
+            (double*)malloc(memory_nc * K * nFold1 * sizeof(double));
+        fusionPartialSumsTmp =
+            (double*)malloc(memory_nc * nFold1 * sizeof(double));
+        fusionSums = (double*)malloc(K * nFold1 * sizeof(double));
+
         memset(fusion, 0.0, nFold1 * sizeof(double));
         memset(fusionPartialSums, 0.0, memory_nc * K * nFold1 * sizeof(double));
         memset(fusionPartialSumsTmp, 0.0, memory_nc * nFold1 * sizeof(double));
@@ -234,101 +169,52 @@ zeroSum::zeroSum(uint32_t N,
 }
 
 void zeroSum::freeData() {
-    if (avxType != fallback) {
-        ALIGNED_FREE(last_beta);
-        ALIGNED_FREE(last_intercept);
+    free(last_beta);
+    free(last_intercept);
 
-        if (useFusion && fusionKernel != nullptr) {
-            for (uint32_t j = 0; j < P; ++j) {
-                struct fusionKernel* currEl = fusionKernel[j];
-                struct fusionKernel* nextEl;
+    if (useFusion && fusionKernel != nullptr) {
+        for (uint32_t j = 0; j < P; ++j) {
+            struct fusionKernel* currEl = fusionKernel[j];
+            struct fusionKernel* nextEl;
 
-                while (currEl != NULL) {
-                    nextEl = currEl->next;
-                    ALIGNED_FREE(currEl);
-                    currEl = nextEl;
-                }
+            while (currEl != NULL) {
+                nextEl = currEl->next;
+                free(currEl);
+                currEl = nextEl;
             }
-            ALIGNED_FREE(fusionKernel);
-            ALIGNED_FREE(fusionSums);
-            ALIGNED_FREE(fusionPartialSumsTmp);
-            ALIGNED_FREE(fusionPartialSums);
         }
-
-        if (type == cox) {
-            ALIGNED_FREE(d);
-            ALIGNED_FREE(status);
-        }
-
-        ALIGNED_FREE(u);
-        ALIGNED_FREE(v);
-        ALIGNED_FREE(intercept);
-        ALIGNED_FREE(beta);
-        ALIGNED_FREE(xTimesBeta);
-        ALIGNED_FREE(tmp_array2);
-        ALIGNED_FREE(tmp_array1);
-        ALIGNED_FREE(wCV);
-        ALIGNED_FREE(wOrg);
-        ALIGNED_FREE(w);
-        ALIGNED_FREE(yOrg);
-        ALIGNED_FREE(y);
-        ALIGNED_FREE(x);
-        ALIGNED_FREE(ySD);
-        ALIGNED_FREE(featureMean);
-        ALIGNED_FREE(cost);
-        ALIGNED_FREE(fusion);
-        ALIGNED_FREE(ridge);
-        ALIGNED_FREE(lasso);
-        ALIGNED_FREE(loglikelihood);
-        ALIGNED_FREE(lambda);
-    } else {
-        free(last_beta);
-        free(last_intercept);
-
-        if (useFusion && fusionKernel != nullptr) {
-            for (uint32_t j = 0; j < P; ++j) {
-                struct fusionKernel* currEl = fusionKernel[j];
-                struct fusionKernel* nextEl;
-
-                while (currEl != NULL) {
-                    nextEl = currEl->next;
-                    free(currEl);
-                    currEl = nextEl;
-                }
-            }
-            free(fusionKernel);
-            free(fusionSums);
-            free(fusionPartialSumsTmp);
-            free(fusionPartialSums);
-        }
-
-        if (type == cox) {
-            free(d);
-            free(status);
-        }
-
-        free(u);
-        free(v);
-        free(intercept);
-        free(beta);
-        free(xTimesBeta);
-        free(tmp_array2);
-        free(tmp_array1);
-        free(wCV);
-        free(wOrg);
-        free(w);
-        free(yOrg);
-        free(y);
-        free(x);
-        free(ySD);
-        free(featureMean);
-        free(cost);
-        free(fusion);
-        free(ridge);
-        free(lasso);
-        free(loglikelihood);
-        free(lambda);
+        free(fusionKernel);
+        free(fusionSums);
+        free(fusionPartialSumsTmp);
+        free(fusionPartialSums);
     }
+
+    if (type == cox) {
+        free(d);
+        free(status);
+    }
+
+    free(u);
+    free(v);
+    free(intercept);
+    free(beta);
+    free(xTimesBeta);
+    free(tmp_array2);
+    free(tmp_array1);
+    free(wCV);
+    free(wOrg);
+    free(w);
+    free(yOrg);
+    free(y);
+    free(x);
+    free(ySD);
+    free(featureMean);
+    free(cost);
+    free(fusion);
+    free(ridge);
+    free(lasso);
+    free(loglikelihood);
+    free(lambda);
 }
 
 void zeroSum::shallowCopy(const zeroSum& source) {
