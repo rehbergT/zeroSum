@@ -29,12 +29,12 @@ test_that("cross validation okay", {
 
     y <- exampleData$yCox
     set.seed(1)
-    F <- zeroSum(x, y,
+    G <- zeroSum(x, y,
         family = "cox", foldid = fi, zeroSum = FALSE,
         threads = 1
     )
     set.seed(1)
-    G <- zeroSum(x, y,
+    H <- zeroSum(x, y,
         family = "cox", foldid = fi, zeroSum = FALSE,
         threads = 4
     )
@@ -46,12 +46,12 @@ test_that("cross validation okay", {
     expect_equal(ref$test_cv$D$cv_stats, D$cv_stats, tolerance = 1e-1)
 
 
-    expect_equal(F$cv_stats, G$cv_stats, tolerance = 1e-10)
-    expect_equal(ref$test_cv$F$cv_stats[1:68, ], F$cv_stats[1:68, ],
+    expect_equal(G$cv_stats, H$cv_stats, tolerance = 1e-10)
+    expect_equal(ref$test_cv$F$cv_stats[1:68, ], G$cv_stats[1:68, ],
         tolerance = 1e-1
     )
-    expect_equal(ref$test_cv$G$cv_stats[1:68, ], G$cv_stats[1:68, ],
+    expect_equal(ref$test_cv$G$cv_stats[1:68, ], H$cv_stats[1:68, ],
         tolerance = 1e-1
     )
-    expect_equal(ref$test_cv$glmnetCoefs, as.numeric(coef(F)), tolerance = 1e-1)
+    expect_equal(ref$test_cv$glmnetCoefs, as.numeric(coef(G)), tolerance = 1e-1)
 })

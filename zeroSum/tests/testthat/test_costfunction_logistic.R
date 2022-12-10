@@ -19,13 +19,14 @@ test_that("logistic cost function is correct", {
     for (i in 1:(P - 1)) fusion[i, (i + 1)] <- -1
     gamma <- 0.30
 
-    cost <- extCostFunction(x, y, coef(lin), alpha, lambda, family = "binomial",
-                                gamma = gamma, fusion = fusion, useC = TRUE)
+    cost <- extCostFunction(x, y, coef(lin), alpha, lambda,
+        family = "binomial",
+        gamma = gamma, fusion = fusion, useC = TRUE
+    )
 
     expect_equal(cost$loglikelihood, cost$C$loglikelihood, tolerance = 1e-15)
-    expect_equal(cost$ridge,         cost$C$ridge,         tolerance = 1e-15)
-    expect_equal(cost$lasso,         cost$C$lasso,         tolerance = 1e-15)
-    expect_equal(cost$fusion,        cost$C$fusion,        tolerance = 1e-15)
-    expect_equal(cost$cost,          cost$C$cost,          tolerance = 1e-15)
-
+    expect_equal(cost$ridge, cost$C$ridge, tolerance = 1e-15)
+    expect_equal(cost$lasso, cost$C$lasso, tolerance = 1e-15)
+    expect_equal(cost$fusion, cost$C$fusion, tolerance = 1e-15)
+    expect_equal(cost$cost, cost$C$cost, tolerance = 1e-15)
 })

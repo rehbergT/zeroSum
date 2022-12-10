@@ -19,7 +19,9 @@ test_that("linear regression equals glmnet", {
         algorithm = "LS", standardize = FALSE,
         family = "gaussian", zeroSum = FALSE
     )
-    eA_LS <- extCostFunction(x, y, coef(A_LS), alpha, lambda, family = "gaussian")
+    eA_LS <- extCostFunction(x, y, coef(A_LS), alpha, lambda,
+        family = "gaussian"
+    )
 
     eCompA <- extCostFunction(x, y, ref$test_linear$A, alpha, lambda,
         family = "gaussian"
@@ -49,7 +51,9 @@ test_that("linear regression equals glmnet", {
         algorithm = "LS", standardize = FALSE,
         family = "gaussian"
     )
-    eB_LS <- extCostFunction(x, y, coef(B_LS), alpha, lambda, family = "gaussian")
+    eB_LS <- extCostFunction(x, y, coef(B_LS), alpha, lambda,
+        family = "gaussian"
+    )
 
     expect_equal(eB$cost / eB_LS$cost, 1.0, 1e-3)
     expect_equal(cor(as.numeric(coef(B)), as.numeric(coef(B_LS))), 1.0,
@@ -71,7 +75,9 @@ test_that("linear regression equals glmnet", {
         algorithm = "LS", standardize = TRUE,
         family = "gaussian", zeroSum = FALSE
     )
-    eC_LS <- extCostFunction(x, y, coef(C_LS), alpha, lambda, family = "gaussian")
+    eC_LS <- extCostFunction(x, y, coef(C_LS), alpha, lambda,
+        family = "gaussian"
+    )
 
     eCompC <- extCostFunction(x, y, ref$test_linear$C, alpha, lambda,
         family = "gaussian"
@@ -101,7 +107,9 @@ test_that("linear regression equals glmnet", {
         algorithm = "LS", standardize = TRUE,
         family = "gaussian"
     )
-    eD_LS <- extCostFunction(x, y, coef(D_LS), alpha, lambda, family = "gaussian")
+    eD_LS <- extCostFunction(x, y, coef(D_LS), alpha, lambda,
+        family = "gaussian"
+    )
 
     expect_equal(eD$cost / eD_LS$cost, 1.0, tolerance = 1e-2)
     expect_equal(cor(as.numeric(coef(D)), as.numeric(coef(D_LS))),
@@ -165,8 +173,9 @@ test_that("linear regression equals glmnet", {
 
     costs <- c(eFA1$cost, eFA2$cost, eFA3$cost, eFA4$cost)
 
-    for (i in 1:length(costs))
+    for (i in seq_len(length(costs))) {
         expect_lte(costs[i], ref$test_linear$fusionCosts[i] * 1.05)
+    }
 
     # calculate fusion terms and expect that most adjacent features are equal
     fused <- abs(as.numeric(fusion %*% cbind(

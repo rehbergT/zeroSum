@@ -99,28 +99,28 @@ exportToCSV <- function(x,
     settings[22, 1] <- data$threads
     settings[23, 1] <- data$seed
 
-    settings[24, 1:nrow(data$x)] <- format(data$w,
+    settings[24, seq_len(nrow(data$x))] <- format(data$w,
         digits = 18,
         scientific = TRUE, trim = TRUE
     )
-    settings[25, 1:ncol(data$x)] <- format(data$u,
+    settings[25, seq_len(ncol(data$x))] <- format(data$u,
         digits = 18,
         scientific = TRUE, trim = TRUE
     )
-    settings[26, 1:ncol(data$x)] <- format(data$v,
+    settings[26, seq_len(ncol(data$x))] <- format(data$v,
         digits = 18,
         scientific = TRUE, trim = TRUE
     )
 
-    settings[27, 1:length(data$lambda)] <- format(data$lambda,
+    settings[27, seq_along(data$lambda)] <- format(data$lambda,
         digits = 18,
         scientific = TRUE, trim = TRUE
     )
-    settings[28, 1:length(data$gamma)] <- format(data$gamma,
+    settings[28, seq_along(data$gamma)] <- format(data$gamma,
         digits = 18,
         scientific = TRUE, trim = TRUE
     )
-    settings[29, 1:nrow(data$x)] <- data$foldid
+    settings[29, seq_len(nrow(data$x))] <- data$foldid
 
     utils::write.csv(settings, quote = FALSE, file = paste0(
         path, "settings",

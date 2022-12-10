@@ -219,36 +219,84 @@ test_that("multinomial regression equals glmnet", {
     lambda <- 0.001
     set.seed(1)
 
-    FA1 <- zeroSum(x, y, alpha, lambda, algorithm = "LS", gamma = gamma, fusion = fusion, family = "multinomial", zeroSum = FALSE)
-    eFA1 <- extCostFunction(x, y, coef(FA1), alpha, lambda, family = "multinomial", gamma = gamma, fusion = fusion)
+    FA1 <- zeroSum(x, y, alpha, lambda,
+        algorithm = "LS", gamma = gamma,
+        fusion = fusion, family = "multinomial", zeroSum = FALSE
+    )
+    eFA1 <- extCostFunction(x, y, coef(FA1), alpha, lambda,
+        family = "multinomial", gamma = gamma, fusion = fusion
+    )
 
-    FA2 <- zeroSum(x, y, alpha, lambda, algorithm = "LS", gamma = gamma, fusion = fusion, useApprox = FALSE, family = "multinomial", zeroSum = FALSE)
-    eFA2 <- extCostFunction(x, y, coef(FA2), alpha, lambda, family = "multinomial", gamma = gamma, fusion = fusion)
+    FA2 <- zeroSum(x, y, alpha, lambda,
+        algorithm = "LS", gamma = gamma,
+        fusion = fusion, useApprox = FALSE, family = "multinomial",
+        zeroSum = FALSE
+    )
+    eFA2 <- extCostFunction(x, y, coef(FA2), alpha, lambda,
+        family = "multinomial", gamma = gamma, fusion = fusion
+    )
 
-    FA3 <- zeroSum(x, y, alpha, lambda, algorithm = "LS", gamma = gamma, fusion = fusion, family = "multinomial")
-    eFA3 <- extCostFunction(x, y, coef(FA3), alpha, lambda, family = "multinomial", gamma = gamma, fusion = fusion)
+    FA3 <- zeroSum(x, y, alpha, lambda,
+        algorithm = "LS", gamma = gamma,
+        fusion = fusion, family = "multinomial"
+    )
+    eFA3 <- extCostFunction(x, y, coef(FA3), alpha, lambda,
+        family = "multinomial", gamma = gamma, fusion = fusion
+    )
 
-    FA4 <- zeroSum(x, y, alpha, lambda, algorithm = "LS", gamma = gamma, fusion = fusion, useApprox = FALSE, family = "multinomial")
-    eFA4 <- extCostFunction(x, y, coef(FA4), alpha, lambda, family = "multinomial", gamma = gamma, fusion = fusion)
+    FA4 <- zeroSum(x, y, alpha, lambda,
+        algorithm = "LS", gamma = gamma,
+        fusion = fusion, useApprox = FALSE, family = "multinomial"
+    )
+    eFA4 <- extCostFunction(x, y, coef(FA4), alpha, lambda,
+        family = "multinomial", gamma = gamma, fusion = fusion
+    )
 
-    FA5 <- zeroSum(x, y, alpha, lambda, algorithm = "LS", standardize = TRUE, gamma = gamma, fusion = fusion, family = "multinomial", zeroSum = FALSE)
-    eFA5 <- extCostFunction(x, y, coef(FA5), alpha, lambda, family = "multinomial", gamma = gamma, fusion = fusion)
+    FA5 <- zeroSum(x, y, alpha, lambda,
+        algorithm = "LS", standardize = TRUE,
+        gamma = gamma, fusion = fusion, family = "multinomial", zeroSum = FALSE
+    )
+    eFA5 <- extCostFunction(x, y, coef(FA5), alpha, lambda,
+        family = "multinomial", gamma = gamma, fusion = fusion
+    )
 
-    FA6 <- zeroSum(x, y, alpha, lambda, algorithm = "LS", standardize = TRUE, gamma = gamma, fusion = fusion, useApprox = FALSE, family = "multinomial", zeroSum = FALSE)
-    eFA6 <- extCostFunction(x, y, coef(FA6), alpha, lambda, family = "multinomial", gamma = gamma, fusion = fusion)
+    FA6 <- zeroSum(x, y, alpha, lambda,
+        algorithm = "LS", standardize = TRUE,
+        gamma = gamma, fusion = fusion, useApprox = FALSE,
+        family = "multinomial", zeroSum = FALSE
+    )
+    eFA6 <- extCostFunction(x, y, coef(FA6), alpha, lambda,
+        family = "multinomial", gamma = gamma, fusion = fusion
+    )
 
-    FA7 <- zeroSum(x, y, alpha, lambda, algorithm = "LS", standardize = TRUE, gamma = gamma, fusion = fusion, family = "multinomial")
-    eFA7 <- extCostFunction(x, y, coef(FA7), alpha, lambda, family = "multinomial", gamma = gamma, fusion = fusion)
+    FA7 <- zeroSum(x, y, alpha, lambda,
+        algorithm = "LS", standardize = TRUE,
+        gamma = gamma, fusion = fusion, family = "multinomial"
+    )
+    eFA7 <- extCostFunction(x, y, coef(FA7), alpha, lambda,
+        family = "multinomial", gamma = gamma, fusion = fusion
+    )
 
-    FA8 <- zeroSum(x, y, alpha, lambda, algorithm = "LS", standardize = TRUE, gamma = gamma, fusion = fusion, useApprox = FALSE, family = "multinomial")
-    eFA8 <- extCostFunction(x, y, coef(FA8), alpha, lambda, family = "multinomial", gamma = gamma, fusion = fusion)
+    FA8 <- zeroSum(x, y, alpha, lambda,
+        algorithm = "LS", standardize = TRUE, gamma = gamma, fusion = fusion,
+        useApprox = FALSE, family = "multinomial"
+    )
+    eFA8 <- extCostFunction(x, y, coef(FA8), alpha, lambda,
+        family = "multinomial", gamma = gamma, fusion = fusion
+    )
 
-    costs <- c(eFA1$cost, eFA2$cost, eFA3$cost, eFA4$cost, eFA5$cost, eFA6$cost, eFA7$cost, eFA8$cost)
+    costs <- c(
+        eFA1$cost, eFA2$cost, eFA3$cost, eFA4$cost, eFA5$cost,
+        eFA6$cost, eFA7$cost, eFA8$cost
+    )
 
-    for (i in 1:length(costs)) {
+    for (i in seq_len(length(costs))) {
         expect_lte(costs[i], ref$test_multi$fusionCosts[i] + 5e-2)
     }
-    # calculate fusion terms and expect that most are adjacent features are equal
-    fused <- abs(as.numeric(fusion %*% cbind(coef(FA1), coef(FA2), coef(FA3), coef(FA4), coef(FA5), coef(FA6), coef(FA7), coef(FA8))[-1, ]))
+    # calculate fusion terms and expect that most adjacent features are equal
+    fused <- abs(as.numeric(fusion %*% cbind(
+        coef(FA1), coef(FA2), coef(FA3),
+        coef(FA4), coef(FA5), coef(FA6), coef(FA7), coef(FA8)
+    )[-1, ]))
     expect_gte(sum(fused < 1e-5) / length(fused), 0.5)
 })

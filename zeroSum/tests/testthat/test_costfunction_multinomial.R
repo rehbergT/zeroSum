@@ -1,6 +1,6 @@
 context("Testing multinomial cost function")
 
-test_that("multinomial cost function is correct", {    
+test_that("multinomial cost function is correct", {
     set.seed(10)
     x <- log2(exampleData$x)
     y <- exampleData$yMultinomial

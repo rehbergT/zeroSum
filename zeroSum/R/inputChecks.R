@@ -27,15 +27,15 @@ colnames(zeroSumAlgos) <- c("Algo", "Int")
 
 
 checkNumericMatrix <- function(x, varName) {
-    if (any(class(x) == "tbl") & typeof(x) == "list") {
+    if (any(class(x) == "tbl") && typeof(x) == "list") {
         x <- as.matrix(x)
     }
 
-    if (any(class(x) == "data.frame") & typeof(x) == "list") {
+    if (any(class(x) == "data.frame") && typeof(x) == "list") {
         x <- as.matrix(x)
     }
 
-    if (!any(class(x) == "matrix") | typeof(x) != "double") {
+    if (!any(class(x) == "matrix") || typeof(x) != "double") {
         message <- sprintf("%s is not a matrix", varName)
         stop(message)
     }
@@ -60,7 +60,7 @@ checkNumericMatrix <- function(x, varName) {
 
 checkSparseMatrix <- function(x, varName) {
     x <- methods::as(x, "sparseMatrix")
-    if (class(x) != "dgCMatrix" | typeof(x) != "S4") {
+    if (class(x) != "dgCMatrix" || typeof(x) != "S4") {
         message <- sprintf(paste0(
             "Type of %s is not a sparse matrix or cannot",
             "be casted to a sparse matrix\n"
@@ -70,15 +70,15 @@ checkSparseMatrix <- function(x, varName) {
 }
 
 checkNumericVector <- function(x, varName) {
-    if (any(class(x) == "tbl") & typeof(x) == "list") {
+    if (any(class(x) == "tbl") && typeof(x) == "list") {
         x <- as.matrix(x)
     }
 
-    if (any(class(x) == "data.frame") & typeof(x) == "list") {
+    if (any(class(x) == "data.frame") && typeof(x) == "list") {
         x <- as.matrix(x)
     }
 
-    if (any(class(x) == "numeric") & typeof(x) == "double") {
+    if (any(class(x) == "numeric") && typeof(x) == "double") {
         x <- as.matrix(x)
     }
 
@@ -86,7 +86,7 @@ checkNumericVector <- function(x, varName) {
         x <- as.matrix(as.numeric(x))
     }
 
-    if (!any(class(x) == "matrix") | typeof(x) != "double" | ncol(x) > 1) {
+    if (!any(class(x) == "matrix") || typeof(x) != "double" || ncol(x) > 1) {
         message <- sprintf("%s is not a vector", varName)
         stop(message)
     }
@@ -191,7 +191,7 @@ checkData <- function(x, y, w, type) {
 }
 
 checkType <- function(type) {
-    if (class(type) != "character" & typeof(type) != "character" |
+    if (class(type) != "character" && typeof(type) != "character" ||
         !(type %in% zeroSumTypes[, 1])) {
         message <- paste0(
             "Selected type is not valid. Use gaussian, binomial",
@@ -202,15 +202,15 @@ checkType <- function(type) {
 }
 
 checkAlgo <- function(algo, name) {
-    if (class(algo) != "character" & typeof(algo) != "character"
-    | !(algo %in% zeroSumAlgos[, 1])) {
+    if (class(algo) != "character" && typeof(algo) != "character" ||
+        !(algo %in% zeroSumAlgos[, 1])) {
         message <- sprintf("Selected %s is not valid")
         stop(message)
     }
 }
 
 checkDouble <- function(x, name) {
-    if (class(x) != "numeric" | typeof(x) != "double") {
+    if (class(x) != "numeric" || typeof(x) != "double") {
         message <- sprintf("Type of %s is not numeric", name)
         stop(message)
     }

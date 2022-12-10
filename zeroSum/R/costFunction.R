@@ -25,7 +25,7 @@ costFunction <- function(data, useC = FALSE) {
         out$loglikelihood <- as.numeric(weights %*% (y * xtb - expXB))
     } else if (data$type == zeroSumTypes[3, 2]) {
         xb <- x %*% beta[-1, ]
-        for (i in 1:ncol(beta)) {
+        for (i in seq_len(ncol(beta))) {
             xb[, i] <- xb[, i] + rep(beta[1, i], N)
         }
 
@@ -86,7 +86,7 @@ costFunction <- function(data, useC = FALSE) {
     out$fusion <- 0
     if (data$useFusion) {
         out$fusion <- 0.0
-        for (i in 1:ncol(data$beta)) {
+        for (i in seq_len(ncol(data$beta))) {
             out$fusion <- out$fusion + sum(abs(as.numeric(data$fusion %*%
                 data$beta[-1, i])))
         }

@@ -19,7 +19,9 @@ test_that("logistic regression equals glmnet", {
         algorithm = "LS", standardize = FALSE,
         family = "binomial", zeroSum = FALSE
     )
-    eA_LS <- extCostFunction(x, y, coef(A_LS), alpha, lambda, family = "binomial")
+    eA_LS <- extCostFunction(x, y, coef(A_LS), alpha, lambda,
+        family = "binomial"
+    )
 
     A_LS2 <- zeroSum(x, y, alpha, lambda,
         algorithm = "LS", standardize = FALSE,
@@ -97,7 +99,9 @@ test_that("logistic regression equals glmnet", {
         algorithm = "LS", standardize = TRUE,
         family = "binomial", zeroSum = FALSE
     )
-    eC_LS <- extCostFunction(x, y, coef(C_LS), alpha, lambda, family = "binomial")
+    eC_LS <- extCostFunction(x, y, coef(C_LS), alpha, lambda,
+        family = "binomial"
+    )
 
     C_LS2 <- zeroSum(x, y, alpha, lambda,
         algorithm = "LS", standardize = TRUE,
@@ -259,10 +263,14 @@ test_that("logistic regression equals glmnet", {
         eFA7$cost, eFA8$cost
     )
 
-    for (i in 1:length(costs))
+    for (i in seq_len(length(costs))) {
         expect_lte(costs[i], ref$test_logistic$fusionCosts[i] + 5e-2)
+    }
 
     # calculate fusion terms and expect that most adjacent features are equal
-    fused <- abs(as.numeric(fusion %*% cbind(coef(FA1), coef(FA2), coef(FA3), coef(FA4), coef(FA5), coef(FA6), coef(FA7), coef(FA8))[-1, ]))
+    fused <- abs(as.numeric(fusion %*% cbind(
+        coef(FA1), coef(FA2), coef(FA3),
+        coef(FA4), coef(FA5), coef(FA6), coef(FA7), coef(FA8)
+    )[-1, ]))
     expect_gte(sum(fused < 1e-5) / length(fused), 0.3)
 })

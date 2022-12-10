@@ -24,11 +24,9 @@
 coef.zeroSum <- function(object = NULL, s = "lambda.min", ...) {
     if (s == "lambda.min") {
         beta <- object$coef[[object$lambdaMinIndex]]
-    }
-    else if (s == "lambda.1SE" || s == "lambda.1se") {
+    } else if (s == "lambda.1SE" || s == "lambda.1se") {
         beta <- object$coef[[object$lambda1SEIndex]]
-    }
-    else {
+    } else {
         beta <- object$coef[[s]]
     }
     rownames(beta) <- object$variables.names

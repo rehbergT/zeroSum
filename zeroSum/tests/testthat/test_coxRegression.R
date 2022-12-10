@@ -246,8 +246,9 @@ test_that("cox regression test", {
         eFA7$cost, eFA8$cost
     )
 
-    for (i in 1:length(costs))
+    for (i in seq_len(length(costs))) {
         expect_lte(costs[i], ref$test_cox$fusionCosts[i] + 5e-2)
+    }
 
     # calculate fusion terms and expect that adjacent features are equal
     fused <- abs(as.numeric(fusion %*% cbind(

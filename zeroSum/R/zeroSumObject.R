@@ -25,7 +25,7 @@ zeroSumObject <- function(obj) {
 
     obj$coef <- list()
     obj$cv_predict <- list()
-    for (i in 1:nrow(tmp)) {
+    for (i in seq_len(nrow(tmp))) {
         obj$coef[[i]] <- Matrix::Matrix(tmp[i, -c(1:5)],
             ncol = K,
             sparse = TRUE

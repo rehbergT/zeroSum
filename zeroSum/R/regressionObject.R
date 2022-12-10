@@ -7,8 +7,8 @@
 #' @keywords internal
 regressionObject <- function(x, y, type, alpha, lambda, lambdaSteps, weights,
                              penalty.factor, zeroSum.weights, nFold, foldid,
-                             epsilon, standardize, intercept, useZeroSum, threads,
-                             cvStop, ...) {
+                             epsilon, standardize, intercept, useZeroSum,
+                             threads, cvStop, ...) {
     args <- list(...)
     if (methods::hasArg("beta")) {
         beta <- args$beta
@@ -88,13 +88,15 @@ regressionObject <- function(x, y, type, alpha, lambda, lambdaSteps, weights,
         cSum <- 0.0
     }
 
+    data <- list()
+
     if (methods::hasArg("seed")) {
-        seed <- as.integer(args$seed)
+        data$seed <- as.integer(args$seed)
+        set.seed(data$seed)
     } else {
-        seed <- sample(.Machine$integer.max, size = 1)
+        data$seed <- sample(.Machine$integer.max, size = 1)
     }
 
-    data <- list()
     checkType(type)
     id <- which(zeroSumTypes[, 1] == type)
     data$type <- as.integer(zeroSumTypes[id, 2])
@@ -270,7 +272,7 @@ regressionObject <- function(x, y, type, alpha, lambda, lambdaSteps, weights,
         } else if (data$type == zeroSumTypes[3, 2]) {
             nM <- getMultinomialNullModel(data$y, data$w, 10)
             res <- matrix(0, ncol = ncol(nM$z), nrow = nrow(nM$z))
-            for (i in 1:nrow(res)) {
+            for (i in seq_len(nrow(res))) {
                 res[i, ] <- (nM$z[i, ] - nM$beta0) * nM$w[i, ]
             }
         } else if (data$type == zeroSumTypes[4, 2]) {
@@ -399,7 +401,6 @@ regressionObject <- function(x, y, type, alpha, lambda, lambdaSteps, weights,
 
     data$rotatedUpdates <- checkInteger(rotatedUpdates)
     data$usePolish <- checkInteger(usePolish)
-    data$seed <- sample(.Machine$integer.max, size = 1)
 
     return(data)
 }

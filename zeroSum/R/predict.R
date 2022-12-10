@@ -33,7 +33,7 @@
 #' @export
 predict.zeroSum <- function(object = NULL, newx = NULL, s = "lambda.min",
                             type = NULL, ...) {
-    if (!any(class(newx) == "matrix") | typeof(newx) != "double") {
+    if (!any(class(newx) == "matrix") || typeof(newx) != "double") {
         stop("type of passed x is not a numeric matrix\n")
     }
 
@@ -96,9 +96,9 @@ predict.zeroSum <- function(object = NULL, newx = NULL, s = "lambda.min",
 
         N <- nrow(newx)
         xb <- newx %*% beta[-1, ]
-        for (i in 1:ncol(xb)) {
-              xb[, i] <- xb[, i] + beta[1, i]
-          }
+        for (i in seq_len(ncol(xb))) {
+            xb[, i] <- xb[, i] + beta[1, i]
+        }
 
         if (type == "link") {
             return(as.matrix(xb))
@@ -106,7 +106,7 @@ predict.zeroSum <- function(object = NULL, newx = NULL, s = "lambda.min",
 
         xb <- exp(xb)
         prob <- xb / rowSums(xb)
-        colnames(prob) <- as.character(1:ncol(prob))
+        colnames(prob) <- as.character(seq_len(ncol(prob)))
 
         if (type == "response") {
             return(as.matrix(prob))
@@ -114,8 +114,8 @@ predict.zeroSum <- function(object = NULL, newx = NULL, s = "lambda.min",
 
         y <- rep(0, N)
         for (i in 1:N) {
-              y[i] <- which.max(prob[i, ])
-          }
+            y[i] <- which.max(prob[i, ])
+        }
 
         return(as.matrix(y))
     } else {

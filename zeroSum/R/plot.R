@@ -17,37 +17,41 @@
 
 #' @examples
 #' set.seed(1)
-#' x <- log2(exampleData$x+1)
+#' x <- log2(exampleData$x + 1)
 #' y <- exampleData$y
-#' fit <- zeroSum( x, y, alpha=1)
-#' plot( fit, "test")
+#' fit <- zeroSum(x, y, alpha = 1)
+#' plot(fit, "test")
 #'
 #' @importFrom graphics abline arrows axis mtext title plot
 #' @importFrom grDevices rgb
 #'
 #' @export
-plot.zeroSum <- function(x=NULL, main="", gamma=0, ...) {
+plot.zeroSum <- function(x = NULL, main = "", gamma = 0, ...) {
     ids <- which(x$cv_stats[, 1] == gamma)
 
     lambda <- log(x$cv_stats[ids, 2])
-    y   <- x$cv_stats[ids, 4]
+    y <- x$cv_stats[ids, 4]
     yER <- x$cv_stats[ids, 5]
 
     yMin <- min(y - yER)
     yMax <- max(y + yER)
 
     col <- rgb(0.0, 0.2, 0.4)
-    plot(lambda, y, pch = 16, cex = 0.5, col = "black",
-        xlab = NA, ylab = NA, ylim = c(yMin, yMax))
+    plot(lambda, y,
+        pch = 16, cex = 0.5, col = "black",
+        xlab = NA, ylab = NA, ylim = c(yMin, yMax)
+    )
 
     title(main = main, line = 2.5)
-    n     <- nrow(x$cv_stats)
+    n <- nrow(x$cv_stats)
     steps <- floor(seq(1, n, length.out = 15))
 
-    axis(3, line = 0, at = lambda[steps],
-        labels = x$cv_stats[steps, 6])
+    axis(3,
+        line = 0, at = lambda[steps],
+        labels = x$cv_stats[steps, 6]
+    )
 
-    mtext(side = 1, text = expression("log("~lambda~")"), line = 2.5)
+    mtext(side = 1, text = expression("log(" ~ lambda ~ ")"), line = 2.5)
     if (x$type %in% zeroSumTypes[1, 2]) {
         mtext(side = 2, text = "Mean-Squared-Error", line = 2.5)
     } else if (x$type %in% zeroSumTypes[2, 2]) {
@@ -57,8 +61,10 @@ plot.zeroSum <- function(x=NULL, main="", gamma=0, ...) {
     } else {
         mtext(side = 2, text = "Partial Likelihood Deviance", line = 2.5)
     }
-    arrows(lambda, y - yER, lambda, y + yER, code = 3, angle = 90,
-           length = 0.05, col = col, lwd = 0.5)
+    arrows(lambda, y - yER, lambda, y + yER,
+        code = 3, angle = 90,
+        length = 0.05, col = col, lwd = 0.5
+    )
 
     abline(v = lambda[x$lambdaMinIndex], col = "black", lty = 3)
     abline(v = lambda[x$lambda1SEIndex], col = "black", lty = 3)
