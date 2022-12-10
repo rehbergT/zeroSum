@@ -21,4 +21,4 @@ latex
 tests/cVersionTest/*.csv
 tests/cVersionTest/*.rds
 *.nfs*
-.vscode/ipch
+.vscode
