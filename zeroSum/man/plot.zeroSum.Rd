@@ -26,9 +26,9 @@ against the value of lambda of a zeroSumCVFit.
 }
 \examples{
 set.seed(1)
-x <- log2(exampleData$x+1)
+x <- log2(exampleData$x + 1)
 y <- exampleData$y
-fit <- zeroSum( x, y, alpha=1)
-plot( fit, "test")
+fit <- zeroSum(x, y, alpha = 1)
+plot(fit, "test")
 
 }

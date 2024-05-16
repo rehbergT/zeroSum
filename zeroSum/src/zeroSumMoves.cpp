@@ -11,15 +11,19 @@ void zeroSum::interceptMove(uint32_t fold, uint32_t l) {
     double* ww = &w[ii];
     double bk;
 
+#if !defined(__APPLE__) || !defined(__arm64__)
     if (avxType == avx2) {
         interceptMoveKernelAVX2(yf, xb, ww, memory_N, &bk);
     } else if (avxType == avx512) {
         interceptMoveKernelAVX512(yf, xb, ww, memory_N, &bk);
     } else {
+#endif
         bk = 0.0;
         for (uint32_t i = 0; i < memory_N; i++)
             bk += (yf[i] - xb[i]) * ww[i];
+#if !defined(__APPLE__) || !defined(__arm64__)
     }
+#endif
 
     double sumW = arraySumAvx(ww, memory_N);
 
@@ -54,11 +58,13 @@ uint32_t zeroSum::cdMove(uint32_t fold, uint32_t k, uint32_t l) {
     double* ww = &w[ii];
 
     double ak, bk;
+#if !defined(__APPLE__) || !defined(__arm64__)
     if (avxType == avx2) {
         cvMoveKernelAVX2(yf, xb, ww, xk, betak, memory_N, &ak, &bk);
     } else if (avxType == avx512) {
         cvMoveKernelAVX512(yf, xb, ww, xk, betak, memory_N, &ak, &bk);
     } else {
+#endif
         ak = 0.0;
         bk = 0.0;
         for (uint32_t i = 0; i < N; i++) {
@@ -66,7 +72,9 @@ uint32_t zeroSum::cdMove(uint32_t fold, uint32_t k, uint32_t l) {
             ak += tmp * xk[i];
             bk += tmp * (yf[i] - xb[i] + *betak * xk[i]);
         }
+#if !defined(__APPLE__) || !defined(__arm64__)
     }
+#endif
 
     double vk = v[INDEX(k, fold, memory_P)];
     ak += lambda[fold] * (1.0 - alpha) * pow(vk, 2);
@@ -128,6 +136,7 @@ uint32_t zeroSum::cdMoveZS(uint32_t fold, uint32_t k, uint32_t s, uint32_t l) {
     double ak = l1 * (pow(vk, 2) + pow(vs, 2) * pow(ukus, 2));
     double bk = l1 * pow(vs, 2) * ukus * (*betas + ukus * *betak);
 
+#if !defined(__APPLE__) || !defined(__arm64__)
     if (avxType == avx2) {
         cvMoveZSKernelAVX2(yf, xb, ww, xk, xs, betak, &ukus, memory_N, &ak,
                            &bk);
@@ -135,13 +144,16 @@ uint32_t zeroSum::cdMoveZS(uint32_t fold, uint32_t k, uint32_t s, uint32_t l) {
         cvMoveZSKernelAVX512(yf, xb, ww, xk, xs, betak, &ukus, memory_N, &ak,
                              &bk);
     } else {
+#endif
         double tmp;
         for (uint32_t i = 0; i < N; i++) {
             tmp = xs[i] * ukus - xk[i];
             ak += ww[i] * pow(tmp, 2);
             bk -= ww[i] * tmp * (yf[i] - xb[i] - *betak * tmp);
         }
+#if !defined(__APPLE__) || !defined(__arm64__)
     }
+#endif
 
     double tmp3 = lambda[fold] * alpha / ak;
 
@@ -188,14 +200,18 @@ uint32_t zeroSum::cdMoveZS(uint32_t fold, uint32_t k, uint32_t s, uint32_t l) {
     else {
         diffk -= *betak;
         diffs -= *betas;
+#if !defined(__APPLE__) || !defined(__arm64__)
         if (avxType == avx2) {
             cvMoveZSKernel2AVX2(xb, &diffk, xk, &diffs, xs, memory_N);
         } else if (avxType == avx512) {
             cvMoveZSKernel2AVX512(xb, &diffk, xk, &diffs, xs, memory_N);
         } else {
+#endif
             for (uint32_t i = 0; i < N; i++)
                 xb[i] -= xk[i] * diffk + xs[i] * diffs;
+#if !defined(__APPLE__) || !defined(__arm64__)
         }
+#endif
 
         if (useApprox)
             refreshApproximation(fold, l);
@@ -235,12 +251,14 @@ void zeroSum::cdMove_parallel(uint32_t* improving, uint32_t steps) {
                 double* ww = &w[ii];
 
                 double ak, bk;
+#if !defined(__APPLE__) || !defined(__arm64__)
                 if (avxType == avx2) {
                     cvMoveKernelAVX2(yf, xb, ww, xk, betak, memory_N, &ak, &bk);
                 } else if (avxType == avx512) {
                     cvMoveKernelAVX512(yf, xb, ww, xk, betak, memory_N, &ak,
                                        &bk);
                 } else {
+#endif
                     ak = 0.0;
                     bk = 0.0;
                     for (uint32_t i = 0; i < N; i++) {
@@ -248,7 +266,9 @@ void zeroSum::cdMove_parallel(uint32_t* improving, uint32_t steps) {
                         ak += tmp * xk[i];
                         bk += tmp * (yf[i] - xb[i] + *betak * xk[i]);
                     }
+#if !defined(__APPLE__) || !defined(__arm64__)
                 }
+#endif
 
                 double vs = v[INDEX(s, fold, memory_P)];
                 ak += lambda[fold] * (1.0 - alpha) * pow(vs, 2);
@@ -346,6 +366,7 @@ void zeroSum::cdMoveZS_parallel(uint32_t* improving, uint32_t steps) {
                 double ak = l1 * (pow(vk, 2) + pow(vs, 2) * pow(ukus, 2));
                 double bk = l1 * pow(vs, 2) * ukus * (*betas + ukus * *betak);
 
+#if !defined(__APPLE__) || !defined(__arm64__)
                 if (avxType == avx2) {
                     cvMoveZSParallelKernelAVX2(xb, ww, xk, xs, betak, &ukus,
                                                memory_N, &ak, &bk);
@@ -353,13 +374,16 @@ void zeroSum::cdMoveZS_parallel(uint32_t* improving, uint32_t steps) {
                     cvMoveZSParallelKernelAVX512(xb, ww, xk, xs, betak, &ukus,
                                                  memory_N, &ak, &bk);
                 } else {
+#endif
                     double tmp;
                     for (uint32_t i = 0; i < N; i++) {
                         tmp = xs[i] * ukus - xk[i];
                         ak += ww[i] * pow(tmp, 2);
                         bk += ww[i] * tmp * (xb[i] + *betak * tmp);
                     }
+#if !defined(__APPLE__) || !defined(__arm64__)
                 }
+#endif
 
                 double tmp3 = lambda[fold] * alpha / ak;
 
@@ -457,6 +481,7 @@ uint32_t zeroSum::cdMoveZSRotated(uint32_t fold,
     double l1 = lambda[fold] * alpha;
     double l2 = lambda[fold] - l1;
 
+#if !defined(__APPLE__) || !defined(__arm64__)
     if (avxType == avx2) {
         cdMoveZSRotatedKernelAVX2(xm, xn, xs, &sinT, &cosT, &unum2, memory_N,
                                   tmp_array1f);
@@ -466,9 +491,12 @@ uint32_t zeroSum::cdMoveZSRotated(uint32_t fold,
                                     tmp_array1f);
 
     } else {
+#endif
         for (uint32_t i = 0; i < memory_N; ++i)
             tmp_array1f[i] = xm[i] * sinT + xn[i] * (-cosT) + xs[i] * unum2;
+#if !defined(__APPLE__) || !defined(__arm64__)
     }
+#endif
 
     double vm = v[INDEX(m, fold, memory_P)];
     double vn = v[INDEX(n, fold, memory_P)];
@@ -479,15 +507,19 @@ uint32_t zeroSum::cdMoveZSRotated(uint32_t fold,
         l2 * (pow(vn * cosT, 2) + pow(vm * sinT, 2) + pow(vs * unum1, 2));
 
     double b;
+#if !defined(__APPLE__) || !defined(__arm64__)
     if (avxType == avx2) {
         cdMoveZSRotatedKernel2AVX2(yf, xb, ww, tmp_array1f, memory_N, &b);
     } else if (avxType == avx512) {
         cdMoveZSRotatedKernel2AVX512(yf, xb, ww, tmp_array1f, memory_N, &b);
     } else {
+#endif
         b = 0.0;
         for (uint32_t i = 0; i < memory_N; ++i)
             b += ww[i] * (yf[i] - xb[i]) * tmp_array1f[i];
+#if !defined(__APPLE__) || !defined(__arm64__)
     }
+#endif
 
     b = -b - l2 * (pow(vn, 2) * *betan * cosT - pow(vm, 2) * *betam * sinT +
                    pow(vs, 2) * *betas * unum1);
@@ -652,6 +684,7 @@ uint32_t zeroSum::cdMoveZSRotated(uint32_t fold,
     diffm -= *betam;
     diffs -= *betas;
 
+#if !defined(__APPLE__) || !defined(__arm64__)
     if (avxType == avx2) {
         cvMoveZSRotatedKernel3AVX2(xb, &diffn, xn, &diffm, xm, &diffs, xs,
                                    memory_N);
@@ -659,9 +692,12 @@ uint32_t zeroSum::cdMoveZSRotated(uint32_t fold,
         cvMoveZSRotatedKernel3AVX512(xb, &diffn, xn, &diffm, xm, &diffs, xs,
                                      memory_N);
     } else {
+#endif
         for (uint32_t i = 0; i < memory_N; ++i)
             xb[i] -= xn[i] * diffn + xm[i] * diffm + xs[i] * diffs;
+#if !defined(__APPLE__) || !defined(__arm64__)
     }
+#endif
 
     if (fabs(diffn) < BETA_CHANGE_PRECISION)
         return 0;
