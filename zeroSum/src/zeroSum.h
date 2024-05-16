@@ -12,7 +12,6 @@
 #ifndef REGRESSION_CD_H
 #define REGRESSION_CD_H
 
-#include <x86intrin.h>
 #include <algorithm>
 #include <array>
 #include <atomic>
