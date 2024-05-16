@@ -1,3 +1,4 @@
+#if !defined(__APPLE__) || !defined(__arm64__)
 
 #include <x86intrin.h>
 #include <cstdint>
@@ -170,3 +171,5 @@ void a_sub_bKernelAVX512(double* a, double* b, double* c, uint32_t N);
 
 void a_add_scalar_bKernelAVX2(double* a, double* b, uint32_t N);
 void a_add_scalar_bKernelAVX512(double* a, double* b, uint32_t N);
+
+#endif

@@ -221,15 +221,19 @@ void zeroSum::predict() {
 double zeroSum::arraySumAvx(double* a, uint32_t n) {
     double sum;
 
+#if !defined(__APPLE__) || !defined(__arm64__)
     if (avxType == avx2) {
         arraySumKernelAVX2(a, n, &sum);
     } else if (avxType == avx512) {
         arraySumKernelAVX512(a, n, &sum);
     } else {
+#endif
         sum = 0.0;
         for (uint32_t i = 0; i < n; ++i)
             sum += a[i];
+#if !defined(__APPLE__) || !defined(__arm64__)
     }
+#endif
 
     return sum;
 }
@@ -252,15 +256,19 @@ double zeroSum::weightedAbsSum(double* a, double* b, uint32_t n) {
 double zeroSum::weightedSquareSum(double* a, double* b, uint32_t n) {
     double sum;
 
+#if !defined(__APPLE__) || !defined(__arm64__)
     if (avxType == avx2) {
         weightedSquareSumKernelAVX2(a, b, n, &sum);
     } else if (avxType == avx512) {
         weightedSquareSumKernelAVX512(a, b, n, &sum);
     } else {
+#endif
         sum = 0.0;
         for (uint32_t i = 0; i < n; ++i)
             sum += a[i] * a[i] * b[i];
+#if !defined(__APPLE__) || !defined(__arm64__)
     }
+#endif
     return sum;
 }
 
@@ -270,54 +278,70 @@ double zeroSum::weightedResidualSquareSum(double* a,
                                           uint32_t n) {
     double sum;
 
+#if !defined(__APPLE__) || !defined(__arm64__)
     if (avxType == avx2) {
         weightedResidualSquareSumKernelAVX2(a, b, c, n, &sum);
     } else if (avxType == avx512) {
         weightedResidualSquareSumKernelAVX512(a, b, c, n, &sum);
     } else {
+#endif
         sum = 0.0;
         for (uint32_t i = 0; i < n; ++i)
             sum += a[i] * pow(b[i] - c[i], 2.0);
+#if !defined(__APPLE__) || !defined(__arm64__)
     }
+#endif
     return sum;
 }
 
 double zeroSum::squareWeightedSum(double* a, double* b, uint32_t n) {
     double sum;
 
+#if !defined(__APPLE__) || !defined(__arm64__)
     if (avxType == avx2) {
         squareWeightedSumKernelAVX2(a, b, n, &sum);
     } else if (avxType == avx512) {
         squareWeightedSumKernelAVX512(a, b, n, &sum);
     } else {
+#endif
         sum = 0.0;
         for (uint32_t i = 0; i < n; i++) {
             double tmp = a[i] * b[i];
             sum += pow(tmp, 2);
         }
+#if !defined(__APPLE__) || !defined(__arm64__)
     }
+#endif
 
     return sum;
 }
 
 void zeroSum::a_sub_b(double* a, double* b, double* c, uint32_t n) {
+#if !defined(__APPLE__) || !defined(__arm64__)
     if (avxType == avx2) {
         a_sub_bKernelAVX2(a, b, c, N);
     } else if (avxType == avx512) {
         a_sub_bKernelAVX512(a, b, c, N);
     } else {
+#endif
         for (uint32_t i = 0; i < n; ++i)
             c[i] = a[i] - b[i];
+#if !defined(__APPLE__) || !defined(__arm64__)
     }
+#endif
 }
 
 void zeroSum::a_add_scalar_b(double* a, double b, uint32_t n) {
+#if !defined(__APPLE__) || !defined(__arm64__)
     if (avxType == avx2) {
         a_add_scalar_bKernelAVX2(a, &b, n);
     } else if (avxType == avx512) {
         a_add_scalar_bKernelAVX2(a, &b, n);
     } else {
+#endif
         for (uint32_t i = 0; i < n; ++i)
             a[i] += b;
+#if !defined(__APPLE__) || !defined(__arm64__)
     }
+#endif
 }

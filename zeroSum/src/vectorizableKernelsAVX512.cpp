@@ -1,3 +1,5 @@
+#if !defined(__APPLE__) || !defined(__arm64__)
+
 #include "vectorizableKernels.h"
 
 void interceptMoveKernelAVX512(double* y,
@@ -345,3 +347,5 @@ void a_add_scalar_bKernelAVX512(double* a, double* b, uint32_t N) {
         _mm512_storeu_pd(&a[i], _a);
     }
 }
+
+#endif
