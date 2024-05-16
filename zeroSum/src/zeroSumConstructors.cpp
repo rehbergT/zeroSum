@@ -136,6 +136,7 @@ zeroSum::zeroSum(uint32_t N,
     memory_nc = nc;
 
     uint32_t alignedDoubles = 0;
+#if !defined(__APPLE__) || !defined(__arm64__)
 #ifdef BUILD_WITH_AVX2
     if (__builtin_cpu_supports("avx2")) {
         avxType = avx2;
@@ -148,6 +149,7 @@ zeroSum::zeroSum(uint32_t N,
         avxType = avx512;
         alignedDoubles = 8;
     }
+#endif
 #endif
 
 #if defined _OPENMP
